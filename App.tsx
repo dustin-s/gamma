@@ -3,7 +3,6 @@ import React, {useState, useEffect} from 'react';
 import MapView, { Marker, AnimatedRegion, Polyline } from 'react-native-maps';
 import { StyleSheet, Text, View, Dimensions, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
-import { LocationAccuracy } from 'expo-location';
 
 export default function App() {
   // Default coordaninates upon loading (Camp Allen).
