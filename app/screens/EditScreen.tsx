@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from "react";
 import MapView from "react-native-maps";
-import {
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  TouchableOpacity,
-  Button,
-} from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
+// Components
+import MapButton from "../components/MapButton";
 
 export default function EditScreen() {
   // Default coordinates upon loading (Camp Allen).
@@ -27,30 +22,27 @@ export default function EditScreen() {
       ></MapView>
 
       <View style={styles.btnContainer}>
-        <TouchableOpacity
-          onPress={() => alert("Yay! you can start mapping!")}
-          style={[styles.mapBtn, { backgroundColor: "green" }]}
-        >
-          <Text style={styles.btnText}>Start Point</Text>
-        </TouchableOpacity>
+        <MapButton
+          label="Start Point"
+          backgroundColor="green"
+          handlePress={() => alert("Yay! you can start mapping!")}
+        />
 
-        <TouchableOpacity
-          onPress={() => alert("Congratulations, you completed a trail! ")}
-          style={[styles.mapBtn, { backgroundColor: "red" }]}
-        >
-          <Text style={styles.btnText}>Stop Point</Text>
-        </TouchableOpacity>
+        <MapButton
+          label="Stop Point"
+          backgroundColor="red"
+          handlePress={() => alert("Congratulations, you completed a trail! ")}
+        />
 
-        <TouchableOpacity
-          onPress={() =>
+        <MapButton
+          label="Save"
+          backgroundColor="blue"
+          handlePress={() =>
             alert(
               "You will now be able to re-walk this trail any time you want."
             )
           }
-          style={[styles.mapBtn, { backgroundColor: "blue" }]}
-        >
-          <Text style={styles.btnText}>Save</Text>
-        </TouchableOpacity>
+        />
       </View>
     </View>
   );
@@ -72,20 +64,10 @@ const styles = StyleSheet.create({
     top: 100,
     right: 30,
   },
-  btnText: {
-    fontSize: 20,
-    color: "#fff",
-  },
   btnContainer: {
     position: "absolute",
     flexDirection: "row",
     justifyContent: "space-evenly",
     bottom: 0,
-  },
-  mapBtn: {
-    marginVertical: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 20,
   },
 });
