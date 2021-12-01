@@ -25,22 +25,9 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied.");
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
+      if (status !== 'granted') { alert ("Permission to access location was denied. The app won't function proporly whithout it activated.")}
     })();
   }, []);
-
-  let text = "Waiting...";
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = "";
-  }
 
   return (
     <View style={styles.container}>
@@ -50,7 +37,7 @@ export default function HomeScreen({ navigation }) {
         showsUserLocation={true}
       ></MapView>
       <StatusBar style="auto" />
-      <Text style={styles.paragraph}>{text}</Text>
+
 
       <View style={{ position: "absolute" }}>
         <Button
