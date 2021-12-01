@@ -7,7 +7,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 
-function homeScreen({navigation}) {
+function homeScreen({navigation} : {[key:string]: any}) {
   // Default coordaninates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
@@ -15,28 +15,15 @@ function homeScreen({navigation}) {
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
   });
-  const [errorMsg, setErrorMsg] = useState(null);
+
 
 // Error message if current location isn't working.
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied.');
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
+      if (status !== 'granted') { alert ("Permission to access location was denied. The app won't function proporly whithout it activated.")}
     })();
   }, []);
-
-  let text = 'Waiting...';
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) { 
-    text= '';
-  }
 
 
   return ( 
@@ -47,7 +34,6 @@ function homeScreen({navigation}) {
         showsUserLocation={true}>
         </MapView>
         <StatusBar style="auto" />
-        <Text style={styles.paragraph}>{text}</Text>
           
         <View style={{position: 'absolute'}}>
           <Button title = "Edit Map" 
