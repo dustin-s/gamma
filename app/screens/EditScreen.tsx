@@ -18,8 +18,8 @@ export default function EditScreen() {
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
   });
-  const [isStarted, setIsStarted] = useState(false);
-  const [locationArr, setLocationArr] = useState([]);
+  const [isStarted, setIsStarted] = useState<boolean>(false);
+  const [locationArr, setLocationArr] = useState<Location[]>([]);
 
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(
@@ -29,11 +29,13 @@ export default function EditScreen() {
         console.error(error);
         return;
       }
+      console.log(locations);
+
       const [location] = locations;
       setLocationArr([...locationArr, location]);
 
       console.log("location length=", locationArr.length);
-      console.log("time: ", new Date(location.timestamp).getTime());
+      console.log(`time:  ${new Date(location.timestamp).toLocaleString()}`);
       console.log("last location: ", location);
       // try {
       //   const url = `https://<your-api-endpoint>`;
@@ -44,7 +46,7 @@ export default function EditScreen() {
     }
   );
 
-  const startRecording = async () => {
+  const handleStartRecording = async () => {
     const { status } = await Location.requestBackgroundPermissionsAsync();
     if (status === "granted") {
       console.log("status: ", status);
@@ -66,17 +68,26 @@ export default function EditScreen() {
     }
   };
 
-  const stopRecoding = async () => {
+  const handleStopRecoding = async () => {
     let value = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TASK_NAME
     );
     console.log(value);
     if (value) {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+      console.log("************************************\n");
       console.log("stopped");
       console.log(`There were ${locationArr.length} entries in the array.`);
+      console.log("\n************************************");
       setIsStarted(false);
     }
+  };
+
+  const handleSave = () => {
+    console.log("*** Save Data ***");
+    console.log(locationArr);
+    console.log("\n************************************");
+    setLocationArr([]);
   };
 
   return (
@@ -93,7 +104,7 @@ export default function EditScreen() {
             label="Start Point"
             backgroundColor="green"
             handlePress={() => {
-              startRecording();
+              handleStartRecording();
               alert("Yay! you can start mapping!");
             }}
           />
@@ -104,21 +115,24 @@ export default function EditScreen() {
             label="Stop Point"
             backgroundColor="red"
             handlePress={() => {
-              stopRecoding();
+              handleStopRecoding();
               alert("Congratulations, you completed a trail! ");
             }}
           />
         )}
 
-        <MapButton
-          label="Save"
-          backgroundColor="blue"
-          handlePress={() =>
-            alert(
-              "You will now be able to re-walk this trail any time you want."
-            )
-          }
-        />
+        {!isStarted && locationArr.length > 0 && (
+          <MapButton
+            label="Save"
+            backgroundColor="blue"
+            handlePress={() => {
+              handleSave();
+              alert(
+                "You will now be able to re-walk this trail any time you want."
+              );
+            }}
+          />
+        )}
       </View>
     </View>
   );
