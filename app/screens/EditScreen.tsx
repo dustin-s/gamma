@@ -9,8 +9,25 @@ import MapButton from "../components/MapButton";
 
 // Constants
 const LOCATION_TASK_NAME = "background-location-task";
-
 export default function EditScreen() {
+  // Types
+  interface coordsObj {
+    accuracy?: number;
+    altitude?: number;
+    altitudeAccuracy?: number;
+    heading?: number;
+    latitude: number;
+    longitude: number;
+    speed?: number;
+    latitudeDelta?: number;
+    longitudeDelta?: number;
+  }
+
+  interface locationObj {
+    coords: coordsObj;
+    timestamp: number;
+  }
+
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
@@ -19,7 +36,7 @@ export default function EditScreen() {
     longitudeDelta: 0.003,
   });
   const [isStarted, setIsStarted] = useState<boolean>(false);
-  const [locationArr, setLocationArr] = useState<Location[]>([]);
+  const [locationArr, setLocationArr] = useState<locationObj[]>([]);
 
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(
@@ -29,7 +46,7 @@ export default function EditScreen() {
         console.error(error);
         return;
       }
-      console.log(locations);
+      console.log("locations:", locations);
 
       const [location] = locations;
       setLocationArr([...locationArr, location]);
@@ -63,6 +80,7 @@ export default function EditScreen() {
         },
       });
       setIsStarted(true);
+      alert("You will now be able to re-walk this trail any time you want.");
     } else {
       console.log("status: ", status);
     }
@@ -80,6 +98,7 @@ export default function EditScreen() {
       console.log(`There were ${locationArr.length} entries in the array.`);
       console.log("\n************************************");
       setIsStarted(false);
+      alert("Congratulations, you completed a trail! ");
     }
   };
 
@@ -88,6 +107,7 @@ export default function EditScreen() {
     console.log(locationArr);
     console.log("\n************************************");
     setLocationArr([]);
+    alert("Trail saved");
   };
 
   return (
@@ -103,10 +123,7 @@ export default function EditScreen() {
           <MapButton
             label="Start Point"
             backgroundColor="green"
-            handlePress={() => {
-              handleStartRecording();
-              alert("Yay! you can start mapping!");
-            }}
+            handlePress={handleStartRecording}
           />
         )}
 
@@ -114,10 +131,7 @@ export default function EditScreen() {
           <MapButton
             label="Stop Point"
             backgroundColor="red"
-            handlePress={() => {
-              handleStopRecoding();
-              alert("Congratulations, you completed a trail! ");
-            }}
+            handlePress={handleStopRecoding}
           />
         )}
 
@@ -125,12 +139,7 @@ export default function EditScreen() {
           <MapButton
             label="Save"
             backgroundColor="blue"
-            handlePress={() => {
-              handleSave();
-              alert(
-                "You will now be able to re-walk this trail any time you want."
-              );
-            }}
+            handlePress={handleSave}
           />
         )}
       </View>
