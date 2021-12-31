@@ -1,8 +1,13 @@
 const express = require("express");
 
+const sequelize = require("./config/connection");
+
 // set up server
 const app = express();
-const PORT = /* env.process.PORT ||*/ 3001;
+const PORT = 3001;
 
-// start the server
-app.listen(PORT, () => console.log("Gamma now listening on port: " + PORT));
+// connect to the DB
+sequelize.sync({ force: false }).then(() => {
+  // start the server
+  app.listen(PORT, () => console.log("Gamma now listening on port: " + PORT));
+});
