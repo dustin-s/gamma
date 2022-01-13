@@ -28,3 +28,5 @@ Trail.init(
     modelName: "trail",
   }
 );
+
+module.exports = Trail;
