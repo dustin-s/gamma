@@ -11,13 +11,13 @@ class User extends Model {
 User.init(
   {
     // Model attributes are defined here
-    user_id: {
+    userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
       autoIncrement: true,
     },
-    user_name: {
+    userName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -36,11 +36,18 @@ User.init(
         isEmail: true,
       },
     },
-    is_admin: {
+    isAdmin: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    is_active: {
+    requstPwdReset: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    lastPwdUpdate: {
+      type: DataTypes.DATE,
+    },
+    isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
