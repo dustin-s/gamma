@@ -37,3 +37,5 @@ TrailPoints.init(
     underscored: true,
   }
 );
+
+module.exports = TrailPoints;
