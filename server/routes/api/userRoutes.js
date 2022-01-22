@@ -22,8 +22,6 @@ router.post("/signup", async (req, res) => {
     const newData = req.body;
     newData.lastLogin = new Date();
 
-    console.log("New Data:", newData);
-
     const newUser = await User.create(newData);
 
     delete newUser.dataValues.password; //delete field password
@@ -54,8 +52,6 @@ router.post("/signup", async (req, res) => {
  */
 router.post("/login", async (req, res) => {
   try {
-    // console.log("\nLogin:\n", req.body);
-
     const userData = await User.findOne({ where: { email: req.body.email } });
 
     // check for user found
@@ -83,7 +79,7 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    // console.log("\ncommit update:\n");
+    // Commit update
     await userData.update({ lastLogin: new Date() });
 
     // **********************************************************************
@@ -120,8 +116,6 @@ router.post("/login", async (req, res) => {
  */
 router.post("/update", async (req, res) => {
   try {
-    // console.log("\nupdateUser:\n", req.body);
-
     const userId = req.body.userId;
     const oldPwd = req.body.oldPassword;
     const newData = req.body.newData;
