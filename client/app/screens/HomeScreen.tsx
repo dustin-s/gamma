@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation }: {[key:string]: any}) {
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
@@ -19,13 +19,12 @@ export default function HomeScreen({ navigation }) {
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
   });
-  const [errorMsg, setErrorMsg] = useState(null);
-
+ 
   // Error message if current location isn't working.
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') { alert ("Permission to access location was denied. The app won't function proporly whithout it activated.")}
+      if (status !== 'granted') { alert ("Permission to access location was denied. The app won't function properly whithout it activated.")}
     })();
   }, []);
 
@@ -39,8 +38,8 @@ export default function HomeScreen({ navigation }) {
       <StatusBar style="auto" />
 
 
-      <View style={{ position: "absolute" }}>
-        <Button
+      <View style={styles.btnContainer}>
+        <Button 
           title="Edit Map"
           onPress={() => navigation.navigate("Edit Map")}
         />
@@ -65,20 +64,10 @@ const styles = StyleSheet.create({
     top: 100,
     right: 30,
   },
-  btnText: {
-    fontSize: 20,
-    color: "#fff",
-  },
   btnContainer: {
     position: "absolute",
     flexDirection: "row",
-    justifyContent: "space-evenly",
-    bottom: 0,
-  },
-  mapBtn: {
-    marginVertical: 20,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 20,
+    right: 10,
+    bottom: 10,
   },
 });
