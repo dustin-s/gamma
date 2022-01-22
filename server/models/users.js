@@ -3,8 +3,14 @@ const bcrypt = require("bcrypt");
 const sequelize = require("../config/connection.js");
 
 class User extends Model {
-  checkPassword(loginPw) {
-    return bcrypt.compareSync(loginPw, this.password);
+  /**
+   * Checks if a password is valid.
+   *
+   * @param {string} loginPwd password being tested
+   * @returns {boolean} true if password matches
+   */
+  checkPassword(loginPwd) {
+    return bcrypt.compareSync(loginPwd, this.password);
   }
 }
 
@@ -40,7 +46,7 @@ User.init(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    requstPwdReset: {
+    requestPwdReset: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
@@ -59,11 +65,23 @@ User.init(
     hooks: {
       beforeCreate: async (newUserData) => {
         newUserData.password = await bcrypt.hash(newUserData.password, 10);
+
+        // update lastPwdUpdate
+        newUserData.lastPwdUpdate = new Date();
+
         return newUserData;
       },
       beforeUpdate: async (userData) => {
         if (userData.password) {
+          console.log("Hook: beforeUpdate: Password updated");
+
           userData.password = await bcrypt.hash(userData.password, 10);
+
+          // update lastPwdUpdate
+          userData.lastPwdUpdate = new Date();
+
+          // reset requestPwdReset
+          userData.requestPwdReset = false;
         }
         return userData;
       },

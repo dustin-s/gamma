@@ -19,11 +19,14 @@ const { User } = require("../../models");
  */
 router.post("/signup", async (req, res) => {
   try {
-    req.body.lastPwdUpdate = new Date();
+    const newData = req.body;
+    newData.lastLogin = new Date();
 
-    console.log(req.body);
+    console.log("New Data:", newData);
 
-    const newUser = await User.create(req.body);
+    const newUser = await User.create(newData);
+
+    delete newUser.dataValues.password; //delete field password
 
     // **********************************************************************
     // ToDo: Deal with session (JWT/Session/OAuth)
@@ -35,6 +38,7 @@ router.post("/signup", async (req, res) => {
     if (message === "Validation error") {
       res.status(400).json(err);
     }
+    console.log("Sign Up Catch Error:\n", err);
     res.status(500).json(err);
   }
 });
@@ -80,12 +84,18 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    const user = {};
-    for (const [key, value] of Object.entries(userData.dataValues)) {
-      if (key !== "password") {
-        user[key] = value;
-      }
-    }
+    // This had to be a new call, otherwise it would run the beforeUpdate hook and change the password to the hashed value
+    const updatedUser = await User.update(
+      { lastLogin: new Date() },
+      { where: { userId: userData.userId } }
+    );
+
+    if (updatedUser[0] < 1) console.log("Login: Failed to update last login");
+
+    // Re-query to get the latest data to return to the user (excluding the password)
+    const user = await User.findByPk(userData.userId, {
+      attributes: { exclude: ["password"] },
+    });
 
     // **********************************************************************
     // ToDo: Deal with session (JWT/Session/OAuth)
@@ -93,6 +103,76 @@ router.post("/login", async (req, res) => {
     res.json({ user: user, message: "You are now logged in!" });
   } catch (err) {
     console.log("Login Catch Error:\n", err);
+    res.status(400).json(err);
+  }
+});
+
+/**
+ * Use this route to update any of the user information - including the password.
+ * This requires the user's password to change any information (even if it ISN'T the password)
+ *
+ * The req.body should have a JSON format of (only fields being changed are required
+ * in the newData object):
+ * {
+ *    "userId": value,
+ *    "oldPassword": "password",
+ *    "newData": {
+ *       "userName": "newValue",
+ *       "email": "newValue",
+ *       "password": "newValue",
+ *       "isAdmin": newValue,
+ *       "isActive": newValue,
+ *       "requestPwdReset": newValue
+ *    }
+ *  }
+ */
+router.post("/updateUser", async (req, res) => {
+  try {
+    console.log(req.body);
+
+    const userId = req.body.userId;
+    const oldPwd = req.body.oldPassword;
+    const newData = req.body.newData;
+
+    const userData = await User.findByPk(userId);
+
+    // check for user found
+    if (!userData) {
+      res
+        .status(400)
+        .json({ message: "Incorrect user ID or password, please try again" });
+      return;
+    }
+
+    // validate password
+    const validPwd = await userData.checkPassword(oldPwd);
+
+    if (!validPwd) {
+      res
+        .status(400)
+        .json({ message: "Incorrect user ID or password, please try again" });
+      return;
+    }
+
+    // This had to be a new call, otherwise it would run the beforeUpdate hook and change the password to the hashed value
+    const updatedUser = await User.update(
+      { newData },
+      { where: { userId: userData.userId } }
+    );
+
+    console.log("Update User:", updatedUser);
+
+    if (updatedUser[0] < 1)
+      console.log("Update User: Failed to update data:", newData);
+
+    // Re-query to get the latest data to return to the user (excluding the password)
+    const user = await User.findByPk(userData.userId, {
+      attributes: { exclude: ["password"] },
+    });
+
+    res.json({ user: user, message: "Update Succeeded!" });
+  } catch (err) {
+    console.log("updateUser Catch Error:\n", err);
     res.status(400).json(err);
   }
 });
