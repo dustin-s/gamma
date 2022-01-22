@@ -72,8 +72,19 @@ User.init(
         return newUserData;
       },
       beforeUpdate: async (userData) => {
-        if (userData.password) {
-          console.log("Hook: beforeUpdate: Password updated");
+        // update password only if password changed
+        if (
+          userData.dataValues.password != userData._previousDataValues.password
+        ) {
+          // console.log(
+          //   "\nHook: beforeUpdate: Password updated\nuserData(.dataValues):\n",
+          //   userData.toJSON(),
+          //   "\n\nNew password: ",
+          //   userData.dataValues.password,
+          //   "\nPrevious password: ",
+          //   userData._previousDataValues.password,
+          //   "\n"
+          // );
 
           userData.password = await bcrypt.hash(userData.password, 10);
 
