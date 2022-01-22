@@ -16,7 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(routes);
 
 // connect to the DB
-sequelize.sync({ alter: true }).then(() => {
+sequelize.sync(/*{ alter: true }*/).then(() => {
   // start the server
   app.listen(PORT, (err) => {
     if (err) console.log(err);

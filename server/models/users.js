@@ -51,6 +51,9 @@ User.init(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
+    lastLogin: {
+      type: DataTypes.DATE,
+    },
   },
   {
     hooks: {
