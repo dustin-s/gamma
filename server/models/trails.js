@@ -5,7 +5,7 @@ class Trail extends Model {}
 
 Trail.init(
   {
-    trail_id: {
+    trailId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
