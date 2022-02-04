@@ -1,4 +1,5 @@
 const { body, validationResult } = require("express-validator");
+
 const { User } = require("../models");
 
 /**
@@ -6,38 +7,68 @@ const { User } = require("../models");
  *
  * The req.body should have a JSON format of:
  * {
- *    "userName": "newValue",
- *    "email": "newValue",
- *    "password": "newValue",
- *    "isAdmin": newValue
+ *    "userName": "new string value",
+ *    "email": "new string (email) value",
+ *    "password": "new string value",
+ *    "isAdmin": new boolean value
  *  }
  *
  * Note:
  * isActive is assumed to be true.
  */
-exports.newUser = async function (req, res, next) {
-  try {
-    const newData = req.body;
-    newData.lastLogin = new Date();
+exports.newUser = [
+  // Validate and sanitize fields.
+  body("userName", "User name cannot be empty.")
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  body("email")
+    .isEmail()
+    .withMessage("Email must be a properly formatted email address.")
+    .custom(async (value) => {
+      const user = await User.findAll({ where: { email: value } });
+      if (user.length > 0) {
+        throw new Error("E-mail already in use");
+      }
+    })
+    .escape(),
+  body(
+    "password",
+    "Password should be combination of one uppercase , one lower case, one special char, one digit and min 8 , max 20 char long"
+  ).matches(
+    /^(?=.*[\d])(?=.*[A-Z])(?=.*[a-z])(?=.*[~!@#$%^&*()])[\da-zA-Z~!@#$%^&*()]{8,20}$/
+  ),
+  // no real check on isAdmin, just escaping it so that we can't get an injection
+  body("isAdmin").escape(),
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      const newData = req.body;
+      newData.lastLogin = new Date();
 
-    const newUser = await User.create(newData);
+      if (!errors.isEmpty()) {
+        console.log("retun");
+        res.status(400).json(errors);
+        return;
+      }
+      const newUser = await User.create(newData);
 
-    delete newUser.dataValues.password; //delete field password
+      delete newUser.dataValues.password; //delete field password
 
-    // **********************************************************************
-    // ToDo: Deal with session (JWT/Session/OAuth)
-    // **********************************************************************
-
-    res.status(201).json(newUser);
-  } catch (err) {
-    const { message } = err;
-    if (message === "Validation error") {
-      res.status(400).json(err);
+      // **********************************************************************
+      // ToDo: Deal with session (JWT/Session/OAuth)
+      // **********************************************************************
+      res.status(201).json(newUser);
+    } catch (err) {
+      const { message } = err;
+      if (message === "Validation error") {
+        res.status(400).json(err);
+      }
+      console.log("Sign Up Catch Error:\n", err);
+      res.status(500).json(err);
     }
-    console.log("Sign Up Catch Error:\n", err);
-    res.status(500).json(err);
-  }
-};
+  },
+];
 
 /**
  * This is to submit a login. Response will contain the current information on the user.
