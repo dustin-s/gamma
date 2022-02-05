@@ -1,6 +1,7 @@
-const { body, validationResult, oneOf, check } = require("express-validator");
+const { body, validationResult } = require("express-validator");
 
 const { User } = require("../models");
+const { signToken } = require("../utils/auth");
 
 /**
  * Use this route to create a new user.
@@ -18,12 +19,7 @@ const { User } = require("../models");
  */
 exports.newUser = [
   // Validate and sanitize fields.
-  body("userName")
-    .trim()
-    .notEmpty()
-    .withMessage("User name cannot be empty")
-    .isAlphanumeric()
-    .withMessage("User name can only have alphanumeric characters"),
+  body("userName").trim().notEmpty().withMessage("User name cannot be empty"),
   body("email")
     .isEmail()
     .withMessage("Email must be a properly formatted email address")
@@ -58,10 +54,9 @@ exports.newUser = [
 
       delete newUser.dataValues.password; //delete field password for return data
 
-      // **********************************************************************
-      // ToDo: Deal with session (JWT/Session/OAuth)
-      // **********************************************************************
-      res.status(201).json(newUser);
+      const token = signToken({ email: newUser.email, userId: newUser.userId });
+
+      res.status(201).json({ newUser, token });
     } catch (err) {
       const { message } = err;
       if (message === "Validation error") {
@@ -128,12 +123,15 @@ exports.login = [
       // Commit update
       await userData.update({ lastLogin: new Date() });
 
-      // **********************************************************************
-      // ToDo: Deal with session (JWT/Session/OAuth)
-      // **********************************************************************
       delete userData.dataValues.password; //delete field password from return values
 
-      res.json({ user: userData, message: "You are now logged in!" });
+      const token = signToken({ email: newUser.email, userId: newUser.userId });
+
+      res.status(200).json({
+        user: userData,
+        token,
+        message: "You are now logged in!",
+      });
     } catch (err) {
       console.log("Login Catch Error:\n", err);
       res.status(400).json(err);
