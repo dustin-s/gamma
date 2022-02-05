@@ -1,7 +1,7 @@
 const { body, validationResult } = require("express-validator");
+const { signToken } = require("../utils/auth");
 
 const { User } = require("../models");
-const { signToken } = require("../utils/auth");
 
 /**
  * Use this route to create a new user.
@@ -17,6 +17,7 @@ const { signToken } = require("../utils/auth");
  * Note:
  * isActive is assumed to be true.
  */
+/*
 exports.newUser = [
   // Validate and sanitize fields.
   body("userName").trim().notEmpty().withMessage("User name cannot be empty"),
@@ -67,6 +68,7 @@ exports.newUser = [
     }
   },
 ];
+*/
 
 /**
  * This is to submit a login. Response will contain the current information on the user.
