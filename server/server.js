@@ -16,10 +16,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(routes);
 
 // connect to the DB
-sequelize.sync(/*{ alter: true }*/).then(() => {
-  // start the server
-  app.listen(PORT, (err) => {
-    if (err) console.log(err);
-    console.log("Gamma now listening on port: " + PORT);
-  });
-});
+sequelize
+  .sync(/*{ force: true }*/)
+  .then((err) => {
+    // start the server
+    app.listen(PORT, (err) => {
+      if (err) console.log(err);
+      console.log("Gamma now listening on port: " + PORT);
+    });
+  })
+  .catch((err) => console.log("Database failed to initialize:\n", err));
