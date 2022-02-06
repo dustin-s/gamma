@@ -1,6 +1,6 @@
 const { body, validationResult } = require("express-validator");
 
-const { Trail, TrailPoints } = require("../models");
+const { Trail, TrailCoords } = require("../models");
 
 // returns a list of all of the trails and the trail's points
 exports.listTrails = async (req, res) => {

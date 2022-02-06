@@ -1,9 +1,10 @@
 const { Model, DataTypes } = require("sequelize");
 const sequelize = require("../config/connection");
 
-class TrailPoints extends Model {}
+class TrailCoords extends Model {}
 
-TrailPoints.init(
+// this will store the "coords" part of the location object
+TrailCoords.init(
   {
     accuracy: {
       type: DataTypes.DECIMAL(23, 18),
@@ -28,9 +29,6 @@ TrailPoints.init(
     speed: {
       type: DataTypes.DECIMAL(23, 18),
     },
-    timestamp: {
-      type: DataTypes.DATE,
-    },
   },
   {
     sequelize,
@@ -38,4 +36,4 @@ TrailPoints.init(
   }
 );
 
-module.exports = TrailPoints;
+module.exports = TrailCoords;
