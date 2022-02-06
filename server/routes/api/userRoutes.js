@@ -7,7 +7,7 @@ const {
 
 // base url: http://localhost:3001/api/users/ +
 
-// router.post("/signup", newUser);
+router.post("/signup", newUser);
 
 router.post("/login", login);
 

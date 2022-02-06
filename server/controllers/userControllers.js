@@ -17,7 +17,6 @@ const { User } = require("../models");
  * Note:
  * isActive is assumed to be true.
  */
-/*
 exports.newUser = [
   // Validate and sanitize fields.
   body("userName").trim().notEmpty().withMessage("User name cannot be empty"),
@@ -68,7 +67,6 @@ exports.newUser = [
     }
   },
 ];
-*/
 
 /**
  * This is to submit a login. Response will contain the current information on the user.
@@ -164,7 +162,7 @@ exports.updateUser = [
   body("userId", "Missing userID").exists(),
   body("oldPassword", "Old password can't be blank").trim().notEmpty().escape(),
   // these fields are optional... the check for if any are missing is included in the function
-  body("newUserName").trim().isAlphanumeric().optional(),
+  body("newUserName").trim().optional(),
   body("newEmail")
     .isEmail()
     .withMessage("Email must be a properly formatted email address")
@@ -205,7 +203,7 @@ exports.updateUser = [
         newData.requestPwdReset = req.body.newRequestPwdReset;
 
       console.log("newData:", newData);
-      if (Object.keys(newData).length === 0)
+      if (Object.keys(newData).length === 0) {
         res.status(400).json([
           {
             value: newData,
@@ -214,6 +212,8 @@ exports.updateUser = [
             location: "body",
           },
         ]);
+        return;
+      }
 
       // handle validation errors
       const errors = validationResult(req);
