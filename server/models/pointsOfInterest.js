@@ -28,23 +28,23 @@ PointsOfInterest.init(
 
     // location
     accuracy: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(5, 18),
     },
     altitude: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(5, 18),
     },
     altitudeAccuracy: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(5, 18),
     },
     heading: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(5, 18),
     },
     latitude: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(5, 18),
       allowNull: false,
     },
     longitude: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(5, 18),
       allowNull: false,
     },
   },
