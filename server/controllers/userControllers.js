@@ -89,6 +89,7 @@ exports.login = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        console.log("validation errors: ", errors.array());
         res.status(400).json(errors);
         return;
       }
@@ -125,7 +126,12 @@ exports.login = [
 
       delete userData.dataValues.password; //delete field password from return values
 
-      const token = signToken({ email: newUser.email, userId: newUser.userId });
+      const token = signToken({
+        email: userData.email,
+        userId: userData.userId,
+      });
+
+      console.log(userData, token);
 
       res.status(200).json({
         user: userData,
