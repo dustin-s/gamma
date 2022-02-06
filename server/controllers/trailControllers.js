@@ -34,11 +34,11 @@ exports.saveTrail = [
   body("isClosed", "isClosed must be true/false").isBoolean().optional(),
 
   // Trail Points validation
-  body("trailPoints.*", "The trail must have at least 2 points.").isArray({
+  body("coords.*", "The trail must have at least 2 points.").isArray({
     min: 2,
   }),
-  // body("trailPoints.*.latitude").exists(),
-  // body("trailPoints.*.longitude").exists(),
+  body("coords.*.latitude").exists(),
+  body("coords.*.longitude").exists(),
 
   async (req, res) => {
     try {
