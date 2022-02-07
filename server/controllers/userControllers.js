@@ -2,6 +2,7 @@ const { body, validationResult } = require("express-validator");
 const { signToken } = require("../utils/auth");
 
 const { User } = require("../models");
+const { errorMsg, informationMsg } = require("../utils/formatting");
 
 /**
  * Use this route to create a new user.
@@ -62,7 +63,7 @@ exports.newUser = [
       if (message === "Validation error") {
         res.status(400).json(err);
       }
-      console.log("Sign Up Catch Error:\n", err);
+      console.log(errorMsg("Sign Up Catch Error:\n"), err);
       res.status(500).json(err);
     }
   },
@@ -89,7 +90,7 @@ exports.login = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        console.log("validation errors: ", errors.array());
+        console.log(errorMsg("validation errors:\n"), errors.array());
         res.status(400).json(errors);
         return;
       }
@@ -131,7 +132,7 @@ exports.login = [
         userId: userData.userId,
       });
 
-      console.log(userData, token);
+      console.log(informationMsg(userData), informationMsg(token));
 
       res.status(200).json({
         user: userData,
@@ -139,7 +140,7 @@ exports.login = [
         message: "You are now logged in!",
       });
     } catch (err) {
-      console.log("Login Catch Error:\n", err);
+      console.log(errorMsg("Login Catch Error:\n"), err);
       res.status(400).json(err);
     }
   },
@@ -208,7 +209,7 @@ exports.updateUser = [
       if (req.body.newRequestPwdReset)
         newData.requestPwdReset = req.body.newRequestPwdReset;
 
-      console.log("newData:", newData);
+      console.log(informationMsg("newData:"), newData);
       if (Object.keys(newData).length === 0) {
         res.status(400).json([
           {
@@ -259,7 +260,7 @@ exports.updateUser = [
         message: "Update Succeeded!",
       });
     } catch (err) {
-      console.log("updateUser Catch Error:\n", err);
+      console.log(errorMsg("updateUser Catch Error:\n"), err);
       res.status(400).json({ message: err.message });
     }
   },
