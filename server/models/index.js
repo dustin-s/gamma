@@ -4,18 +4,15 @@ const Trail = require("./trails");
 const TrailCoords = require("./trailCoords");
 const PointsOfInterest = require("./pointsOfInterest");
 const Hazards = require("./hazards");
-// const PointsOfInterest=
-User.hasMany(Trail);
-Trail.belongsTo(User);
 
-Trail.hasMany(TrailCoords);
-TrailCoords.belongsTo(Trail);
+Trail.TrailCoords = Trail.hasMany(TrailCoords);
+TrailCoords.belongsTo(Trail, { foreignKey: { allowNull: false } });
 
 Trail.hasMany(PointsOfInterest);
-PointsOfInterest.belongsTo(Trail);
+PointsOfInterest.belongsTo(Trail, { foreignKey: { allowNull: false } });
 
 Trail.hasMany(Hazards);
-Hazards.belongsTo(Trail);
+Hazards.belongsTo(Trail, { foreignKey: { allowNull: false } });
 
 module.exports = {
   User,

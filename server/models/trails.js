@@ -27,6 +27,11 @@ Trail.init(
         isIn: [["easy", "moderate", "hard"]],
       },
     },
+    createdBy: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      comment: "This needs to be a valid user ID",
+    },
     isClosed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

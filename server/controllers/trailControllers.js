@@ -7,9 +7,7 @@ const { distance } = require("../utils/distance");
 // returns a list of all of the trails and the trail's points
 exports.listTrails = async (req, res) => {
   try {
-    trails = await Trail.findAll({
-      include: TrailPoints,
-    });
+    trails = await Trail.findAll({ include: TrailCoords });
     res.status(200).json(trails);
   } catch (er) {
     console.log(errorMsg("listTrails Catch Error:\n"), err);
@@ -37,16 +35,18 @@ exports.saveTrail = [
   body("isClosed", "isClosed must be true/false").toBoolean().optional(),
 
   // Trail Points validation
-  body("coords", "The trail must have at least 2 points.").exists().isArray({
-    min: 2,
-  }),
-  body("coords.*.latitude").exists().toFloat(),
-  body("coords.*.longitude").exists().toFloat(),
-  body("coords.*.accuracy").optional().toFloat(),
-  body("coords.*.altitude").optional().toFloat(),
-  body("coords.*.altitudeAccuracy").optional().toFloat(),
-  body("coords.*.heading").optional().toFloat(),
-  body("coords.*.speed").optional().toFloat(),
+  body("TrailCoords", "The trail must have at least 2 points.")
+    .exists()
+    .isArray({
+      min: 2,
+    }),
+  body("TrailCoords.*.latitude").exists().toFloat(),
+  body("TrailCoords.*.longitude").exists().toFloat(),
+  body("TrailCoords.*.accuracy").optional().toFloat(),
+  body("TrailCoords.*.altitude").optional().toFloat(),
+  body("TrailCoords.*.altitudeAccuracy").optional().toFloat(),
+  body("TrailCoords.*.heading").optional().toFloat(),
+  body("TrailCoords.*.speed").optional().toFloat(),
 
   // Points of Interest validation
 
@@ -59,41 +59,33 @@ exports.saveTrail = [
         return;
       }
 
-      const newTrail = {
-        name: req.body.name,
-        difficulty: req.body.difficulty,
-      };
-      if (req.body.description) newTrail.description = req.body.description;
-      if (req.body.isClosed) newTrail.isClosed = req.body.isClosed;
+      const newTrail = req.body;
 
       // clean coords? remove duplicates... check for backtracking?
 
-      const coords = req.body.coords;
-
       let dist = 0;
-      for (let i = 0; i < coords.length - 1; i++) {
-        const a = coords[i];
-        const b = coords[i + 1];
+      for (let i = 0; i < newTrail.TrailCoords.length - 1; i++) {
+        const a = newTrail.TrailCoords[i];
+        const b = newTrail.TrailCoords[i + 1];
 
         dist += distance(a.latitude, a.longitude, b.latitude, b.longitude);
       }
-      // let dist = coords.reduce((a, b) => {
-      //   console.log("\na:", a, "\nb:", b);
-      //   distance(a.latitude, a.longitude, b.latitude, b.longitude);
-      // });
+
       newTrail.distance = dist;
 
       console.log(
         informationMsg("\nnewTrail:\n"),
-        informationMsg(JSON.stringify(newTrail)),
-        informationMsg("\n\ncoords:\n"),
-        informationMsg(JSON.stringify(req.body.coords)),
+        newTrail,
+        // informationMsg("\nTrailCoords:\n"),
+        // newTrail.TrailCoords,
         informationMsg("\n\ndistance:"),
-        informationMsg(dist),
+        dist,
         "\n"
       );
 
-      const trail = await Trail.create(newTrail);
+      const trail = await Trail.create(newTrail, {
+        include: [Trail.TrailCoords],
+      });
 
       res.status(201).json(trail);
     } catch (err) {
