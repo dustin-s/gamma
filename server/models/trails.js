@@ -32,6 +32,11 @@ Trail.init(
       allowNull: false,
       comment: "This needs to be a valid user ID",
     },
+    updatedBy: {
+      type: DataTypes.INTEGER,
+      comment: "This needs to be a valid user ID",
+    },
+    // createdAt and updatedAt timestamps are created by default by sequelize
     isClosed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -52,7 +57,6 @@ Trail.init(
       defaultValue: false,
       comment: "this is true if hazards has values",
     },
-    // createdAt, editedAt are default to sequelize
   },
   {
     sequelize,
