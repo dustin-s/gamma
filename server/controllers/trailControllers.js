@@ -1,7 +1,7 @@
 const { body, validationResult } = require("express-validator");
 const { errorMsg, informationMsg } = require("../utils/formatting");
 
-const { Trail, TrailCoords } = require("../models");
+const { Trail, TrailCoords, User } = require("../models");
 const { distance } = require("../utils/distance");
 
 // returns a list of all of the trails and the trail's points
@@ -17,6 +17,18 @@ exports.listTrails = async (req, res) => {
 
 exports.saveTrail = [
   // Trail validation
+  body("createdBy", "Invalid data type, must be an integer")
+    .isInt()
+    .bail()
+    .toInt()
+    .custom(async (value) => {
+      console.log(informationMsg(`value: ${value}`));
+      const user = await User.findByPk(value);
+      console.log(user);
+      if (!user) {
+        throw new Error("UserID doesn't exist");
+      }
+    }),
   body("name")
     .trim()
     .custom(async (value) => {
@@ -73,15 +85,7 @@ exports.saveTrail = [
 
       newTrail.distance = dist;
 
-      console.log(
-        informationMsg("\nnewTrail:\n"),
-        newTrail,
-        // informationMsg("\nTrailCoords:\n"),
-        // newTrail.TrailCoords,
-        informationMsg("\n\ndistance:"),
-        dist,
-        "\n"
-      );
+      // console.log(informationMsg("\nnewTrail:\n"), newTrail, informationMsg("\n\ndistance:"), dist, "\n");
 
       const trail = await Trail.create(newTrail, {
         include: [Trail.TrailCoords],
