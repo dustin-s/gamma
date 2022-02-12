@@ -37,12 +37,13 @@ export default function HomeScreen({ navigation }: {[key:string]: any}) {
       ></MapView>
       <StatusBar style="auto" />
 
-
       <View style={styles.btnContainer}>
         <Button 
-          title="Edit Map"
-          onPress={() => navigation.navigate("Edit Map")}
-        />
+          title="Edit"
+          onPress={() => navigation.navigate("Edit Map")}/>
+        <Button 
+        title="Admin"
+        onPress={() => navigation.navigate("Admin")}/>
       </View>
     </View>
   );
