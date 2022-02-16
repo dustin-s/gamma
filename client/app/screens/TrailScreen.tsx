@@ -238,6 +238,7 @@ export default function TrailScreen({
                 navigation.navigate("Point of Interest", {
                   handleSetPoI,
                   trailID,
+                  userID,
                   curLoc,
                 });
               }}
