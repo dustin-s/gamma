@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 
-export default function HomeScreen({ navigation }: {[key:string]: any}) {
+export default function HomeScreen({ navigation }: { [key: string]: any }) {
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
@@ -19,12 +19,16 @@ export default function HomeScreen({ navigation }: {[key:string]: any}) {
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
   });
- 
+
   // Error message if current location isn't working.
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') { alert ("Permission to access location was denied. The app won't function properly whithout it activated.")}
+      if (status !== "granted") {
+        alert(
+          "Permission to access location was denied. The app won't function properly whithout it activated."
+        );
+      }
     })();
   }, []);
 
@@ -38,12 +42,10 @@ export default function HomeScreen({ navigation }: {[key:string]: any}) {
       <StatusBar style="auto" />
 
       <View style={styles.btnContainer}>
-        <Button 
+        {/* <Button 
           title="Edit"
-          onPress={() => navigation.navigate("Edit Map")}/>
-        <Button 
-        title="Admin"
-        onPress={() => navigation.navigate("Admin")}/>
+          onPress={() => navigation.navigate("Trail Screen")}/> */}
+        <Button title="Admin" onPress={() => navigation.navigate("Admin")} />
       </View>
     </View>
   );

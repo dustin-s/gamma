@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import MapView from "react-native-maps";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { Alert, Dimensions, StyleSheet, View } from "react-native";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 
@@ -9,25 +9,51 @@ import MapButton from "../components/MapButton";
 
 // Constants
 const LOCATION_TASK_NAME = "background-location-task";
-export default function EditScreen() {
-  // Types
-  interface coordsObj {
-    accuracy?: number;
-    altitude?: number;
-    altitudeAccuracy?: number;
-    heading?: number;
-    latitude: number;
-    longitude: number;
-    speed?: number;
-    latitudeDelta?: number;
-    longitudeDelta?: number;
-  }
 
-  interface locationObj {
-    coords: coordsObj;
-    timestamp: number;
-  }
+// Types
+interface TrailScreenProps {
+  navigation: { [key: string]: any };
+  trailID: number | null;
+  userID: number | null;
+}
 
+interface coordsObj {
+  accuracy?: number;
+  altitude?: number;
+  altitudeAccuracy?: number;
+  heading?: number;
+  latitude: number;
+  longitude: number;
+  speed?: number;
+  latitudeDelta?: number;
+  longitudeDelta?: number;
+}
+
+interface locationObj {
+  coords: coordsObj;
+  timestamp: number;
+}
+
+interface POIObj {
+  trailID: number | null;
+  description: string | null;
+  image: string | null;
+  isActive: boolean;
+  accuracy?: number;
+  altitude?: number;
+  altitudeAccuracy?: number;
+  heading?: number;
+  latitude: number;
+  longitude: number;
+  speed?: number;
+}
+
+// Main function
+export default function TrailScreen({
+  navigation,
+  trailID,
+  userID,
+}: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
@@ -35,8 +61,12 @@ export default function EditScreen() {
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
   });
-  const [isStarted, setIsStarted] = useState<boolean>(false);
+  const [trailId, setTrailID] = useState(trailID ? trailID : null);
+  const [userId, setUserID] = useState(userID ? userID : null);
   const [locationArr, setLocationArr] = useState<locationObj[]>([]);
+  const [pOIArr, setPOIArr] = useState([]);
+
+  const [isStarted, setIsStarted] = useState<boolean>(false);
 
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(
@@ -97,6 +127,7 @@ export default function EditScreen() {
       console.log("stopped");
       console.log(`There were ${locationArr.length} entries in the array.`);
       console.log("\n************************************");
+
       setIsStarted(false);
       alert("Congratulations, you completed a trail! ");
     }
@@ -106,9 +137,33 @@ export default function EditScreen() {
     console.log("*** Save Data ***");
     console.log(locationArr);
     console.log("\n************************************");
+
     setLocationArr([]);
+    setPOIArr([]);
     alert("Trail saved");
   };
+
+  const currentLocation = () => {
+    if (trailID) {
+      // return the current location on the trail
+    } else {
+      return locationArr[locationArr.length - 1];
+    }
+  };
+  const handleSetPoI = (newPoI: POIObj) => {
+    // do stuff
+  };
+
+  async function setUpTrail() {
+    if (trailID) {
+      // fetch trail information
+      return;
+    }
+  }
+
+  useEffect(() => {
+    setUpTrail();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -118,31 +173,81 @@ export default function EditScreen() {
         showsUserLocation={true}
       ></MapView>
 
+      {/* All user's buttons */}
       <View style={styles.btnContainer}>
-        {!isStarted && (
+        {trailID && (
           <MapButton
-            label="Start Point"
+            label="Start Trail"
             backgroundColor="green"
-            handlePress={handleStartRecording}
+            handlePress={() => Alert.alert("button press", "Start Trail")}
           />
         )}
 
+        {/* ToDo: Figure out logic for when to display */}
         {isStarted && (
           <MapButton
-            label="Stop Point"
-            backgroundColor="red"
-            handlePress={handleStopRecoding}
-          />
-        )}
-
-        {!isStarted && locationArr.length > 0 && (
-          <MapButton
-            label="Save"
+            label="Show Point of Interest"
             backgroundColor="blue"
-            handlePress={handleSave}
+            handlePress={() =>
+              Alert.alert("button press", "Show Point of Interest")
+            }
           />
         )}
       </View>
+
+      {/* Show these buttons for a logged in user */}
+      {userId ? (
+        <View style={styles.btnContainer}>
+          {/* Only show the record buttons if there is no trailID */}
+          {!trailID ? (
+            <>
+              {!isStarted && (
+                <MapButton
+                  label="Start Point"
+                  backgroundColor="green"
+                  handlePress={handleStartRecording}
+                />
+              )}
+
+              {isStarted && (
+                <MapButton
+                  label="Stop Point"
+                  backgroundColor="red"
+                  handlePress={handleStopRecoding}
+                />
+              )}
+
+              {!isStarted && locationArr.length > 0 && (
+                <MapButton
+                  label="Save"
+                  backgroundColor="blue"
+                  handlePress={handleSave}
+                />
+              )}
+            </>
+          ) : (
+            <></>
+          )}
+
+          {isStarted && (
+            <MapButton
+              label="Add Point of Interest"
+              backgroundColor="blue"
+              handlePress={() => {
+                let curLoc = currentLocation();
+                navigation.navigate("Point of Interest", {
+                  handleSetPoI,
+                  trailID,
+                  userID,
+                  curLoc,
+                });
+              }}
+            />
+          )}
+        </View>
+      ) : (
+        <></>
+      )}
     </View>
   );
 }
