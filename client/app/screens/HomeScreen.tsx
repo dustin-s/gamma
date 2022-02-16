@@ -60,11 +60,6 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
-  paragraph: {
-    position: "absolute",
-    top: 100,
-    right: 30,
-  },
   btnContainer: {
     position: "absolute",
     flexDirection: "row",
