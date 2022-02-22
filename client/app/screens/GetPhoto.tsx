@@ -4,7 +4,7 @@ import { Camera } from "expo-camera";
 
 export default function App() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);
+  // const [type, setType] = useState(Camera.Constants.Type.back);
 
   useEffect(() => {
     (async () => {
@@ -21,7 +21,7 @@ export default function App() {
   }
   return (
     <View style={styles.container}>
-      <Camera style={styles.camera} type={type}>
+      {/* <Camera style={styles.camera} type={type}>
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.button}
@@ -36,7 +36,7 @@ export default function App() {
             <Text style={styles.text}> Flip </Text>
           </TouchableOpacity>
         </View>
-      </Camera>
+      </Camera> */}
     </View>
   );
 }

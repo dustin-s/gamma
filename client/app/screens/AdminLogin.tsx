@@ -28,32 +28,62 @@ interface User {
 
 export default function AdminLogin() {
   // screen controls
-  const [thereISAnError, setThereISAnError] = useState<
-    Error | string | undefined
-  >();
+  const [err, setErr] = useState<Error | string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // fetch information
-  const [url, setURL] = useState("");
-  const [body, setBody] = useState<RequestInit>({});
-
-  // fetchURL updates on URL change
-  const { data, error } = useFetch<User>(url, body);
-  if (error) setThereISAnError(error);
-  if (!data) setIsLoading(true);
-  if (data) {
-    console.log(data);
-  }
+  // // fetch information
+  // const [url, setURL] = useState("");
+  // const [requestOptions, setRequestOptions] = useState<RequestInit>({});
 
   const handleSignIn = async () => {
-    setBody({ body: JSON.stringify({ email, password }) });
-    setURL(BASE_API + "users/login");
+    // setRequestOptions
+    const reqOpts: RequestInit = {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Cache-control": "no-cache",
+      },
+      body: JSON.stringify({ email, password }),
+    };
+    // setURL
+    const curURL = BASE_API + "users/login";
 
-    return;
+    console.log("requestOptions:", reqOpts, "\nURL:", curURL);
+
+    // fetchURL updates on URL change
+    try {
+      setIsLoading(true);
+      const response = await fetch(curURL, reqOpts);
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+
+      const data = await response.json();
+      setIsLoading(false);
+      console.log(data);
+
+      // const { data, error } = useFetch<User>(curURL, reqOpts);
+      // // const { data, error } = useFetch<User>(url, requestOptions);
+      // if (error) {
+      //   console.log(error);
+      //   setThereISAnError(error);
+      // }
+      // if (!data) setIsLoading(true);
+      // if (data) {
+      //   console.log(data);
+      // }
+
+      // return;
+    } catch (e: any) {
+      console.log(e);
+      setIsLoading(false);
+      setErr(e);
+    }
   };
 
   return (
@@ -64,6 +94,7 @@ export default function AdminLogin() {
         <Text style={styles.UnPw}>Email</Text>
         <TextInput
           style={styles.txInput}
+          keyboardType="email-address"
           placeholder="Email"
           value={email}
           onChangeText={(value) => setEmail(value)}
@@ -84,6 +115,15 @@ export default function AdminLogin() {
       <TouchableOpacity onPress={handleSignIn}>
         <Text>Sign in</Text>
       </TouchableOpacity>
+      {isLoading && <Text>Loading...</Text>}
+      {err && (
+        <>
+          <Text style={styles.errText}>Error:</Text>
+          <Text style={styles.errText}>
+            {typeof err === "string" ? err : JSON.stringify(err)}
+          </Text>
+        </>
+      )}
     </View>
   );
 }
@@ -94,6 +134,11 @@ const styles = StyleSheet.create({
   },
   controlGroup: {
     flexDirection: "row",
+  },
+  errText: {
+    color: "red",
+    fontWeight: "bold",
+    padding: 10,
   },
   msg: {
     textAlign: "center",
