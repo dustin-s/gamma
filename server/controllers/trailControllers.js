@@ -30,6 +30,7 @@ exports.saveTrail = [
       }
     }),
   body("name")
+    .optional()
     .trim()
     .custom(async (value) => {
       const trail = await Trail.findAll({ where: { name: value } });
