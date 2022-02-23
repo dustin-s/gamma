@@ -28,10 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(routes);
 
 // Creating object of key and certificate for SSL
-const options = {
-  key: fs.readFileSync("gamma.key"),
-  cert: fs.readFileSync("gamma.cert"),
-};
+const options = {};
 
 // connect to the DB
 sequelize
