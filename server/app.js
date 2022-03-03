@@ -9,10 +9,12 @@ const fs = require("fs");
 // Import the express module
 const express = require("express");
 
-// Import the loggers
-// const winston = require("winston");
+// Create and import the loggers
 const expressWinston = require("express-winston");
-const logger = require("./logger");
+const makeLogger = require("./logger");
+
+const { loggers } = require("winston");
+const logger = loggers.get("logger");
 
 // configure modules
 const sequelize = require("./config/connection");

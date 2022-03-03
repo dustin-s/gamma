@@ -6,7 +6,7 @@ const myFormat = printf(({ level, message, stack, timestamp }) => {
 });
 
 const buildLocalLogger = () => {
-  return createLogger({
+  return {
     format: combine(
       colorize(),
       timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
@@ -18,7 +18,7 @@ const buildLocalLogger = () => {
         level: "debug",
       }),
     ],
-  });
+  };
 };
 
 module.exports = buildLocalLogger;
