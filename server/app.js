@@ -4,7 +4,7 @@
 
 // Import builtin NodeJS modules to instantiate the service
 
-if (typeof(PhusionPassenger) != 'undefined') {
+if (typeof PhusionPassenger != "undefined") {
   PhusionPassenger.configure({ autoInstall: false });
 }
 
@@ -27,7 +27,7 @@ const routes = require("./routes");
 
 // set up server
 const app = express();
-const PORT = typeof(PhusionPassenger) != 'undefined' ? 'passenger' : 3001;
+const PORT = typeof PhusionPassenger != "undefined" ? "passenger" : 3001;
 
 // set up middleware (parses incoming req as JSON)
 app.use(express.json());
@@ -38,16 +38,6 @@ app.use(expressWinston.logger({ winstonInstance: logger }));
 // routing middleware
 app.use(routes);
 
-<<<<<<< HEAD
-app.listen(PORT);
-
-// connect to the DB
-sequelize
-.sync(/*{ force: true }*/)
-.catch((err) =>
-  console.log(errorMsg("Database failed to initialize:\n"), err)
-);
-=======
 app.use(expressWinston.errorLogger({ winstonInstance: logger }));
 
 // Creating object of key and certificate for SSL
@@ -64,9 +54,7 @@ sequelize
     // start the server
     https.createServer(options, app).listen(PORT, (err) => {
       if (err) logger.error(err);
-      // console.log("Gamma now listening on port: " + PORT);
       logger.info("Gamma now listening on port: " + PORT);
     });
   })
   .catch((err) => logger.error("Database failed to initialize:\n", err));
->>>>>>> addLogger
