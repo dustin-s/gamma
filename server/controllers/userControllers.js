@@ -1,6 +1,9 @@
 const { body, validationResult } = require("express-validator");
 const { signToken } = require("../utils/auth");
 
+const { loggers } = require("winston");
+const logger = loggers.get("logger");
+
 const { User } = require("../models");
 const { errorMsg, informationMsg } = require("../utils/formatting");
 
@@ -44,7 +47,7 @@ exports.newUser = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json(errors);
+        res.status(400).json(errors.array());
         return;
       }
 
@@ -63,7 +66,7 @@ exports.newUser = [
       if (message === "Validation error") {
         res.status(400).json(err);
       }
-      console.log(errorMsg("Sign Up Catch Error:\n"), err);
+      logger.debug("Sign Up Catch Error:\n" + err);
       res.status(500).json(err);
     }
   },
@@ -90,8 +93,8 @@ exports.login = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        console.log(errorMsg("validation errors:\n"), errors.array());
-        res.status(400).json(errors);
+        logger.debug("validation errors:\n" + JSON.stringify(errors.array()));
+        res.status(400).json(errors.array());
         return;
       }
 
@@ -99,26 +102,34 @@ exports.login = [
 
       // check for user found
       if (!userData) {
-        res
-          .status(400)
-          .json({ message: "Incorrect email or password, please try again" });
+        res.status(400).json({
+          value: "",
+          msg: "Incorrect email or password, please try again",
+          param: "password",
+          location: "body",
+        });
         return;
       }
 
       // check if user is inactive
       if (!userData.isActive) {
         res.status(202).json({
-          message:
-            "This user has been inactivated, please see your administrator",
+          value: "",
+          msg: "This user has been inactivated, please see your administrator",
+          param: "password",
+          location: "body",
         });
       }
 
       // validate password
       const validPwd = await userData.checkPassword(req.body.password);
       if (!validPwd) {
-        res
-          .status(400)
-          .json({ message: "Incorrect email or password, please try again" });
+        res.status(400).json({
+          value: "",
+          msg: "Incorrect email or password, please try again",
+          param: "password",
+          location: "body",
+        });
         return;
       }
 
@@ -132,7 +143,7 @@ exports.login = [
         userId: userData.userId,
       });
 
-      console.log(informationMsg(userData), informationMsg(token));
+      logger.debug(JSON.stringify({ userData, token }));
 
       res.status(200).json({
         user: userData,
@@ -140,8 +151,9 @@ exports.login = [
         message: "You are now logged in!",
       });
     } catch (err) {
-      console.log(errorMsg("Login Catch Error:\n"), err);
-      res.status(400).json(err);
+      const errMsg = `Login Catch Error:\n ${err}`;
+      logger.debug(JSON.stringify({ errorMsg: "Login Catch Error:\n", err }));
+      res.status(400).json(errMsg);
     }
   },
 ];
@@ -209,7 +221,7 @@ exports.updateUser = [
       if (req.body.newRequestPwdReset)
         newData.requestPwdReset = req.body.newRequestPwdReset;
 
-      console.log(informationMsg("newData:"), newData);
+      logger.debug(JSON.stringify({ newData }));
       if (Object.keys(newData).length === 0) {
         res.status(400).json([
           {
@@ -234,18 +246,22 @@ exports.updateUser = [
 
       // check for user found
       if (!userData) {
-        res
-          .status(400)
-          .json({ message: "Incorrect user ID or password, please try again" });
+        res.status(400).json({
+          message: "Incorrect user ID or password, please try again",
+          param: "password",
+          location: "body",
+        });
         return;
       }
 
       // validate password
       const validPwd = await userData.checkPassword(oldPwd);
       if (!validPwd) {
-        res
-          .status(400)
-          .json({ message: "Incorrect user ID or password, please try again" });
+        res.status(400).json({
+          message: "Incorrect user ID or password, please try again",
+          param: "password",
+          location: "body",
+        });
         return;
       }
 
@@ -260,7 +276,9 @@ exports.updateUser = [
         message: "Update Succeeded!",
       });
     } catch (err) {
-      console.log(errorMsg("updateUser Catch Error:\n"), err);
+      logger.debug(
+        JSON.stringify({ errorMsg: "updateUser Catch Error:\n", err })
+      );
       res.status(400).json({ message: err.message });
     }
   },
