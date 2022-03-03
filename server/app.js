@@ -10,15 +10,9 @@ const fs = require("fs");
 const express = require("express");
 
 // Import the loggers
+// const winston = require("winston");
 const expressWinston = require("express-winston");
 const logger = require("./logger");
-
-console.log("typeof logger:", typeof logger.info);
-console.log(logger);
-console.log();
-
-// Import font styles for console
-const { successMsg, errorMsg } = require("./utils/formatting");
 
 // configure modules
 const sequelize = require("./config/connection");
@@ -40,7 +34,11 @@ app.use(routes);
 app.use(expressWinston.errorLogger({ winstonInstance: logger }));
 
 // Creating object of key and certificate for SSL
-const options = {};
+let options = {};
+if (typeof PhusionPassenger === "undefined") {
+  options.key = fs.readFileSync("gamma.key");
+  options.cert = fs.readFileSync("gamma.cert");
+}
 
 // connect to the DB
 sequelize
@@ -49,6 +47,7 @@ sequelize
     // start the server
     https.createServer(options, app).listen(PORT, (err) => {
       if (err) logger.error(err);
+      // console.log("Gamma now listening on port: " + PORT);
       logger.info("Gamma now listening on port: " + PORT);
     });
   })

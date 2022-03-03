@@ -1,25 +1,16 @@
-const { transports, format } = require("winston");
-const { combine, colorize, simple } = format;
-const buildLogger = require("./dev-logger");
+const { loggers } = require("winston");
+const buildCloudLogger = require("./cloud-logger");
+const buildLocalLogger = require("./local-logger");
 
-let logger = buildLogger();
+let logger = null;
 
-//
-// If we're not on the  production server then log to the `console` with the format:
-// `${info.level}: ${info.message} JSON.stringify({ ...rest }) `
-//
+// check for how to display the logs. Local Logger displays to console, while Cloud Logger writes to files.
 if (typeof PhusionPassenger === "undefined") {
-  logger.add(
-    new transports.Console({
-      format: combine(colorize(), simple()),
-    })
-  );
+  logger = buildLocalLogger();
+} else {
+  logger = buildCloudLogger();
 }
-console.log("typeof logger:", typeof logger.info);
-console.log(logger);
-console.log();
 
-logger.info("info message from index.js");
-logger.error("error message from index.js");
+loggers.add("logger", logger);
 
-exports.module = { logger };
+module.exports = logger;
