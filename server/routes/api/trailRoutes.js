@@ -3,6 +3,8 @@ const { verifyToken } = require("../../utils/auth");
 
 const { listTrails, saveTrail } = require("../../controllers/trailControllers");
 
+// base url: https://gamma.lessthangeeky.com/api/trails/ +
+
 router.get("/", listTrails);
 
 router.post("/", /* verifyToken,*/ saveTrail);

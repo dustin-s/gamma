@@ -5,7 +5,7 @@ const {
   updateUser,
 } = require("../../controllers/userControllers");
 
-// base url: http://localhost:3001/api/users/ +
+// base url: https://gamma.lessthangeeky.com/api/users/ +
 
 router.post("/signup", newUser);
 

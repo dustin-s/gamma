@@ -14,8 +14,12 @@ const fs = require("fs");
 // Import the express module
 const express = require("express");
 
-// Import font styles for console
-const { successMsg, errorMsg } = require("./utils/formatting");
+// Create and import the loggers
+const expressWinston = require("express-winston");
+const makeLogger = require("./logger");
+
+const { loggers } = require("winston");
+const logger = loggers.get("logger");
 
 // configure modules
 const sequelize = require("./config/connection");
@@ -29,9 +33,12 @@ const PORT = typeof(PhusionPassenger) != 'undefined' ? 'passenger' : 3001;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(expressWinston.logger({ winstonInstance: logger }));
+
 // routing middleware
 app.use(routes);
 
+<<<<<<< HEAD
 app.listen(PORT);
 
 // connect to the DB
@@ -40,3 +47,26 @@ sequelize
 .catch((err) =>
   console.log(errorMsg("Database failed to initialize:\n"), err)
 );
+=======
+app.use(expressWinston.errorLogger({ winstonInstance: logger }));
+
+// Creating object of key and certificate for SSL
+let options = {};
+if (typeof PhusionPassenger === "undefined") {
+  options.key = fs.readFileSync("gamma.key");
+  options.cert = fs.readFileSync("gamma.cert");
+}
+
+// connect to the DB
+sequelize
+  .sync(/*{ force: true }*/)
+  .then(() => {
+    // start the server
+    https.createServer(options, app).listen(PORT, (err) => {
+      if (err) logger.error(err);
+      // console.log("Gamma now listening on port: " + PORT);
+      logger.info("Gamma now listening on port: " + PORT);
+    });
+  })
+  .catch((err) => logger.error("Database failed to initialize:\n", err));
+>>>>>>> addLogger
