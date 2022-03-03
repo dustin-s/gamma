@@ -9,6 +9,14 @@ const fs = require("fs");
 // Import the express module
 const express = require("express");
 
+// Import the loggers
+const expressWinston = require("express-winston");
+const logger = require("./logger");
+
+console.log("typeof logger:", typeof logger.info);
+console.log(logger);
+console.log();
+
 // Import font styles for console
 const { successMsg, errorMsg } = require("./utils/formatting");
 
@@ -24,8 +32,12 @@ const PORT = 3001;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(expressWinston.logger({ winstonInstance: logger }));
+
 // routing middleware
 app.use(routes);
+
+app.use(expressWinston.errorLogger({ winstonInstance: logger }));
 
 // Creating object of key and certificate for SSL
 const options = {};
@@ -36,10 +48,8 @@ sequelize
   .then(() => {
     // start the server
     https.createServer(options, app).listen(PORT, (err) => {
-      if (err) console.log(errorMsg(err));
-      console.log(successMsg("Gamma now listening on port: " + PORT));
+      if (err) logger.error(err);
+      logger.info("Gamma now listening on port: " + PORT);
     });
   })
-  .catch((err) =>
-    console.log(errorMsg("Database failed to initialize:\n"), err)
-  );
+  .catch((err) => logger.error("Database failed to initialize:\n", err));
