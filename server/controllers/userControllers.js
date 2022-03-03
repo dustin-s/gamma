@@ -5,7 +5,6 @@ const { loggers } = require("winston");
 const logger = loggers.get("logger");
 
 const { User } = require("../models");
-const { errorMsg, informationMsg } = require("../utils/formatting");
 
 /**
  * Use this route to create a new user.
@@ -247,7 +246,8 @@ exports.updateUser = [
       // check for user found
       if (!userData) {
         res.status(400).json({
-          message: "Incorrect user ID or password, please try again",
+          value: "",
+          msg: "Incorrect user ID or password, please try again",
           param: "password",
           location: "body",
         });
@@ -258,7 +258,8 @@ exports.updateUser = [
       const validPwd = await userData.checkPassword(oldPwd);
       if (!validPwd) {
         res.status(400).json({
-          message: "Incorrect user ID or password, please try again",
+          value: "",
+          msg: "Incorrect user ID or password, please try again",
           param: "password",
           location: "body",
         });
