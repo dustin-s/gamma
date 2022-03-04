@@ -4,7 +4,9 @@
 
 // Import builtin NodeJS modules to instantiate the service
 
-if (typeof PhusionPassenger != "undefined") {
+const IS_PASSENGER = typeof PhusionPassenger != "undefined";
+
+if (IS_PASSENGER) {
   PhusionPassenger.configure({ autoInstall: false });
 }
 
@@ -27,7 +29,7 @@ const routes = require("./routes");
 
 // set up server
 const app = express();
-const PORT = typeof PhusionPassenger != "undefined" ? "passenger" : 3001;
+const PORT = IS_PASSENGER ? "passenger" : 3001;
 
 // set up middleware (parses incoming req as JSON)
 app.use(express.json());
@@ -42,7 +44,7 @@ app.use(expressWinston.errorLogger({ winstonInstance: logger }));
 
 // Creating object of key and certificate for SSL
 let options = {};
-if (typeof PhusionPassenger === "undefined") {
+if (!IS_PASSENGER) {
   options.key = fs.readFileSync("gamma.key");
   options.cert = fs.readFileSync("gamma.cert");
 }
@@ -52,9 +54,14 @@ sequelize
   .sync(/*{ force: true }*/)
   .then(() => {
     // start the server
-    https.createServer(options, app).listen(PORT, (err) => {
-      if (err) logger.error(err);
+    if (IS_PASSENGER) {
+      app.listen(PORT);
       logger.info("Gamma now listening on port: " + PORT);
-    });
+    } else {
+      https.createServer(options, app).listen(PORT, (err) => {
+        if (err) logger.error(err);
+        logger.info("Gamma now listening on port: " + PORT);
+      });
+    }
   })
   .catch((err) => logger.error("Database failed to initialize:\n", err));
