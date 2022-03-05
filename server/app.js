@@ -60,7 +60,7 @@ sequelize
       logger.info("Gamma now listening on port: " + PORT);
     } else {
       https.createServer(options, app).listen(PORT, (err) => {
-        if (err) logger.error(err);
+        if (err) logger.error(err, { errorMsg: "Server failed to start" });
         logger.info("Gamma now listening on port: " + PORT);
       });
     }
