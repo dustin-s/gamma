@@ -48,6 +48,7 @@ export default function AdminLogin() {
         "Content-Type": "application/json",
         "Cache-control": "no-cache",
       },
+      mode: "cors",
       body: JSON.stringify({ email, password }),
     };
     // setURL
