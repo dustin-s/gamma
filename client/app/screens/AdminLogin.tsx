@@ -48,7 +48,6 @@ export default function AdminLogin() {
         "Content-Type": "application/json",
         "Cache-control": "no-cache",
       },
-      mode: "cors",
       body: JSON.stringify({ email, password }),
     };
     // setURL
@@ -61,12 +60,13 @@ export default function AdminLogin() {
       setIsLoading(true);
       const response = await fetch(curURL, reqOpts);
       if (!response.ok) {
+        console.log(JSON.stringify(response));
         throw new Error(response.statusText);
       }
 
       const data = await response.json();
       setIsLoading(false);
-      console.log(data);
+      setErr(data);
 
       // const { data, error } = useFetch<User>(curURL, reqOpts);
       // // const { data, error } = useFetch<User>(url, requestOptions);
