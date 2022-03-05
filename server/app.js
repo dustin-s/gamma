@@ -39,6 +39,7 @@ app.use(expressWinston.logger({ winstonInstance: logger }));
 
 // routing middleware
 app.use(routes);
+app.use(express.static("public"));
 
 app.use(expressWinston.errorLogger({ winstonInstance: logger }));
 
@@ -64,4 +65,6 @@ sequelize
       });
     }
   })
-  .catch((err) => logger.error("Database failed to initialize:\n", err));
+  .catch((err) =>
+    logger.error(err, { errorMsg: "Database failed to initialize" })
+  );

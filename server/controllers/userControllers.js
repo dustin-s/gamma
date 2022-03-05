@@ -46,6 +46,10 @@ exports.newUser = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        logger.debug(errors.array(), {
+          controller: "newUser",
+          errorMsg: "validation error",
+        });
         res.status(400).json(errors.array());
         return;
       }
@@ -65,7 +69,10 @@ exports.newUser = [
       if (message === "Validation error") {
         res.status(400).json(err);
       }
-      logger.debug("Sign Up Catch Error:\n" + err);
+      logger.debug(err, {
+        controller: "newUser",
+        errorMsg: "catch error",
+      });
       res.status(500).json(err);
     }
   },
@@ -92,7 +99,10 @@ exports.login = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        logger.debug("validation errors:\n" + JSON.stringify(errors.array()));
+        logger.debug(errors.array(), {
+          controller: "login",
+          errorMsg: "validation error",
+        });
         res.status(400).json(errors.array());
         return;
       }
@@ -101,6 +111,9 @@ exports.login = [
 
       // check for user found
       if (!userData) {
+        logger.debug("user not found", {
+          controller: "login",
+        });
         res.status(400).json({
           value: "",
           msg: "Incorrect email or password, please try again",
@@ -112,6 +125,9 @@ exports.login = [
 
       // check if user is inactive
       if (!userData.isActive) {
+        logger.debug("user is inactive", {
+          controller: "login",
+        });
         res.status(202).json({
           value: "",
           msg: "This user has been inactivated, please see your administrator",
@@ -123,6 +139,9 @@ exports.login = [
       // validate password
       const validPwd = await userData.checkPassword(req.body.password);
       if (!validPwd) {
+        logger.debug("bad password", {
+          controller: "login",
+        });
         res.status(400).json({
           value: "",
           msg: "Incorrect email or password, please try again",
@@ -142,7 +161,9 @@ exports.login = [
         userId: userData.userId,
       });
 
-      logger.debug(JSON.stringify({ userData, token }));
+      logger.debug(JSON.stringify({ userData, token }), {
+        controller: "login",
+      });
 
       res.status(200).json({
         user: userData,
@@ -151,7 +172,7 @@ exports.login = [
       });
     } catch (err) {
       const errMsg = `Login Catch Error:\n ${err}`;
-      logger.debug(JSON.stringify({ errorMsg: "Login Catch Error:\n", err }));
+      logger.debug(err, { errorMsg: "Login Catch Error", controller: "login" });
       res.status(400).json(errMsg);
     }
   },
@@ -220,7 +241,9 @@ exports.updateUser = [
       if (req.body.newRequestPwdReset)
         newData.requestPwdReset = req.body.newRequestPwdReset;
 
-      logger.debug(JSON.stringify({ newData }));
+      logger.debug(JSON.stringify({ newData }), {
+        controller: "updateUser",
+      });
       if (Object.keys(newData).length === 0) {
         res.status(400).json([
           {
@@ -236,6 +259,10 @@ exports.updateUser = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        logger.debug(errors.array, {
+          controller: "updateUser",
+          errorMsg: "validation error",
+        });
         res.status(400).json(errors.array());
         return;
       }
@@ -245,6 +272,9 @@ exports.updateUser = [
 
       // check for user found
       if (!userData) {
+        logger.debug("user not found", {
+          controller: "updateUser",
+        });
         res.status(400).json({
           value: "",
           msg: "Incorrect user ID or password, please try again",
@@ -257,6 +287,9 @@ exports.updateUser = [
       // validate password
       const validPwd = await userData.checkPassword(oldPwd);
       if (!validPwd) {
+        logger.debug("invalid Password", {
+          controller: "updateUser",
+        });
         res.status(400).json({
           value: "",
           msg: "Incorrect user ID or password, please try again",
@@ -277,9 +310,10 @@ exports.updateUser = [
         message: "Update Succeeded!",
       });
     } catch (err) {
-      logger.debug(
-        JSON.stringify({ errorMsg: "updateUser Catch Error:\n", err })
-      );
+      logger.debug(err, {
+        errorMsg: "updateUser Catch Error",
+        controller: "updateUser",
+      });
       res.status(400).json({ message: err.message });
     }
   },
