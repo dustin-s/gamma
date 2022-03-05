@@ -39,7 +39,6 @@ app.use(expressWinston.logger({ winstonInstance: logger }));
 
 // routing middleware
 app.use(routes);
-app.use(express.static("public"));
 
 app.use(expressWinston.errorLogger({ winstonInstance: logger }));
 
