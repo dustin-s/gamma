@@ -5,6 +5,7 @@ const { loggers } = require("winston");
 const logger = loggers.get("logger");
 
 const { User } = require("../models");
+const { validationErrors } = require("../utils/helpers");
 
 /**
  * Use this route to create a new user.
@@ -50,7 +51,7 @@ exports.newUser = [
           controller: "newUser",
           errorMsg: "validation error",
         });
-        res.status(400).json(errors.array());
+        res.status(400).json({ error: validationErrors(errors.array()) });
         return;
       }
 
@@ -67,13 +68,13 @@ exports.newUser = [
     } catch (err) {
       const { message } = err;
       if (message === "Validation error") {
-        res.status(400).json(err);
+        res.status(400).json({ error: err });
       }
       logger.debug(err, {
         controller: "newUser",
         errorMsg: "catch error",
       });
-      res.status(500).json(err);
+      res.status(500).json({ error: err });
     }
   },
 ];
@@ -103,7 +104,7 @@ exports.login = [
           controller: "login",
           errorMsg: "validation error",
         });
-        res.status(400).json(errors.array());
+        res.status(400).json({ error: validationErrors(errors.array()) });
         return;
       }
 
@@ -114,12 +115,7 @@ exports.login = [
         logger.debug("user not found", {
           controller: "login",
         });
-        res.status(400).json({
-          value: "",
-          msg: "Incorrect email or password, please try again",
-          param: "password",
-          location: "body",
-        });
+        res.status(400).json({ error: "user not found" });
         return;
       }
 
@@ -129,10 +125,8 @@ exports.login = [
           controller: "login",
         });
         res.status(202).json({
-          value: "",
-          msg: "This user has been inactivated, please see your administrator",
-          param: "password",
-          location: "body",
+          error:
+            "This user has been inactivated, please see your administrator",
         });
       }
 
@@ -142,12 +136,9 @@ exports.login = [
         logger.debug("bad password", {
           controller: "login",
         });
-        res.status(400).json({
-          value: "",
-          msg: "Incorrect email or password, please try again",
-          param: "password",
-          location: "body",
-        });
+        res
+          .status(400)
+          .json({ error: "Incorrect email or password, please try again" });
         return;
       }
 
@@ -171,9 +162,9 @@ exports.login = [
         message: "You are now logged in!",
       });
     } catch (err) {
-      const errMsg = `Login Catch Error:\n ${err}`;
+      const errMsg = `Login Catch Error:\n ${err.stack}`;
       logger.debug(err, { errorMsg: "Login Catch Error", controller: "login" });
-      res.status(400).json(errMsg);
+      res.status(400).json({ error: errMsg });
     }
   },
 ];
@@ -245,14 +236,7 @@ exports.updateUser = [
         controller: "updateUser",
       });
       if (Object.keys(newData).length === 0) {
-        res.status(400).json([
-          {
-            value: newData,
-            msg: "Nothing to update",
-            param: "newData",
-            location: "body",
-          },
-        ]);
+        res.status(400).json({ error: "Nothing to update" });
         return;
       }
 
@@ -263,7 +247,7 @@ exports.updateUser = [
           controller: "updateUser",
           errorMsg: "validation error",
         });
-        res.status(400).json(errors.array());
+        res.status(400).json({ error: validationErrors(errors.array()) });
         return;
       }
 
@@ -275,12 +259,9 @@ exports.updateUser = [
         logger.debug("user not found", {
           controller: "updateUser",
         });
-        res.status(400).json({
-          value: "",
-          msg: "Incorrect user ID or password, please try again",
-          param: "password",
-          location: "body",
-        });
+        res
+          .status(400)
+          .json({ error: "Incorrect user ID or password, please try again" });
         return;
       }
 
@@ -291,10 +272,7 @@ exports.updateUser = [
           controller: "updateUser",
         });
         res.status(400).json({
-          value: "",
-          msg: "Incorrect user ID or password, please try again",
-          param: "password",
-          location: "body",
+          error: "Incorrect user ID or password, please try again",
         });
         return;
       }
@@ -314,7 +292,7 @@ exports.updateUser = [
         errorMsg: "updateUser Catch Error",
         controller: "updateUser",
       });
-      res.status(400).json({ message: err.message });
+      res.status(400).json({ error: err.message });
     }
   },
 ];
