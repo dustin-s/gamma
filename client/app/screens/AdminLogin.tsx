@@ -59,13 +59,20 @@ export default function AdminLogin() {
     try {
       setIsLoading(true);
       const response = await fetch(curURL, reqOpts);
-      if (!response.ok) {
-        console.log(JSON.stringify(response));
-        throw new Error(response.statusText);
-      }
 
       const data = await response.json();
       setIsLoading(false);
+
+      if (!response.ok) {
+        console.log(
+          "json:\n",
+          data.msg,
+          "\nresponse:\n",
+          JSON.stringify(response)
+        );
+        setErr(data.msg);
+        return;
+      }
       setErr(data);
 
       // const { data, error } = useFetch<User>(curURL, reqOpts);
