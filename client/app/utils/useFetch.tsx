@@ -1,93 +1,46 @@
-// This is from the useHooks-ts npm library. I had troubles installing the package so I just took this code snippet from it. The information on this hook can be found at: https://usehooks-ts.com/react-hook/use-fetch
-// This is also based off of https://www.smashingmagazine.com/2020/07/custom-react-hook-fetch-cache-data/, which explains what everything is.
-// Per the Smashing article's comments, I removed the cache component. Caching is fine for a GET statement but not used for a POST, DELETE, or UPDATE. TODO: modify to work for a POST.
-import { useEffect, useReducer, useRef } from "react";
+// https://stackoverflow.com/questions/70195659/how-do-i-use-my-custom-usefetch-hook-when-a-button-is-clicked
+// https://stackoverflow.com/questions/69433942/how-to-fetch-data-from-a-custom-react-hook-api-with-onclick-and-display-it-in
+import { useCallback, useState } from "react";
+
+export interface FetchQuery {
+  url?: string;
+  options?: RequestInit;
+}
 
 interface State<T> {
   data?: T;
-  error?: Error;
+  error: Error | string | null;
+  fetchData: any;
+  loading: boolean;
 }
+const useFetch = <T = unknown,>(): State<T> => {
+  const [data, setData] = useState<T>();
+  const [error, setError] = useState<Error | null>(null);
+  const [loading, setLoading] = useState(false);
 
-// type Cache<T> = { [url: string]: T };
+  const fetchData = useCallback(async (query: FetchQuery) => {
+    const { url, options } = query;
 
-// discriminated union type
-type Action<T> =
-  | { type: "loading" }
-  | { type: "fetched"; payload: T }
-  | { type: "error"; payload: Error };
-
-function useFetch<T = unknown>(url?: string, options?: RequestInit): State<T> {
-  // const cache = useRef<Cache<T>>({});
-
-  // Used to prevent state update if the component is unmounted
-  const cancelRequest = useRef<boolean>(false);
-
-  const initialState: State<T> = {
-    error: undefined,
-    data: undefined,
-  };
-
-  // Keep state logic separated
-  const fetchReducer = (state: State<T>, action: Action<T>): State<T> => {
-    switch (action.type) {
-      case "loading":
-        return { ...initialState };
-      case "fetched":
-        return { ...initialState, data: action.payload };
-      case "error":
-        return { ...initialState, error: action.payload };
-      default:
-        return state;
-    }
-  };
-
-  const [state, dispatch] = useReducer(fetchReducer, initialState);
-
-  useEffect(() => {
-    console.log("useFetch\n\turl:" + url + "\n\toptions:\n", options);
-
-    // Do nothing if the url is not given
     if (!url) return;
 
-    const fetchData = async () => {
-      dispatch({ type: "loading" });
+    setLoading(true);
+    const response = await fetch(url, options);
 
-      // If a cache exists for this url, return it
+    const data = await response.json();
 
-      // if (cache.current[url]) {
-      //   dispatch({ type: "fetched", payload: cache.current[url] });
-      //   return;
-      // }
+    if (data.error) {
+      console.log("useFetch2-fetch json:\n", data.error);
+      setData(undefined);
+      setError(data.error);
+    } else {
+      console.log("useFetch2 - fetch data:\n", data);
+      setData(data);
+      setError(null);
+    }
+    setLoading(false);
+  }, []);
 
-      try {
-        const response = await fetch(url, options);
-        if (!response.ok) {
-          throw new Error(response.statusText);
-        }
-
-        const data = (await response.json()) as T;
-        // cache.current[url] = data;
-        if (cancelRequest.current) return;
-
-        dispatch({ type: "fetched", payload: data });
-      } catch (error) {
-        if (cancelRequest.current) return;
-
-        dispatch({ type: "error", payload: error as Error });
-      }
-    };
-
-    void fetchData();
-
-    // Use the cleanup function for avoiding a possibly...
-    // ...state update after the component was unmounted
-    return () => {
-      cancelRequest.current = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url]);
-
-  return state;
-}
+  return { fetchData, data, error, loading };
+};
 
 export default useFetch;

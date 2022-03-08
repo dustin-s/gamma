@@ -27,21 +27,15 @@ interface User {
 }
 
 export default function AdminLogin() {
-  // screen controls
-  const [err, setErr] = useState<Error | string | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
-
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // // fetch information
-  // const [url, setURL] = useState("");
-  // const [requestOptions, setRequestOptions] = useState<RequestInit>({});
+  // fetch information
+  const { fetchData, data, error, loading } = useFetch<User>();
 
   const handleSignIn = async () => {
-    // setRequestOptions
-    const reqOpts: RequestInit = {
+    const options = {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -50,49 +44,23 @@ export default function AdminLogin() {
       },
       body: JSON.stringify({ email, password }),
     };
-    // setURL
-    const curURL = BASE_API + "users/login";
-
-    console.log("requestOptions:", reqOpts, "\nURL:", curURL);
-
-    // fetchURL updates on URL change
-    try {
-      setIsLoading(true);
-      const response = await fetch(curURL, reqOpts);
-
-      const data = await response.json();
-      setIsLoading(false);
-
-      if (!response.ok) {
-        console.log(
-          "json:\n",
-          data.msg,
-          "\nresponse:\n",
-          JSON.stringify(response)
-        );
-        setErr(data.msg);
-        return;
-      }
-      setErr(data);
-
-      // const { data, error } = useFetch<User>(curURL, reqOpts);
-      // // const { data, error } = useFetch<User>(url, requestOptions);
-      // if (error) {
-      //   console.log(error);
-      //   setThereISAnError(error);
-      // }
-      // if (!data) setIsLoading(true);
-      // if (data) {
-      //   console.log(data);
-      // }
-
-      // return;
-    } catch (e: any) {
-      console.log(e);
-      setIsLoading(false);
-      setErr(e);
-    }
+    const url = BASE_API + "users/login";
+    fetchData({ url, options });
   };
+
+  useEffect(() => {
+    if (!data) return;
+
+    console.log(data);
+    // store user information
+    // store token
+
+    if (data.user.requestPwdReset) {
+      // navigate to reset password
+      return;
+    }
+    // navigate to Trails?
+  }, [data]);
 
   return (
     <View style={styles.container}>
@@ -123,13 +91,11 @@ export default function AdminLogin() {
       <TouchableOpacity onPress={handleSignIn}>
         <Text>Sign in</Text>
       </TouchableOpacity>
-      {isLoading && <Text>Loading...</Text>}
-      {err && (
+      {loading && <Text>Loading...</Text>}
+      {error && (
         <>
           <Text style={styles.errText}>Error:</Text>
-          <Text style={styles.errText}>
-            {typeof err === "string" ? err : JSON.stringify(err)}
-          </Text>
+          <Text style={styles.errText}>{error}</Text>
         </>
       )}
     </View>
