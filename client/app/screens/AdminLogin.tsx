@@ -7,7 +7,7 @@ import {
   TextInput,
 } from "react-native";
 import { BASE_API } from "../utils/constants";
-import useFetch from "../utils/useFetch";
+import useFetch from "../hooks/useFetch";
 import { User } from "../interfaces/User";
 import { AuthContext } from "../utils/authContext";
 
@@ -49,7 +49,6 @@ export default function AdminLogin() {
       return;
     }
 
-    console.log("state:\n", auth);
     // navigate to Trails?
   }, [data]);
 

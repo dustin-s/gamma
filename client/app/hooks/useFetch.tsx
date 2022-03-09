@@ -29,11 +29,9 @@ const useFetch = <T = unknown,>(): State<T> => {
     const data = await response.json();
 
     if (data.error) {
-      console.log("useFetch2-fetch json:\n", data.error);
       setData(undefined);
       setError(data.error);
     } else {
-      console.log("useFetch2 - fetch data:\n", data);
       setData(data);
       setError(null);
     }

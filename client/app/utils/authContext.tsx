@@ -2,6 +2,11 @@
 import React from "react";
 import { User } from "../interfaces/User";
 
+interface Authentication {
+  isAuthenticated: boolean;
+  userData: User | null;
+}
+
 export function createCtx<A>(defaultValue: A) {
   type UpdateType = React.Dispatch<React.SetStateAction<typeof defaultValue>>;
   const defaultUpdate: UpdateType = () => defaultValue;
@@ -17,11 +22,6 @@ export function createCtx<A>(defaultValue: A) {
   }
 
   return [ctx, Provider] as const; // alternatively, [typeof ctx, typeof Provider]
-}
-
-interface Authentication {
-  isAuthenticated: boolean;
-  userData: User | null;
 }
 
 export const [ctx, AuthProvider] = createCtx<Authentication>({
