@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,28 +8,16 @@ import {
 } from "react-native";
 import { BASE_API } from "../utils/constants";
 import useFetch from "../utils/useFetch";
-
-interface User {
-  user: {
-    userId: number;
-    userName: string;
-    email: string;
-    isAdmin: boolean;
-    requestPwdReset: boolean;
-    lastPwdUpdate: Date;
-    isActive: boolean;
-    lastLogin: Date;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  token: string;
-  message: string;
-}
+import { User } from "../interfaces/User";
+import { AuthContext } from "../utils/userContext";
 
 export default function AdminLogin() {
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Auth stuff...
+  const { state, update } = useContext(AuthContext);
 
   // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
@@ -55,10 +43,17 @@ export default function AdminLogin() {
     // store user information
     // store token
 
+    update({
+      isAuthenticated: true,
+      userData: data,
+    });
+
     if (data.user.requestPwdReset) {
       // navigate to reset password
       return;
     }
+
+    console.log("state:\n", state);
     // navigate to Trails?
   }, [data]);
 
