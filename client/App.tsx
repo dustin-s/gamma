@@ -2,7 +2,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 // Authentication Context
-import { AuthProvider } from "./app/utils/userContext";
+import { AuthProvider } from "./app/utils/authContext";
 
 // Screens
 import HomeScreen from "./app/screens/HomeScreen";

@@ -9,7 +9,7 @@ import {
 import { BASE_API } from "../utils/constants";
 import useFetch from "../utils/useFetch";
 import { User } from "../interfaces/User";
-import { AuthContext } from "../utils/userContext";
+import { AuthContext } from "../utils/authContext";
 
 export default function AdminLogin() {
   // form controls
@@ -17,7 +17,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
 
   // Auth stuff...
-  const { state, update } = useContext(AuthContext);
+  const { auth, setAuth } = useContext(AuthContext);
 
   // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
@@ -39,11 +39,7 @@ export default function AdminLogin() {
   useEffect(() => {
     if (!data) return;
 
-    console.log(data);
-    // store user information
-    // store token
-
-    update({
+    setAuth({
       isAuthenticated: true,
       userData: data,
     });
@@ -53,7 +49,7 @@ export default function AdminLogin() {
       return;
     }
 
-    console.log("state:\n", state);
+    console.log("state:\n", auth);
     // navigate to Trails?
   }, [data]);
 
