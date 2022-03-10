@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState, useEffect } from "react";
+import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import MapView from "react-native-maps";
 import {
   StyleSheet,
@@ -11,7 +12,9 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 
-export default function HomeScreen({ navigation }: { [key: string]: any }) {
+type Props = StackNativeScreenProps<"Home">;
+
+export default function HomeScreen({ navigation, route }: Props) {
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
