@@ -2,7 +2,7 @@
 // https://stackoverflow.com/questions/69433942/how-to-fetch-data-from-a-custom-react-hook-api-with-onclick-and-display-it-in
 import { useCallback, useState } from "react";
 
-export interface FetchQuery {
+interface FetchQuery {
   url?: string;
   options?: RequestInit;
 }
