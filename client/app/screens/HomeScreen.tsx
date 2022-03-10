@@ -14,7 +14,7 @@ import * as Location from "expo-location";
 
 type Props = StackNativeScreenProps<"Home">;
 
-export default function HomeScreen({ navigation, route }: Props) {
+export default function HomeScreen({ navigation }: Props) {
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,

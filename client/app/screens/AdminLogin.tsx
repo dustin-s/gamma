@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from "react";
+import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import {
   StyleSheet,
   Text,
@@ -10,14 +11,13 @@ import { BASE_API } from "../utils/constants";
 import useFetch from "../hooks/useFetch";
 import { User } from "../interfaces/User";
 import { AuthContext } from "../utils/authContext";
-import { useNavigation } from "@react-navigation/native";
 
-export default function AdminLogin({ navigation }: { [key: string]: any }) {
+type Props = StackNativeScreenProps<"Admin">;
+
+export default function AdminLogin({ navigation }: Props) {
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // const navigation = useNavigation();
 
   // Auth stuff...
   const { auth, setAuth } = useContext(AuthContext);
@@ -39,7 +39,9 @@ export default function AdminLogin({ navigation }: { [key: string]: any }) {
     fetchData({ url, options });
   };
 
+  // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
   useEffect(() => {
+    let unmounted = false;
     if (!data) return;
 
     setAuth({
@@ -51,9 +53,13 @@ export default function AdminLogin({ navigation }: { [key: string]: any }) {
       // navigate to reset password
       return;
     }
-    console.log(navigation);
+
     navigation.navigate("Home");
     // navigate to Trails?
+
+    return () => {
+      unmounted = true;
+    };
   }, [data]);
 
   return (
