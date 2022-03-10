@@ -1,5 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { StackParamList } from "./app/interfaces/StackParamList";
 
 // Authentication Context
 import { AuthProvider } from "./app/utils/authContext";
@@ -12,7 +13,7 @@ import GetPhoto from "./app/screens/GetPhoto";
 import TrailScreen from "./app/screens/TrailScreen";
 
 // Screen Navigation
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<StackParamList>();
 
 function App() {
   return (
