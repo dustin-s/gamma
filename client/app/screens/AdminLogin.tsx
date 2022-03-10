@@ -10,11 +10,14 @@ import { BASE_API } from "../utils/constants";
 import useFetch from "../hooks/useFetch";
 import { User } from "../interfaces/User";
 import { AuthContext } from "../utils/authContext";
+import { useNavigation } from "@react-navigation/native";
 
-export default function AdminLogin() {
+export default function AdminLogin({ navigation }: { [key: string]: any }) {
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // const navigation = useNavigation();
 
   // Auth stuff...
   const { auth, setAuth } = useContext(AuthContext);
@@ -48,7 +51,8 @@ export default function AdminLogin() {
       // navigate to reset password
       return;
     }
-
+    console.log(navigation);
+    navigation.navigate("Home");
     // navigate to Trails?
   }, [data]);
 
