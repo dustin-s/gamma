@@ -13,7 +13,7 @@ interface State<T> {
   fetchData: any;
   loading: boolean;
 }
-const useFetch = <T = unknown,>(): State<T> => {
+export const useFetch = <T = unknown,>(): State<T> => {
   const [data, setData] = useState<T>();
   const [error, setError] = useState<Error | null>(null);
   const [loading, setLoading] = useState(false);
