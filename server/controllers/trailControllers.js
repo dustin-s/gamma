@@ -1,5 +1,7 @@
 const { body, validationResult } = require("express-validator");
-const { errorMsg, informationMsg } = require("../utils/formatting");
+
+const { loggers } = require("winston");
+const logger = loggers.get("logger");
 
 const { Trail, TrailCoords, User } = require("../models");
 const { distance } = require("../utils/distance");
@@ -9,8 +11,11 @@ exports.listTrails = async (req, res) => {
   try {
     trails = await Trail.findAll({ include: TrailCoords });
     res.status(200).json(trails);
-  } catch (er) {
-    console.log(errorMsg("listTrails Catch Error:\n"), err);
+  } catch (err) {
+    logger.debug(err, {
+      controller: "listTrails",
+      errorMsg: "listTrails Catch Error",
+    });
     res.status(500).json(err);
   }
 };
@@ -22,9 +27,9 @@ exports.saveTrail = [
     .bail()
     .toInt()
     .custom(async (value) => {
-      console.log(informationMsg(`value: ${value}`));
+      logger.debug(`value: ${value}`);
       const user = await User.findByPk(value);
-      console.log(user);
+      logger.debug(JSON.stringify(user));
       if (!user) {
         throw new Error("UserID doesn't exist");
       }
@@ -68,8 +73,11 @@ exports.saveTrail = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json(errors);
-        return;
+        logger.debug(errors.array(), {
+          controller: "saveTrail",
+          errorMsg: "validation error",
+        });
+        res.status(400).json({ error: validationErrors(errors.array()) });
       }
 
       const newTrail = req.body;
@@ -94,8 +102,11 @@ exports.saveTrail = [
 
       res.status(201).json(trail);
     } catch (err) {
-      console.log(errorMsg("saveTrail Catch Error:\n"), err);
-      res.status(500).json(err);
+      logger.debug(err, {
+        controller: "saveTrail",
+        errorMsg: "catch error",
+      });
+      res.status(500).json({ error: err });
     }
   },
 ];

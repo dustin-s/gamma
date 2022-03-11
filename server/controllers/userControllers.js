@@ -1,8 +1,11 @@
 const { body, validationResult } = require("express-validator");
 const { signToken } = require("../utils/auth");
 
+const { loggers } = require("winston");
+const logger = loggers.get("logger");
+
 const { User } = require("../models");
-const { errorMsg, informationMsg } = require("../utils/formatting");
+const { validationErrors } = require("../utils/helpers");
 
 /**
  * Use this route to create a new user.
@@ -44,7 +47,11 @@ exports.newUser = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json(errors);
+        logger.debug(errors.array(), {
+          controller: "newUser",
+          errorMsg: "validation error",
+        });
+        res.status(400).json({ error: validationErrors(errors.array()) });
         return;
       }
 
@@ -61,10 +68,13 @@ exports.newUser = [
     } catch (err) {
       const { message } = err;
       if (message === "Validation error") {
-        res.status(400).json(err);
+        res.status(400).json({ error: err });
       }
-      console.log(errorMsg("Sign Up Catch Error:\n"), err);
-      res.status(500).json(err);
+      logger.debug(err, {
+        controller: "newUser",
+        errorMsg: "catch error",
+      });
+      res.status(500).json({ error: err });
     }
   },
 ];
@@ -90,8 +100,11 @@ exports.login = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        console.log(errorMsg("validation errors:\n"), errors.array());
-        res.status(400).json(errors);
+        logger.debug(errors.array(), {
+          controller: "login",
+          errorMsg: "validation error",
+        });
+        res.status(400).json({ error: validationErrors(errors.array()) });
         return;
       }
 
@@ -99,16 +112,20 @@ exports.login = [
 
       // check for user found
       if (!userData) {
-        res
-          .status(400)
-          .json({ message: "Incorrect email or password, please try again" });
+        logger.debug("user not found", {
+          controller: "login",
+        });
+        res.status(400).json({ error: "user not found" });
         return;
       }
 
       // check if user is inactive
       if (!userData.isActive) {
+        logger.debug("user is inactive", {
+          controller: "login",
+        });
         res.status(202).json({
-          message:
+          error:
             "This user has been inactivated, please see your administrator",
         });
       }
@@ -116,9 +133,12 @@ exports.login = [
       // validate password
       const validPwd = await userData.checkPassword(req.body.password);
       if (!validPwd) {
+        logger.debug("bad password", {
+          controller: "login",
+        });
         res
           .status(400)
-          .json({ message: "Incorrect email or password, please try again" });
+          .json({ error: "Incorrect email or password, please try again" });
         return;
       }
 
@@ -132,7 +152,9 @@ exports.login = [
         userId: userData.userId,
       });
 
-      console.log(informationMsg(userData), informationMsg(token));
+      logger.debug(JSON.stringify({ userData, token }), {
+        controller: "login",
+      });
 
       res.status(200).json({
         user: userData,
@@ -140,8 +162,9 @@ exports.login = [
         message: "You are now logged in!",
       });
     } catch (err) {
-      console.log(errorMsg("Login Catch Error:\n"), err);
-      res.status(400).json(err);
+      const errMsg = `Login Catch Error:\n ${err.stack}`;
+      logger.debug(err, { errorMsg: "Login Catch Error", controller: "login" });
+      res.status(400).json({ error: errMsg });
     }
   },
 ];
@@ -209,23 +232,22 @@ exports.updateUser = [
       if (req.body.newRequestPwdReset)
         newData.requestPwdReset = req.body.newRequestPwdReset;
 
-      console.log(informationMsg("newData:"), newData);
+      logger.debug(JSON.stringify({ newData }), {
+        controller: "updateUser",
+      });
       if (Object.keys(newData).length === 0) {
-        res.status(400).json([
-          {
-            value: newData,
-            msg: "Nothing to update",
-            param: "newData",
-            location: "body",
-          },
-        ]);
+        res.status(400).json({ error: "Nothing to update" });
         return;
       }
 
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json(errors.array());
+        logger.debug(errors.array, {
+          controller: "updateUser",
+          errorMsg: "validation error",
+        });
+        res.status(400).json({ error: validationErrors(errors.array()) });
         return;
       }
 
@@ -234,18 +256,24 @@ exports.updateUser = [
 
       // check for user found
       if (!userData) {
+        logger.debug("user not found", {
+          controller: "updateUser",
+        });
         res
           .status(400)
-          .json({ message: "Incorrect user ID or password, please try again" });
+          .json({ error: "Incorrect user ID or password, please try again" });
         return;
       }
 
       // validate password
       const validPwd = await userData.checkPassword(oldPwd);
       if (!validPwd) {
-        res
-          .status(400)
-          .json({ message: "Incorrect user ID or password, please try again" });
+        logger.debug("invalid Password", {
+          controller: "updateUser",
+        });
+        res.status(400).json({
+          error: "Incorrect user ID or password, please try again",
+        });
         return;
       }
 
@@ -260,8 +288,11 @@ exports.updateUser = [
         message: "Update Succeeded!",
       });
     } catch (err) {
-      console.log(errorMsg("updateUser Catch Error:\n"), err);
-      res.status(400).json({ message: err.message });
+      logger.debug(err, {
+        errorMsg: "updateUser Catch Error",
+        controller: "updateUser",
+      });
+      res.status(400).json({ error: err.message });
     }
   },
 ];

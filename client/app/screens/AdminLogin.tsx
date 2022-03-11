@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import {
   StyleSheet,
   Text,
@@ -7,41 +8,25 @@ import {
   TextInput,
 } from "react-native";
 import { BASE_API } from "../utils/constants";
-import useFetch from "../utils/useFetch";
+import useFetch from "../hooks/useFetch";
+import { User } from "../interfaces/User";
+import { AuthContext } from "../utils/authContext";
 
-interface User {
-  user: {
-    userId: number;
-    userName: string;
-    email: string;
-    isAdmin: boolean;
-    requestPwdReset: boolean;
-    lastPwdUpdate: Date;
-    isActive: boolean;
-    lastLogin: Date;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  token: string;
-  message: string;
-}
+type Props = StackNativeScreenProps<"Admin">;
 
-export default function AdminLogin() {
-  // screen controls
-  const [err, setErr] = useState<Error | string | undefined>();
-  const [isLoading, setIsLoading] = useState(false);
-
+export default function AdminLogin({ navigation }: Props) {
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // // fetch information
-  // const [url, setURL] = useState("");
-  // const [requestOptions, setRequestOptions] = useState<RequestInit>({});
+  // Auth stuff...
+  const { auth, setAuth } = useContext(AuthContext);
+
+  // fetch information
+  const { fetchData, data, error, loading } = useFetch<User>();
 
   const handleSignIn = async () => {
-    // setRequestOptions
-    const reqOpts: RequestInit = {
+    const options = {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -50,41 +35,32 @@ export default function AdminLogin() {
       },
       body: JSON.stringify({ email, password }),
     };
-    // setURL
-    const curURL = BASE_API + "users/login";
-
-    console.log("requestOptions:", reqOpts, "\nURL:", curURL);
-
-    // fetchURL updates on URL change
-    try {
-      setIsLoading(true);
-      const response = await fetch(curURL, reqOpts);
-      if (!response.ok) {
-        throw new Error(response.statusText);
-      }
-
-      const data = await response.json();
-      setIsLoading(false);
-      console.log(data);
-
-      // const { data, error } = useFetch<User>(curURL, reqOpts);
-      // // const { data, error } = useFetch<User>(url, requestOptions);
-      // if (error) {
-      //   console.log(error);
-      //   setThereISAnError(error);
-      // }
-      // if (!data) setIsLoading(true);
-      // if (data) {
-      //   console.log(data);
-      // }
-
-      // return;
-    } catch (e: any) {
-      console.log(e);
-      setIsLoading(false);
-      setErr(e);
-    }
+    const url = BASE_API + "users/login";
+    fetchData({ url, options });
   };
+
+  // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
+  useEffect(() => {
+    let unmounted = false;
+    if (!data) return;
+
+    setAuth({
+      isAuthenticated: true,
+      userData: data,
+    });
+
+    if (data.user.requestPwdReset) {
+      // navigate to reset password
+      return;
+    }
+
+    navigation.navigate("Home");
+    // navigate to Trails?
+
+    return () => {
+      unmounted = true;
+    };
+  }, [data]);
 
   return (
     <View style={styles.container}>
@@ -115,13 +91,11 @@ export default function AdminLogin() {
       <TouchableOpacity onPress={handleSignIn}>
         <Text>Sign in</Text>
       </TouchableOpacity>
-      {isLoading && <Text>Loading...</Text>}
-      {err && (
+      {loading && <Text>Loading...</Text>}
+      {error && (
         <>
           <Text style={styles.errText}>Error:</Text>
-          <Text style={styles.errText}>
-            {typeof err === "string" ? err : JSON.stringify(err)}
-          </Text>
+          <Text style={styles.errText}>{error}</Text>
         </>
       )}
 
