@@ -3,11 +3,10 @@ import React, { useState, useEffect } from "react";
 import MapView from "react-native-maps";
 import {
   StyleSheet,
-  Text,
   View,
   Dimensions,
   TouchableOpacity,
-  Button,
+  Image,
 } from "react-native";
 import * as Location from "expo-location";
 
@@ -42,10 +41,11 @@ export default function HomeScreen({ navigation }: { [key: string]: any }) {
       <StatusBar style="auto" />
 
       <View style={styles.btnContainer}>
-        {/* <Button 
-          title="Edit"
-          onPress={() => navigation.navigate("Trail Screen")}/> */}
-        <Button title="Admin" onPress={() => navigation.navigate("Admin")} />
+        <TouchableOpacity onPress={() => navigation.navigate("Admin")}>
+          <Image
+          source={require("./Settings.png")} 
+          style={styles.image}/>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -66,6 +66,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     flexDirection: "row",
     right: 10,
-    bottom: 10,
+    top: 35,
   },
+  image: {
+    width: 30,
+    height: 30,
+  }
 });

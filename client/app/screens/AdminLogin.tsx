@@ -124,6 +124,10 @@ export default function AdminLogin() {
           </Text>
         </>
       )}
+
+      <TouchableOpacity onPress={() => {alert("You now see three more TextInputs inorder to change your password.")}}>
+        <Text>Update Password</Text>
+      </TouchableOpacity>
     </View>
   );
 }
