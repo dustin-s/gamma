@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
+import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import MapView from "react-native-maps";
 import { Alert, Dimensions, StyleSheet, View } from "react-native";
 import * as TaskManager from "expo-task-manager";
@@ -6,33 +7,15 @@ import * as Location from "expo-location";
 
 // Components
 import MapButton from "../components/MapButton";
+import { LocationObject, LocationObjectCoords } from "expo-location";
+import { AuthContext } from "../utils/authContext";
 
 // Constants
 const LOCATION_TASK_NAME = "background-location-task";
 
 // Types
-interface TrailScreenProps {
-  navigation: { [key: string]: any };
-  trailID: number | null;
-  userID: number | null;
-}
-
-interface coordsObj {
-  accuracy?: number;
-  altitude?: number;
-  altitudeAccuracy?: number;
-  heading?: number;
-  latitude: number;
-  longitude: number;
-  speed?: number;
-  latitudeDelta?: number;
-  longitudeDelta?: number;
-}
-
-interface locationObj {
-  coords: coordsObj;
-  timestamp: number;
-}
+type ScreenProps = StackNativeScreenProps<"Trail Screen">;
+type TrailScreenProps = ScreenProps & { trailID?: number | null };
 
 interface POIObj {
   trailID: number | null;
@@ -49,11 +32,7 @@ interface POIObj {
 }
 
 // Main function
-export default function TrailScreen({
-  navigation,
-  trailID,
-  userID,
-}: TrailScreenProps) {
+export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
@@ -61,37 +40,37 @@ export default function TrailScreen({
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
   });
+
+  const { auth } = useContext(AuthContext);
+  let userId: number | null = null;
+  if (auth.userData?.user) {
+    userId = auth.userData.user.userId;
+  }
+
   const [trailId, setTrailID] = useState(trailID ? trailID : null);
-  const [userId, setUserID] = useState(userID ? userID : null);
-  const [locationArr, setLocationArr] = useState<locationObj[]>([]);
+  const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [pOIArr, setPOIArr] = useState([]);
 
   const [isStarted, setIsStarted] = useState<boolean>(false);
 
   // Define the task passing its name and a callback that will be called whenever the location changes
-  TaskManager.defineTask(
-    LOCATION_TASK_NAME,
-    async ({ data: { locations }, error }) => {
-      if (error) {
-        console.error(error);
-        return;
-      }
-      console.log("locations:", locations);
-
-      const [location] = locations;
-      setLocationArr([...locationArr, location]);
-
-      console.log("location length=", locationArr.length);
-      console.log(`time:  ${new Date(location.timestamp).toLocaleString()}`);
-      console.log("last location: ", location);
-      // try {
-      //   const url = `https://<your-api-endpoint>`;
-      //   await axios.post(url, { location }); // you should use post instead of get to persist data on the backend
-      // } catch (err) {
-      //   console.error(err);
-      // }
+  TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
+    if (error) {
+      console.error(error);
+      return;
     }
-  );
+
+    const locations = data as LocationObject[];
+    console.log("locations:", locations);
+
+    const [location] = locations;
+
+    setLocationArr([...locationArr, location.coords]);
+
+    console.log("location length=", locationArr.length);
+    console.log(`time:  ${new Date(location.timestamp).toLocaleString()}`);
+    console.log("last location: ", location);
+  });
 
   const handleStartRecording = async () => {
     const { status } = await Location.requestBackgroundPermissionsAsync();
@@ -235,12 +214,12 @@ export default function TrailScreen({
               backgroundColor="blue"
               handlePress={() => {
                 let curLoc = currentLocation();
-                navigation.navigate("Point of Interest", {
-                  handleSetPoI,
-                  trailID,
-                  userID,
-                  curLoc,
-                });
+                // navigation.navigate("Point of Interest", {
+                //   handleSetPoI,
+                //   trailID,
+                //   userID,
+                //   curLoc,
+                // });
               }}
             />
           )}
