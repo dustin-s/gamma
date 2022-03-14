@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import MapView from "react-native-maps";
 import {
@@ -8,8 +8,10 @@ import {
   Dimensions,
   TouchableOpacity,
   Image,
+  Text,
 } from "react-native";
 import * as Location from "expo-location";
+import { AuthContext } from "../utils/authContext";
 
 type Props = StackNativeScreenProps<"Home">;
 
@@ -21,6 +23,7 @@ export default function HomeScreen({ navigation }: Props) {
     latitudeDelta: 0.003,
     longitudeDelta: 0.003,
   });
+  const { auth } = useContext(AuthContext);
 
   // Error message if current location isn't working.
   useEffect(() => {
@@ -36,19 +39,19 @@ export default function HomeScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={styles.map}
-        region={location}
-        showsUserLocation={true}
-      ></MapView>
+      <MapView style={styles.map} region={location} showsUserLocation={true} />
       <StatusBar style="auto" />
 
       <View style={styles.btnContainer}>
-        <TouchableOpacity onPress={() => navigation.navigate("Admin")}>
-          <Image
-          source={require("./Settings.png")} 
-          style={styles.image}/>
-        </TouchableOpacity>
+        {auth.isAuthenticated ? (
+          <TouchableOpacity onPress={() => navigation.navigate("Trail Screen")}>
+            <Text>Add Trail</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => navigation.navigate("Admin")}>
+            <Image source={require("./Settings.png")} style={styles.image} />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -74,5 +77,5 @@ const styles = StyleSheet.create({
   image: {
     width: 30,
     height: 30,
-  }
+  },
 });
