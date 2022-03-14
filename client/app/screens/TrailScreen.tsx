@@ -14,25 +14,16 @@ const LOCATION_TASK_NAME = "background-location-task";
 
 // Types
 import { LocationObject, LocationObjectCoords } from "expo-location";
+import { POIObj } from "../interfaces/POIObj";
 type ScreenProps = StackNativeScreenProps<"Trail Screen">;
 type TrailScreenProps = ScreenProps & { trailID?: number | null };
-
-interface POIObj {
-  trailID: number | null;
-  description: string | null;
-  image: string | null;
-  isActive: boolean;
-  accuracy?: number;
-  altitude?: number;
-  altitudeAccuracy?: number;
-  heading?: number;
-  latitude: number;
-  longitude: number;
-  speed?: number;
-}
+// type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
-export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
+export default function TrailScreen({
+  navigation,
+  trailID = null,
+}: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState({
     latitude: 30.24166,
@@ -47,9 +38,8 @@ export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
     userId = auth.userData.user.userId;
   }
 
-  const [trailId, setTrailID] = useState(trailID ? trailID : null);
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
-  const [pOIArr, setPOIArr] = useState([]);
+  const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
 
   const [isStarted, setIsStarted] = useState<boolean>(false);
 
@@ -64,6 +54,7 @@ export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
     console.log("locations:", locations);
 
     const [location] = locations;
+    console.log("location.coords:", location.coords);
 
     setLocationArr([...locationArr, location.coords]);
 
@@ -108,7 +99,7 @@ export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
       console.log("\n************************************");
 
       setIsStarted(false);
-      alert("Congratulations, you completed a trail! ");
+      alert("You've stopped/paused recording this trail! ");
     }
   };
 
@@ -123,13 +114,16 @@ export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
   };
 
   const currentLocation = () => {
-    if (trailID) {
-      // return the current location on the trail
-    } else {
-      return locationArr[locationArr.length - 1];
-    }
+    // if (trailID) {
+    //   // return the current location on the trail
+    // } else {
+    return locationArr[locationArr.length - 1];
+    // }
   };
   const handleSetPoI = (newPoI: POIObj) => {
+    if (auth.isAuthenticated) {
+      setPOIArr([...pOIArr, newPoI]);
+    }
     // do stuff
   };
 
@@ -178,47 +172,42 @@ export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
       {userId ? (
         <View style={styles.btnContainer}>
           {/* Only show the record buttons if there is no trailID */}
-          {!trailID ? (
-            <>
-              {!isStarted && (
-                <MapButton
-                  label="Start Point"
-                  backgroundColor="green"
-                  handlePress={handleStartRecording}
-                />
-              )}
 
-              {isStarted && (
-                <MapButton
-                  label="Stop Point"
-                  backgroundColor="red"
-                  handlePress={handleStopRecoding}
-                />
-              )}
+          {!trailID && !isStarted && (
+            <MapButton
+              label="Start"
+              backgroundColor="green"
+              handlePress={handleStartRecording}
+            />
+          )}
 
-              {!isStarted && locationArr.length > 0 && (
-                <MapButton
-                  label="Save"
-                  backgroundColor="blue"
-                  handlePress={handleSave}
-                />
-              )}
-            </>
-          ) : (
-            <></>
+          {!trailID && isStarted && (
+            <MapButton
+              label="Stop"
+              backgroundColor="red"
+              handlePress={handleStopRecoding}
+            />
+          )}
+
+          {!trailID && !isStarted && locationArr.length > 0 && (
+            <MapButton
+              label="Save"
+              backgroundColor="blue"
+              handlePress={handleSave}
+            />
           )}
 
           {isStarted && (
             <MapButton
-              label="Add Point of Interest"
+              label="Add Pt of Interest"
               backgroundColor="blue"
               handlePress={() => {
                 let curLoc = currentLocation();
+                let poi;
                 navigation.navigate("Point of Interest", {
                   handleSetPoI,
                   trailID,
-                  userId,
-                  curLoc,
+                  currentLocation: curLoc,
                 });
               }}
             />
@@ -251,6 +240,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     flexDirection: "row",
     justifyContent: "space-evenly",
-    bottom: 0,
+    bottom: 10,
   },
 });

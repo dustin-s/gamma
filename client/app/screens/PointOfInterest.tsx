@@ -2,6 +2,7 @@
 // https://www.youtube.com/watch?v=RmlekGDv8RU&ab_channel=AaronSaunders
 // https://docs.expo.dev/versions/latest/sdk/camera/
 
+import { LocationObjectCoords } from "expo-location";
 import { useState } from "react";
 import {
   Image,
@@ -12,40 +13,19 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { POIObj } from "../interfaces/POIObj";
+import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
-interface coordsObj {
-  accuracy?: number;
-  altitude?: number;
-  altitudeAccuracy?: number;
-  heading?: number;
-  latitude: number;
-  longitude: number;
-  speed?: number;
-  latitudeDelta?: number;
-  longitudeDelta?: number;
-}
-
-interface POIObj {
-  trailID: number | null;
-  description: string | null;
-  image: string | null;
-  isActive: boolean;
-  accuracy?: number;
-  altitude?: number;
-  altitudeAccuracy?: number;
-  heading?: number;
-  latitude: number;
-  longitude: number;
-  speed?: number;
-}
-
-interface POIProps {
+type ScreenProps = StackNativeScreenProps<"Trail Screen">;
+type POIProps = ScreenProps & {
   poi: POIObj | undefined;
   handleSetPoI(newPoI: POIObj): any;
   trailId: number | null;
   userId: number | null;
-  currentLocation: coordsObj;
-}
+  currentLocation: LocationObjectCoords;
+};
+
+// type POIScreenProps = StackNativeScreenProps<"Point of Interest"
 
 // provide a trailID if available. if a trailID is provided, it will save the prop immediately, otherwise it will send it back to the POI array to be saved with the trail.
 export default function PointOfInterest({
