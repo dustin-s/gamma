@@ -33,15 +33,20 @@ export default function TrailScreen({
   });
 
   const { auth } = useContext(AuthContext);
-  let userId: number | null = null;
-  if (auth.userData?.user) {
-    userId = auth.userData.user.userId;
-  }
+  const userId = auth.userData?.user.userId || null;
 
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
 
   const [isStarted, setIsStarted] = useState<boolean>(false);
+
+  const [statusBG, requestPermission] = Location.useBackgroundPermissions();
+
+  useEffect(() => {
+    if (!statusBG?.granted && auth.isAuthenticated) {
+      requestPermission();
+    }
+  }, []);
 
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -50,22 +55,30 @@ export default function TrailScreen({
       return;
     }
 
-    const locations = data as LocationObject[];
-    console.log("locations:", locations);
+    const curData = data as any;
+    const locations = curData.locations;
+    // console.log(
+    //   "locations:",
+    //   locations,
+    //   "\nLocations[].length:\t",
+    //   locations.length
+    // );
 
     const [location] = locations;
-    console.log("location.coords:", location.coords);
+    // console.log("location.coords:", location.coords);
 
     setLocationArr([...locationArr, location.coords]);
 
-    console.log("location length=", locationArr.length);
+    console.log("\nlocation length=", locationArr.length);
     console.log(`time:  ${new Date(location.timestamp).toLocaleString()}`);
-    console.log("last location: ", location);
+    console.log("last location:\n", location);
   });
 
   const handleStartRecording = async () => {
-    const { status } = await Location.requestBackgroundPermissionsAsync();
-    if (status === "granted") {
+    // const { status } = await Location.requestBackgroundPermissionsAsync();
+    // if (status === "granted") {
+    if (statusBG?.granted) {
+      const { status } = statusBG;
       console.log("status: ", status);
 
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {

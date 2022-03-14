@@ -13,11 +13,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+// Types:
 import { POIObj } from "../interfaces/POIObj";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 type ScreenProps = StackNativeScreenProps<"Trail Screen">;
-type POIProps = ScreenProps & {
+type POIScreenProps = ScreenProps & {
   poi: POIObj | undefined;
   handleSetPoI(newPoI: POIObj): any;
   trailId: number | null;
@@ -34,7 +36,7 @@ export default function PointOfInterest({
   trailId,
   userId,
   currentLocation,
-}: POIProps) {
+}: POIScreenProps) {
   const [image, setImage] = useState<string | null>(poi?.image || null);
   const [description, setDescription] = useState<string>(
     poi?.description || ""
@@ -43,6 +45,7 @@ export default function PointOfInterest({
 
   return (
     <View style={styles.container}>
+      <Text>POI Screen</Text>
       {/* show image and capture buttons */}
       {image ? (
         <>
