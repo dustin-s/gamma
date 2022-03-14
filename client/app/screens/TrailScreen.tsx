@@ -15,7 +15,7 @@ const LOCATION_TASK_NAME = "background-location-task";
 // Types
 import { LocationObject, LocationObjectCoords } from "expo-location";
 import { POIObj } from "../interfaces/POIObj";
-import SaveModal from "../components/SaveModal";
+import SaveTrailModal from "../components/SaveTrailModal";
 type ScreenProps = StackNativeScreenProps<"Trail Screen">;
 type TrailScreenProps = ScreenProps & { trailID?: number | null };
 // type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
@@ -147,7 +147,7 @@ export default function TrailScreen({
 
   return (
     <View style={styles.container}>
-      <SaveModal
+      <SaveTrailModal
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
       />

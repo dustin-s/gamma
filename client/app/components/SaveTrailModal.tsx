@@ -6,17 +6,22 @@ import {
   TextInput,
   Pressable,
   View,
+  Switch,
 } from "react-native";
 
-interface SaveModalProps {
+interface SaveTrailModalProps {
   modalVisible: boolean;
   setModalVisible(value: SetStateAction<boolean>): void;
 }
 
-const SaveModal = ({ modalVisible, setModalVisible }: SaveModalProps) => {
+const SaveTrailModal = ({
+  modalVisible,
+  setModalVisible,
+}: SaveTrailModalProps) => {
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [difficulty, setDifficulty] = useState("Easy");
+  const [isClosed, setIsClosed] = useState(false);
 
   return (
     // <View style={styles.centeredView}>
@@ -61,6 +66,16 @@ const SaveModal = ({ modalVisible, setModalVisible }: SaveModalProps) => {
                 onChangeText={(value) => setDifficulty(value)}
               />
             </View>
+            <View style={styles.controlGroup}>
+              <Text style={styles.label}>Closed?</Text>
+              <Switch
+                trackColor={{ false: "#767577", true: "#81b0ff" }}
+                thumbColor={isClosed ? "#f5dd4b" : "#f4f3f4"}
+                ios_backgroundColor="#3e3e3e"
+                onValueChange={() => setIsClosed(!isClosed)}
+                value={isClosed}
+              />
+            </View>
             <Pressable
               style={styles.button}
               onPress={() => setModalVisible(!modalVisible)}
@@ -85,7 +100,7 @@ const styles = StyleSheet.create({
   modalView: {
     width: "90%",
     paddingHorizontal: 10,
-    paddingVertical: 15,
+    paddingVertical: 25,
     backgroundColor: "white",
     borderRadius: 20,
     shadowColor: "#000",
@@ -101,16 +116,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 5,
-
-    borderColor: "red",
-    borderWidth: 1,
   },
   multiControlGroup: {
     minHeight: 50,
     padding: 5,
-
-    borderColor: "red",
-    borderWidth: 1,
   },
   label: {
     fontSize: 20,
@@ -133,9 +142,10 @@ const styles = StyleSheet.create({
   },
   btnTextStyle: {
     color: "white",
+    fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
   },
 });
 
-export default SaveModal;
+export default SaveTrailModal;
