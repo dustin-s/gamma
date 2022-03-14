@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import { AuthContext } from "../utils/authContext";
+import MapButton from "../components/MapButton";
 
 type Props = StackNativeScreenProps<"Home">;
 
@@ -43,14 +44,21 @@ export default function HomeScreen({ navigation }: Props) {
       <StatusBar style="auto" />
 
       <View style={styles.btnContainer}>
-        {auth.isAuthenticated ? (
-          <TouchableOpacity onPress={() => navigation.navigate("Trail Screen")}>
-            <Text>Add Trail</Text>
-          </TouchableOpacity>
-        ) : (
+        {!auth.isAuthenticated && (
           <TouchableOpacity onPress={() => navigation.navigate("Admin")}>
             <Image source={require("./Settings.png")} style={styles.image} />
           </TouchableOpacity>
+        )}
+      </View>
+      <View>
+        {auth.isAuthenticated && (
+          <MapButton
+            label="Add Trail"
+            backgroundColor="blue"
+            handlePress={() =>
+              navigation.navigate("Trail Screen", { trailID: null })
+            }
+          />
         )}
       </View>
     </View>
