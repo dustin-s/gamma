@@ -40,10 +40,10 @@ export default function TrailScreen({
 
   const [isStarted, setIsStarted] = useState<boolean>(false);
 
+  // Get background permission if there is no trailID. This isn't necessary if the user is not recording a trail.
   const [statusBG, requestPermission] = Location.useBackgroundPermissions();
-
   useEffect(() => {
-    if (!statusBG?.granted && auth.isAuthenticated) {
+    if (!statusBG?.granted && !trailID) {
       requestPermission();
     }
   }, []);
@@ -56,16 +56,9 @@ export default function TrailScreen({
     }
 
     const curData = data as any;
-    const locations = curData.locations;
-    // console.log(
-    //   "locations:",
-    //   locations,
-    //   "\nLocations[].length:\t",
-    //   locations.length
-    // );
 
-    const [location] = locations;
-    // console.log("location.coords:", location.coords);
+    // const [location] = locations;
+    const [location] = curData.locations;
 
     setLocationArr([...locationArr, location.coords]);
 
@@ -75,8 +68,6 @@ export default function TrailScreen({
   });
 
   const handleStartRecording = async () => {
-    // const { status } = await Location.requestBackgroundPermissionsAsync();
-    // if (status === "granted") {
     if (statusBG?.granted) {
       const { status } = statusBG;
       console.log("status: ", status);
@@ -93,9 +84,8 @@ export default function TrailScreen({
         },
       });
       setIsStarted(true);
-      alert("You will now be able to re-walk this trail any time you want.");
     } else {
-      console.log("status: ", status);
+      console.log("status: ", statusBG?.status || null);
     }
   };
 
@@ -112,7 +102,6 @@ export default function TrailScreen({
       console.log("\n************************************");
 
       setIsStarted(false);
-      alert("You've stopped/paused recording this trail! ");
     }
   };
 

@@ -50,24 +50,31 @@ export default function HomeScreen({ navigation }: Props) {
           </TouchableOpacity>
         )}
       </View>
-
-      <View>
-        <MapButton
-          label="Select Trail 1"
-          backgroundColor="Blue"
-          handlePress={() =>
-            navigation.navigate("Trail Screen", { trailID: 1 })
-          }
-        />
-        {auth.isAuthenticated && (
+      <View style={{ flex: 1, flexDirection: "row", width: "100%" }}>
+        <View
+          style={{
+            flex: 1,
+            flexDirection: "row",
+            justifyContent: "space-evenly",
+          }}
+        >
           <MapButton
-            label="Add Trail"
+            label="Select Trail 1"
             backgroundColor="blue"
             handlePress={() =>
-              navigation.navigate("Trail Screen", { trailID: null })
+              navigation.navigate("Trail Screen", { trailID: 1 })
             }
           />
-        )}
+          {auth.isAuthenticated && (
+            <MapButton
+              label="Add Trail"
+              backgroundColor="blue"
+              handlePress={() =>
+                navigation.navigate("Trail Screen", { trailID: null })
+              }
+            />
+          )}
+        </View>
       </View>
     </View>
   );
