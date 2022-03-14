@@ -21,7 +21,7 @@ import { StackNativeScreenProps } from "../interfaces/StackParamList";
 type ScreenProps = StackNativeScreenProps<"Trail Screen">;
 type POIScreenProps = ScreenProps & {
   poi: POIObj | undefined;
-  handleSetPoI(newPoI: POIObj): any;
+  handleSetPoI(newPoI: POIObj): void;
   trailId: number | null;
   userId: number | null;
   currentLocation: LocationObjectCoords;

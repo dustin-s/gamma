@@ -15,6 +15,7 @@ const LOCATION_TASK_NAME = "background-location-task";
 // Types
 import { LocationObject, LocationObjectCoords } from "expo-location";
 import { POIObj } from "../interfaces/POIObj";
+import SaveModal from "../components/SaveModal";
 type ScreenProps = StackNativeScreenProps<"Trail Screen">;
 type TrailScreenProps = ScreenProps & { trailID?: number | null };
 // type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
@@ -37,8 +38,14 @@ export default function TrailScreen({
 
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const [isStarted, setIsStarted] = useState<boolean>(false);
+  useEffect(() => {
+    if (isStarted) {
+      console.log("Trail Recording started");
+    }
+  }, [isStarted]);
 
   // Get background permission if there is no trailID. This isn't necessary if the user is not recording a trail.
   const [statusBG, requestPermission] = Location.useBackgroundPermissions();
@@ -51,10 +58,10 @@ export default function TrailScreen({
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
     if (error) {
+      console.error("TaskManager.defineTask error:");
       console.error(error);
       return;
     }
-
     const curData = data as any;
 
     // const [location] = locations;
@@ -69,9 +76,6 @@ export default function TrailScreen({
 
   const handleStartRecording = async () => {
     if (statusBG?.granted) {
-      const { status } = statusBG;
-      console.log("status: ", status);
-
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Highest,
         distanceInterval: 1, // minimum change (in meters) betweens updates
@@ -109,6 +113,7 @@ export default function TrailScreen({
     console.log("*** Save Data ***");
     console.log(locationArr);
     console.log("\n************************************");
+    setModalVisible(true);
 
     setLocationArr([]);
     setPOIArr([]);
@@ -142,6 +147,10 @@ export default function TrailScreen({
 
   return (
     <View style={styles.container}>
+      <SaveModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+      />
       <MapView
         style={styles.map}
         initialRegion={location}
