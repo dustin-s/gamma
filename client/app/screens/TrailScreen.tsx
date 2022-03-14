@@ -7,13 +7,13 @@ import * as Location from "expo-location";
 
 // Components
 import MapButton from "../components/MapButton";
-import { LocationObject, LocationObjectCoords } from "expo-location";
 import { AuthContext } from "../utils/authContext";
 
 // Constants
 const LOCATION_TASK_NAME = "background-location-task";
 
 // Types
+import { LocationObject, LocationObjectCoords } from "expo-location";
 type ScreenProps = StackNativeScreenProps<"Trail Screen">;
 type TrailScreenProps = ScreenProps & { trailID?: number | null };
 
@@ -214,12 +214,12 @@ export default function TrailScreen({ navigation, trailID }: TrailScreenProps) {
               backgroundColor="blue"
               handlePress={() => {
                 let curLoc = currentLocation();
-                // navigation.navigate("Point of Interest", {
-                //   handleSetPoI,
-                //   trailID,
-                //   userID,
-                //   curLoc,
-                // });
+                navigation.navigate("Point of Interest", {
+                  handleSetPoI,
+                  trailID,
+                  userId,
+                  curLoc,
+                });
               }}
             />
           )}
