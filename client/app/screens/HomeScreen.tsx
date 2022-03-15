@@ -13,17 +13,13 @@ import {
 import * as Location from "expo-location";
 import { AuthContext } from "../utils/authContext";
 import MapButton from "../components/MapButton";
+import { CAMP_ALLEN_COORDS } from "../utils/constants";
 
 type Props = StackNativeScreenProps<"Home">;
 
 export default function HomeScreen({ navigation }: Props) {
   // Default coordinates upon loading (Camp Allen).
-  const [location, setLocation] = useState({
-    latitude: 30.24166,
-    longitude: -95.95935,
-    latitudeDelta: 0.003,
-    longitudeDelta: 0.003,
-  });
+  const [location, setLocation] = useState(CAMP_ALLEN_COORDS);
   const { auth } = useContext(AuthContext);
 
   // Error message if current location isn't working.
