@@ -1,24 +1,39 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import MapView from "react-native-maps";
-import { Alert, Dimensions, StyleSheet, View } from "react-native";
+import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 
 // Components
 import MapButton from "../components/MapButton";
+import SaveTrailModal from "../components/SaveTrailModal";
 import { AuthContext } from "../utils/authContext";
 
 // Constants
+import { CAMP_ALLEN_COORDS } from "../utils/constants";
 const LOCATION_TASK_NAME = "background-location-task";
 
 // Types
-import { LocationObject, LocationObjectCoords } from "expo-location";
+import { LocationObjectCoords } from "expo-location";
 import { POIObj } from "../interfaces/POIObj";
-import SaveTrailModal from "../components/SaveTrailModal";
+import { SaveTrailData } from "../interfaces/SaveTrailData";
+
 type ScreenProps = StackNativeScreenProps<"Trail Screen">;
 type TrailScreenProps = ScreenProps & { trailID?: number | null };
 // type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
+
+interface SubmitTrailData {
+  trailId: number | null;
+  name?: string;
+  description?: string;
+  difficulty: "easy" | "moderate" | "hard";
+  isClosed: boolean;
+  createdBy: number;
+  trailCoords: LocationObjectCoords[];
+  // ptsOfInterest: POIObj[];
+  // hazards: HazardObj[];
+}
 
 // Main function
 export default function TrailScreen({
@@ -26,24 +41,21 @@ export default function TrailScreen({
   trailID = null,
 }: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
-  const [location, setLocation] = useState({
-    latitude: 30.24166,
-    longitude: -95.95935,
-    latitudeDelta: 0.003,
-    longitudeDelta: 0.003,
-  });
+  const [location, setLocation] = useState(CAMP_ALLEN_COORDS);
 
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
 
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
 
+  const [modalVisible, setModalVisible] = useState(false);
   const [isStarted, setIsStarted] = useState<boolean>(false);
   useEffect(() => {
     if (isStarted) {
       console.log("Trail Recording started");
+      console.log("locationArr.length: ", locationArr.length);
+      console.log("modalVisible: ", modalVisible);
     }
   }, [isStarted]);
 
@@ -97,7 +109,7 @@ export default function TrailScreen({
     let value = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TASK_NAME
     );
-    console.log(value);
+
     if (value) {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       console.log("************************************\n");
@@ -109,15 +121,55 @@ export default function TrailScreen({
     }
   };
 
-  const handleSave = () => {
-    console.log("*** Save Data ***");
-    console.log(locationArr);
-    console.log("\n************************************");
-    setModalVisible(true);
-
+  const doCancel = () => {
+    console.log("cancel was pressed on the modal");
+    // show warning dialog (modal that is on the SaveTrailModal with continue ( does the cancel) and cancel (stops the cancel))
+    setModalVisible(false);
     setLocationArr([]);
-    setPOIArr([]);
-    alert("Trail saved");
+    // setPOIArr([]);
+  };
+
+  const handleSave = () => {
+    setModalVisible(true);
+  };
+
+  const saveTrail = async ({
+    name,
+    description,
+    difficulty,
+    isClosed,
+  }: SaveTrailData) => {
+    if (userId === null) {
+      throw new Error("userId is null when saving trail");
+    }
+
+    const trailData: SubmitTrailData = {
+      trailId: null,
+      name,
+      description,
+      difficulty,
+      isClosed,
+      createdBy: userId,
+      trailCoords: locationArr,
+      // ptsOfInterest: POIObj[];
+      // hazards: HazardObj[];
+    };
+    console.log("*** Save Data ***");
+    console.log(JSON.stringify(trailData));
+    console.log("\n************************************");
+
+    const options: RequestInit = {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "Cache-control": "no-cache",
+      },
+      body: JSON.stringify(trailData),
+    };
+    setLocationArr([]);
+    // setPOIArr([]);
+    // alert("Trail saved");
   };
 
   const currentLocation = () => {
@@ -150,7 +202,10 @@ export default function TrailScreen({
       <SaveTrailModal
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
+        saveTrail={saveTrail}
+        doCancel={doCancel}
       />
+      <Text>Trail Screen</Text>
       <MapView
         style={styles.map}
         initialRegion={location}
@@ -211,7 +266,7 @@ export default function TrailScreen({
           {isStarted && (
             <MapButton
               label="Add Pt of Interest"
-              backgroundColor="blue"
+              backgroundColor="purple"
               handlePress={() => {
                 let curLoc = currentLocation();
                 let poi;

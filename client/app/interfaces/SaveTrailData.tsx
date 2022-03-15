@@ -3,5 +3,4 @@ export interface SaveTrailData {
   description: string;
   difficulty: "easy" | "moderate" | "hard";
   isClosed: boolean;
-  cancel: boolean;
 }
