@@ -1,3 +1,14 @@
+/*
+upon entry 
+  1- check FG permission - if not granted display message no map access 
+  2- get all trails (fgStatus===granted & trailId === undefined) 
+  3- get data back display all trails
+
+user clicks on a trail, set the trailId to that trail and focus in on it. start showing points of interest and hazards (trailId === #) using data.trailId
+
+Authenticated user clicks on Add Trail (trailId === null), set trailId to null and start recording the trail. Show all trail data. (if trailId === null us locationArr, pOIArr)
+*/
+
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import MapView from "react-native-maps";
@@ -18,10 +29,9 @@ const LOCATION_TASK_NAME = "background-location-task";
 import { LocationObjectCoords } from "expo-location";
 import { POIObj } from "../interfaces/POIObj";
 import { SaveTrailData } from "../interfaces/SaveTrailData";
+import useFetch from "../hooks/useFetch";
 
-type ScreenProps = StackNativeScreenProps<"Trail Screen">;
-type TrailScreenProps = ScreenProps & { trailID?: number | null };
-// type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
+type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 interface SubmitTrailData {
   trailId: number | null;
@@ -35,11 +45,26 @@ interface SubmitTrailData {
   // hazards: HazardObj[];
 }
 
+interface TrailData {
+  trailId: number | null;
+  name?: string;
+  description?: string;
+  difficulty: "easy" | "moderate" | "hard";
+  createdBy: number;
+  updatedBy?: number;
+  isClosed: boolean;
+  distance: number;
+  hasNatureGuid: boolean;
+  hasHazard: boolean;
+  trailCoords: LocationObjectCoords[];
+  // ptsOfInterest: POIObj[];
+  // hazards: HazardObj[];
+}
+
 // Main function
-export default function TrailScreen({
-  navigation,
-  trailID = null,
-}: TrailScreenProps) {
+export default function TrailScreen({ navigation, route }: TrailScreenProps) {
+  const { trailID } = route.params;
+
   // Default coordinates upon loading (Camp Allen).
   const [location, setLocation] = useState(CAMP_ALLEN_COORDS);
 
@@ -59,13 +84,53 @@ export default function TrailScreen({
     }
   }, [isStarted]);
 
-  // Get background permission if there is no trailID. This isn't necessary if the user is not recording a trail.
-  const [statusBG, requestPermission] = Location.useBackgroundPermissions();
+  const { fetchData, data, error, loading } = useFetch<TrailData>();
+
+  // Get Permissions.
+  // everyone needs foreground permissions
+  // background permission is only needed for authenticated users and if
+  //   !trailID. This is only necessary if the user is recording a trail.
+  const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
   useEffect(() => {
-    if (!statusBG?.granted && !trailID) {
-      requestPermission();
+    console.log("\nuseEffect:statusFG:", statusFG?.status);
+    if (!statusFG?.granted) {
+      console.log("\nuseEffect: request permission");
+      requestFGPermission();
     }
   }, []);
+  const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
+  useEffect(() => {
+    if (!statusBG?.granted && !trailID) {
+      requestBGPermission();
+    }
+  }, []);
+
+  const createPermissionAlert = (msg: string, type: "FG" | "BG") => {
+    let cb;
+    console.log("\ncreatePermissionAlert\nstatusFG:", statusFG?.status);
+    console.log("statusBG:", statusBG?.status);
+    if (type === "FG") {
+      cb = requestFGPermission;
+    } else if (type === "BG") {
+      cb = requestBGPermission;
+    } else {
+      throw new Error("createPermissionAlert: invalid type");
+    }
+
+    return Alert.alert(
+      "Missing Permission",
+      msg,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        { text: "OK", onPress: cb },
+      ],
+      { onDismiss: cb }
+    );
+  };
 
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -96,7 +161,7 @@ export default function TrailScreen({
         foregroundService: {
           notificationTitle: "Using your location",
           notificationBody:
-            "To turn off, go back to the app and switch something off.",
+            "To turn off, go back to the app and click stop recording.",
         },
       });
       setIsStarted(true);
@@ -179,6 +244,7 @@ export default function TrailScreen({
     return locationArr[locationArr.length - 1];
     // }
   };
+
   const handleSetPoI = (newPoI: POIObj) => {
     if (auth.isAuthenticated) {
       setPOIArr([...pOIArr, newPoI]);
@@ -194,104 +260,125 @@ export default function TrailScreen({
   }
 
   useEffect(() => {
+    console.log("trailID:", trailID);
+    console.log("statusFG:", statusFG?.status);
+    console.log("statusBG:", statusBG?.status);
     setUpTrail();
   }, []);
 
   return (
-    <View style={styles.container}>
-      <SaveTrailModal
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        saveTrail={saveTrail}
-        doCancel={doCancel}
-      />
-      <Text>Trail Screen</Text>
-      <MapView
-        style={styles.map}
-        initialRegion={location}
-        showsUserLocation={true}
-      ></MapView>
+    <>
+      <View style={styles.bgContainer}>
+        <SaveTrailModal
+          modalVisible={modalVisible}
+          setModalVisible={setModalVisible}
+          saveTrail={saveTrail}
+          doCancel={doCancel}
+        />
 
-      {/* All user's buttons */}
-      <View style={styles.btnContainer}>
-        {trailID && (
-          <MapButton
-            label="Start Trail"
-            backgroundColor="green"
-            handlePress={() => Alert.alert("button press", "Start Trail")}
-          />
-        )}
-
-        {/* ToDo: Figure out logic for when to display */}
-        {isStarted && (
-          <MapButton
-            label="Show Point of Interest"
-            backgroundColor="blue"
-            handlePress={() =>
-              Alert.alert("button press", "Show Point of Interest")
-            }
-          />
-        )}
+        <MapView
+          style={styles.map}
+          initialRegion={location}
+          showsUserLocation={true}
+        ></MapView>
       </View>
 
-      {/* Show these buttons for a logged in user */}
-      {userId ? (
+      <View style={styles.fgContainer}>
+        <Text>Trail Screen</Text>
+
+        {/* All user's buttons */}
         <View style={styles.btnContainer}>
-          {/* Only show the record buttons if there is no trailID */}
-
-          {!trailID && !isStarted && (
+          {trailID && (
             <MapButton
-              label="Start"
+              label="Start Trail"
               backgroundColor="green"
-              handlePress={handleStartRecording}
+              handlePress={() => Alert.alert("button press", "Start Trail")}
             />
           )}
 
-          {!trailID && isStarted && (
-            <MapButton
-              label="Stop"
-              backgroundColor="red"
-              handlePress={handleStopRecoding}
-            />
-          )}
-
-          {!trailID && !isStarted && locationArr.length > 0 && (
-            <MapButton
-              label="Save"
-              backgroundColor="blue"
-              handlePress={handleSave}
-            />
-          )}
-
+          {/* ToDo: Figure out logic for when to display */}
           {isStarted && (
             <MapButton
-              label="Add Pt of Interest"
-              backgroundColor="purple"
-              handlePress={() => {
-                let curLoc = currentLocation();
-                let poi;
-                navigation.navigate("Point of Interest", {
-                  handleSetPoI,
-                  trailID,
-                  currentLocation: curLoc,
-                });
-              }}
+              label="Show Point of Interest"
+              backgroundColor="blue"
+              handlePress={() =>
+                Alert.alert("button press", "Show Point of Interest")
+              }
             />
           )}
         </View>
-      ) : (
-        <></>
-      )}
-    </View>
+
+        {/* Show these buttons for a logged in user */}
+        {userId ? (
+          <View style={styles.btnContainer}>
+            {/* Only show the record buttons if there is no trailID */}
+
+            {!trailID && !isStarted && (
+              <MapButton
+                label="Start"
+                backgroundColor="green"
+                handlePress={handleStartRecording}
+              />
+            )}
+
+            {!trailID && isStarted && (
+              <MapButton
+                label="Stop"
+                backgroundColor="red"
+                handlePress={handleStopRecoding}
+              />
+            )}
+
+            {!trailID && !isStarted && locationArr.length > 0 && (
+              <MapButton
+                label="Save"
+                backgroundColor="blue"
+                handlePress={handleSave}
+              />
+            )}
+
+            {isStarted && (
+              <MapButton
+                label="Add Pt of Interest"
+                backgroundColor="purple"
+                handlePress={() => {
+                  let curLoc = currentLocation();
+                  let poi;
+                  navigation.navigate("Point of Interest", {
+                    handleSetPoI,
+                    trailID,
+                    currentLocation: curLoc,
+                  });
+                }}
+              />
+            )}
+          </View>
+        ) : (
+          <></>
+        )}
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  bgContainer: {
     flex: 1,
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+  },
+  fgContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    // todo: figure out the proper way to account for header
+    height: "100%",
+    width: "100%",
+
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-end",
   },
   map: {
     width: Dimensions.get("window").width,
@@ -303,9 +390,13 @@ const styles = StyleSheet.create({
     right: 30,
   },
   btnContainer: {
-    position: "absolute",
     flexDirection: "row",
     justifyContent: "space-evenly",
-    bottom: 10,
+  },
+  permissionsText: {
+    padding: 10,
+    color: "red",
+    fontSize: 24,
+    textAlign: "center",
   },
 });
