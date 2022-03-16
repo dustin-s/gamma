@@ -11,12 +11,13 @@ Authenticated user clicks on Add Trail (trailId === null), set trailId to null a
 
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import MapView, { LatLng, Polyline } from "react-native-maps";
-import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
+import { getColor, getCoords } from "../utils/mapFunctions";
 
 // Components
+import MapView, { Polyline } from "react-native-maps";
+import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { AuthContext } from "../utils/authContext";
@@ -31,7 +32,6 @@ import { POIObj } from "../interfaces/POIObj";
 import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
-import { getColor, getCoords } from "../utils/mapFunctions";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 interface SubmitTrailData {
   trailId: number | null;
@@ -50,11 +50,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
   const [region, setRegion] = useState(CAMP_ALLEN_COORDS);
 
-  const [trailID, setTrailID] = useState(route.params?.trailID || null);
-
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
 
+  const [trailID, setTrailID] = useState(route.params?.trailID || null);
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
 
@@ -146,22 +145,22 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             "To turn off, go back to the app and click stop recording.",
         },
       });
+      // For test:
+      const campAllenCoords = {
+        accuracy: 6.0980000495910645,
+        altitude: 1700,
+        altitudeAccuracy: 1.3625929355621338,
+        heading: 327.75262451171875,
+        latitude: 30.24166,
+        longitude: -95.95935,
+        speed: 0.3030627369880676,
+      };
+      setLocationArr([...locationArr, campAllenCoords]);
+
       setIsStarted(true);
     } else {
       console.log("status: ", statusBG?.status || null);
     }
-
-    // For test:
-    const campAllenCoords = {
-      accuracy: 6.0980000495910645,
-      altitude: 1700,
-      altitudeAccuracy: 1.3625929355621338,
-      heading: 327.75262451171875,
-      latitude: 30.24166,
-      longitude: -95.95935,
-      speed: 0.3030627369880676,
-    };
-    setLocationArr([...locationArr, campAllenCoords]);
   };
 
   const handleStopRecoding = async () => {
@@ -180,6 +179,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
   };
 
+  const handleSave = () => {
+    setModalVisible(true);
+  };
+
   const doCancel = () => {
     console.log("cancel was pressed on the modal");
     // show warning dialog (modal that is on the SaveTrailModal with continue ( does the cancel) and cancel (stops the cancel))
@@ -189,11 +192,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     // setPOIArr([]);
   };
 
-  const handleSave = () => {
-    setModalVisible(true);
-  };
-
-  const saveTrail = async ({
+  const doSaveTrail = async ({
     name,
     description,
     difficulty,
@@ -250,11 +249,11 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     // do stuff
   };
 
-  async function getTrails() {
-    console.log("getTrails:");
+  const getTrails = async () => {
     fetchData({ url: "trails" });
-  }
+  };
 
+  // fired when data changes (post fetchData)
   useEffect(() => {
     let unmounted = false;
     if (!data) return;
@@ -268,7 +267,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, [data]);
 
   const showTrails = () => {
-    if (trailID === null) {
+    // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
+    if (trailID === null && locationArr.length > 0) {
       return (
         <Polyline
           coordinates={locationArr}
@@ -280,31 +280,25 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       const trailInfo = data.filter(
         (el: TrailData) => el.trailId === trailID
       )[0];
-      const coords: LatLng[] = getCoords(trailInfo);
+
       return (
         <Polyline
-          coordinates={coords}
+          coordinates={getCoords(trailInfo)}
           strokeColor={getColor(trailInfo.difficulty)}
           strokeWidth={6}
         />
       );
     } else if (data) {
-      return (
-        <>
-          {data.map((trailInfo) => {
-            const coords: LatLng[] = getCoords(trailInfo);
-            console.log("polyline generated");
-            return (
-              <Polyline
-                coordinates={coords}
-                strokeColor={getColor(trailInfo.difficulty)}
-                strokeWidth={6}
-                onPress={() => setTrailID(trailID)}
-              />
-            );
-          })}
-        </>
-      );
+      return data.map((trailInfo) => (
+        <Polyline
+          key={trailInfo.trailId}
+          coordinates={getCoords(trailInfo)}
+          strokeColor={getColor(trailInfo.difficulty)}
+          strokeWidth={6}
+          tappable={true}
+          onPress={() => setTrailID(trailInfo.trailId)}
+        />
+      ));
     }
   };
 
@@ -318,7 +312,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         <SaveTrailModal
           modalVisible={modalVisible}
           setModalVisible={setModalVisible}
-          saveTrail={saveTrail}
+          saveTrail={doSaveTrail}
           doCancel={doCancel}
         />
 
@@ -333,7 +327,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
       <View style={styles.fgContainer}>
         <Text>Trail Screen</Text>
-
+        <Text>Trail ID: {trailID === null ? "null" : trailID}</Text>
         {/* All user's buttons */}
         <View style={styles.btnContainer}>
           <MapButton
@@ -344,6 +338,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               console.log(temp.reverse());
               console.log(trailID);
               console.log(locationArr);
+              console.log("data.length:", data?.length || "null");
             }}
           />
           {trailID && (
