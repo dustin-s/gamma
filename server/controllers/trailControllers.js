@@ -27,9 +27,15 @@ exports.saveTrail = [
     .bail()
     .toInt()
     .custom(async (value) => {
-      logger.debug(`value: ${value}`);
+      logger.debug(value, {
+        controller: "saveTrail validation",
+        msg: "createdBy id",
+      });
       const user = await User.findByPk(value);
-      logger.debug(JSON.stringify(user));
+      logger.debug(JSON.stringify(user), {
+        controller: "saveTrail validation",
+        msg: "createdBy info",
+      });
       if (!user) {
         throw new Error("UserID doesn't exist");
       }
