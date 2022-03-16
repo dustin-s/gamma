@@ -32,9 +32,7 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 import { getColor, getCoords } from "../utils/mapFunctions";
-
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
-
 interface SubmitTrailData {
   trailId: number | null;
   name?: string;
@@ -42,16 +40,17 @@ interface SubmitTrailData {
   difficulty: "easy" | "moderate" | "hard";
   isClosed: boolean;
   createdBy: number;
-  trailCoords: LocationObjectCoords[];
+  TrailCoords: LocationObjectCoords[];
   // ptsOfInterest: POIObj[];
   // hazards: HazardObj[];
 }
+
 // Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
-  const { trailID } = route.params;
-
   // Default coordinates upon loading (Camp Allen).
-  const [location, setLocation] = useState(CAMP_ALLEN_COORDS);
+  const [region, setRegion] = useState(CAMP_ALLEN_COORDS);
+
+  const [trailID, setTrailID] = useState(route.params?.trailID || null);
 
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
@@ -77,9 +76,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   //   !trailID. This is only necessary if the user is recording a trail.
   const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
   useEffect(() => {
-    console.log("\nuseEffect:statusFG:", statusFG?.status);
     if (!statusFG?.granted) {
-      console.log("\nuseEffect: request permission");
       requestFGPermission();
     }
   }, []);
@@ -153,6 +150,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     } else {
       console.log("status: ", statusBG?.status || null);
     }
+
+    // For test:
+    const campAllenCoords = {
+      accuracy: 6.0980000495910645,
+      altitude: 1700,
+      altitudeAccuracy: 1.3625929355621338,
+      heading: 327.75262451171875,
+      latitude: 30.24166,
+      longitude: -95.95935,
+      speed: 0.3030627369880676,
+    };
+    setLocationArr([...locationArr, campAllenCoords]);
   };
 
   const handleStopRecoding = async () => {
@@ -174,6 +183,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const doCancel = () => {
     console.log("cancel was pressed on the modal");
     // show warning dialog (modal that is on the SaveTrailModal with continue ( does the cancel) and cancel (stops the cancel))
+
     setModalVisible(false);
     setLocationArr([]);
     // setPOIArr([]);
@@ -200,13 +210,15 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       difficulty,
       isClosed,
       createdBy: userId,
-      trailCoords: locationArr,
+      TrailCoords: locationArr,
       // ptsOfInterest: POIObj[];
       // hazards: HazardObj[];
     };
     console.log("*** Save Data ***");
     console.log(JSON.stringify(trailData));
     console.log("\n************************************");
+
+    const token = auth.userData?.token;
 
     const options: RequestInit = {
       method: "POST",
@@ -217,6 +229,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       },
       body: JSON.stringify(trailData),
     };
+    fetchData({ url: "trails/", options });
     setLocationArr([]);
     // setPOIArr([]);
     // alert("Trail saved");
@@ -255,10 +268,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, [data]);
 
   const showTrails = () => {
-    console.log("showTrails:\n\ttrailId = ", trailID);
-    console.log("\thas data: ", !!data);
-    console.log("\tLocation Arr length = ", locationArr.length);
-
     if (trailID === null) {
       return (
         <Polyline
@@ -290,6 +299,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                 coordinates={coords}
                 strokeColor={getColor(trailInfo.difficulty)}
                 strokeWidth={6}
+                onPress={() => setTrailID(trailID)}
               />
             );
           })}
@@ -299,7 +309,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   useEffect(() => {
-    console.log("trailID:", trailID);
     getTrails();
   }, []);
 
@@ -315,7 +324,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         <MapView
           style={styles.map}
-          initialRegion={location}
+          initialRegion={region}
           showsUserLocation={true}
         >
           {data && showTrails()}
@@ -327,6 +336,16 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         {/* All user's buttons */}
         <View style={styles.btnContainer}>
+          <MapButton
+            label="console.log(data)"
+            backgroundColor="orange"
+            handlePress={() => {
+              const temp = data ? [...data] : [];
+              console.log(temp.reverse());
+              console.log(trailID);
+              console.log(locationArr);
+            }}
+          />
           {trailID && (
             <MapButton
               label="Start Trail"

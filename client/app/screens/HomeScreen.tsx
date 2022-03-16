@@ -55,10 +55,15 @@ export default function HomeScreen({ navigation }: Props) {
           }}
         >
           <MapButton
-            label="Select Trail 1"
+            label="Trails"
+            backgroundColor="blue"
+            handlePress={() => navigation.navigate("Trail Screen")}
+          />
+          <MapButton
+            label="Select Trail 16"
             backgroundColor="blue"
             handlePress={() =>
-              navigation.navigate("Trail Screen", { trailID: 1 })
+              navigation.navigate("Trail Screen", { trailID: 16 })
             }
           />
           {auth.isAuthenticated && (
