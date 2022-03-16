@@ -106,6 +106,11 @@ exports.saveTrail = [
         include: [Trail.TrailCoords],
       });
 
+      logger.debug(JSON.stringify(trail), {
+        controller: "saveTrail",
+        msg: "trail created",
+      });
+
       res.status(201).json(trail);
     } catch (err) {
       logger.debug(err, {

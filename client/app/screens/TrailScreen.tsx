@@ -268,6 +268,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   const showTrails = () => {
     // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
+
+    console.log("showTrails:");
+    console.log(
+      "\ttrailID === null && locationArr.length:",
+      trailID === null && locationArr.length
+    );
+    console.log(`\ttrailID && dataL ${trailID && data}`);
+    console.log(`\tdata: ${Boolean(data)}`);
+    if (data?.length === undefined) {
+      console.log(data);
+    } else console.log(`\tdata.length: ${data.length}`);
+
     if (trailID === null && locationArr.length > 0) {
       return (
         <Polyline
@@ -289,6 +301,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         />
       );
     } else if (data) {
+      console.log("data.length", data.length);
       return data.map((trailInfo) => (
         <Polyline
           key={trailInfo.trailId}

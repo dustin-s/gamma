@@ -29,7 +29,6 @@ const SaveTrailModal = ({
     "easy"
   );
   const [isClosed, setIsClosed] = useState(false);
-  const [warningIsVisible, setWarningIsVisible] = useState(false);
 
   useEffect(() => {
     if (modalVisible) {
@@ -44,7 +43,7 @@ const SaveTrailModal = ({
   const handleCancel = () => {
     console.log("cancel was pressed on the modal");
     // do warning modal
-    setWarningIsVisible(true);
+    doCancel();
   };
 
   const handleSubmit = () => {
