@@ -11,7 +11,7 @@ Authenticated user clicks on Add Trail (trailId === null), set trailId to null a
 
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import MapView from "react-native-maps";
+import MapView, { Polyline } from "react-native-maps";
 import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
@@ -56,7 +56,7 @@ interface TrailData {
   distance: number;
   hasNatureGuid: boolean;
   hasHazard: boolean;
-  trailCoords: LocationObjectCoords[];
+  TrailCoords: LocationObjectCoords[];
   // ptsOfInterest: POIObj[];
   // hazards: HazardObj[];
 }
@@ -84,7 +84,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
   }, [isStarted]);
 
-  const { fetchData, data, error, loading } = useFetch<TrailData>();
+  const { fetchData, data, error, loading } = useFetch<TrailData[]>();
 
   // Get Permissions.
   // everyone needs foreground permissions
@@ -252,18 +252,25 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     // do stuff
   };
 
-  async function setUpTrail() {
-    if (trailID) {
-      // fetch trail information
-      return;
-    }
+  async function getTrails() {
+    console.log("getTrails:");
+    fetchData({ url: "trails" });
   }
 
   useEffect(() => {
+    let unmounted = false;
+    if (!data) return;
+    // capture the error message
+    if (error) console.error(error);
+
+    return () => {
+      unmounted = true;
+    };
+  }, [data]);
+
+  useEffect(() => {
     console.log("trailID:", trailID);
-    console.log("statusFG:", statusFG?.status);
-    console.log("statusBG:", statusBG?.status);
-    setUpTrail();
+    getTrails();
   }, []);
 
   return (
