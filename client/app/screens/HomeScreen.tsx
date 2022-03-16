@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import MapView from "react-native-maps";
 import {
