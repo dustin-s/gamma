@@ -11,7 +11,7 @@ Authenticated user clicks on Add Trail (trailId === null), set trailId to null a
 
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import MapView, { Polyline } from "react-native-maps";
+import MapView, { LatLng, Polyline } from "react-native-maps";
 import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
@@ -30,6 +30,8 @@ import { LocationObjectCoords } from "expo-location";
 import { POIObj } from "../interfaces/POIObj";
 import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
+import { TrailData } from "../interfaces/TrailData";
+import { getColor, getCoords } from "../utils/mapFunctions";
 
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
@@ -44,23 +46,6 @@ interface SubmitTrailData {
   // ptsOfInterest: POIObj[];
   // hazards: HazardObj[];
 }
-
-interface TrailData {
-  trailId: number | null;
-  name?: string;
-  description?: string;
-  difficulty: "easy" | "moderate" | "hard";
-  createdBy: number;
-  updatedBy?: number;
-  isClosed: boolean;
-  distance: number;
-  hasNatureGuid: boolean;
-  hasHazard: boolean;
-  TrailCoords: LocationObjectCoords[];
-  // ptsOfInterest: POIObj[];
-  // hazards: HazardObj[];
-}
-
 // Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const { trailID } = route.params;
@@ -260,6 +245,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   useEffect(() => {
     let unmounted = false;
     if (!data) return;
+
     // capture the error message
     if (error) console.error(error);
 
@@ -267,6 +253,50 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       unmounted = true;
     };
   }, [data]);
+
+  const showTrails = () => {
+    console.log("showTrails:\n\ttrailId = ", trailID);
+    console.log("\thas data: ", !!data);
+    console.log("\tLocation Arr length = ", locationArr.length);
+
+    if (trailID === null) {
+      return (
+        <Polyline
+          coordinates={locationArr}
+          strokeColor={getColor()}
+          strokeWidth={6}
+        />
+      );
+    } else if (trailID && data) {
+      const trailInfo = data.filter(
+        (el: TrailData) => el.trailId === trailID
+      )[0];
+      const coords: LatLng[] = getCoords(trailInfo);
+      return (
+        <Polyline
+          coordinates={coords}
+          strokeColor={getColor(trailInfo.difficulty)}
+          strokeWidth={6}
+        />
+      );
+    } else if (data) {
+      return (
+        <>
+          {data.map((trailInfo) => {
+            const coords: LatLng[] = getCoords(trailInfo);
+            console.log("polyline generated");
+            return (
+              <Polyline
+                coordinates={coords}
+                strokeColor={getColor(trailInfo.difficulty)}
+                strokeWidth={6}
+              />
+            );
+          })}
+        </>
+      );
+    }
+  };
 
   useEffect(() => {
     console.log("trailID:", trailID);
@@ -287,7 +317,9 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           style={styles.map}
           initialRegion={location}
           showsUserLocation={true}
-        ></MapView>
+        >
+          {data && showTrails()}
+        </MapView>
       </View>
 
       <View style={styles.fgContainer}>
