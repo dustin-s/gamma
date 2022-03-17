@@ -1,5 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StackParamList } from "./app/interfaces/StackParamList";
 
 // Authentication Context
@@ -18,26 +19,31 @@ const Stack = createNativeStackNavigator<StackParamList>();
 function App() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: "#98002D",
-            },
-            headerTintColor: "#fff",
-          }}
-        >
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="Admin" component={AdminLogin} />
-          <Stack.Screen name="Trail Screen" component={TrailScreen} />
-          <Stack.Screen name="Point of Interest" component={PointOfInterest} />
-          <Stack.Screen name="Get Photo" component={GetPhoto} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: "#98002D",
+              },
+              headerTintColor: "#fff",
+            }}
+          >
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="Admin" component={AdminLogin} />
+            <Stack.Screen name="Trail Screen" component={TrailScreen} />
+            <Stack.Screen
+              name="Point of Interest"
+              component={PointOfInterest}
+            />
+            <Stack.Screen name="Get Photo" component={GetPhoto} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
     </AuthProvider>
   );
 }

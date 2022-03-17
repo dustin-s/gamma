@@ -5,11 +5,13 @@ export interface TrailData {
   name?: string;
   description?: string;
   difficulty: "easy" | "moderate" | "hard";
+  isClosed: boolean;
   createdBy: number;
   updatedBy?: number;
-  isClosed: boolean;
   distance: number;
-  hasNatureGuid: boolean;
+  hasNatureGuide: boolean;
   hasHazard: boolean;
   TrailCoords: LocationObjectCoords[];
+  // ptsOfInterest: POIObj[];
+  // hazards: HazardObj[];
 }

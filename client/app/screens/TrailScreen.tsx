@@ -14,13 +14,14 @@ import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 import { getColor, getCoords } from "../utils/mapFunctions";
+import { AuthContext } from "../utils/authContext";
 
 // Components
 import MapView, { Polyline } from "react-native-maps";
 import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
-import { AuthContext } from "../utils/authContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
@@ -33,17 +34,11 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
-interface SubmitTrailData {
-  trailId: number | null;
-  name?: string;
-  description?: string;
-  difficulty: "easy" | "moderate" | "hard";
-  isClosed: boolean;
-  createdBy: number;
-  TrailCoords: LocationObjectCoords[];
-  // ptsOfInterest: POIObj[];
-  // hazards: HazardObj[];
-}
+// https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
+type SubmitTrailData = Omit<
+  TrailData,
+  "trailId" | "distance" | "hasNatureGuide" | "hasHazard"
+>;
 
 // Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
@@ -79,6 +74,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       requestFGPermission();
     }
   }, []);
+
   const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
   useEffect(() => {
     if (!statusBG?.granted && !trailID) {
@@ -146,17 +142,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         },
       });
       // For test:
-      const campAllenCoords = {
-        accuracy: 6.0980000495910645,
-        altitude: 1700,
-        altitudeAccuracy: 1.3625929355621338,
-        heading: 327.75262451171875,
-        latitude: 30.24166,
-        longitude: -95.95935,
-        speed: 0.3030627369880676,
-      };
-      setLocationArr([...locationArr, campAllenCoords]);
-
+      if (locationArr.length === 0) {
+        const campAllenCoords = {
+          accuracy: 6.0980000495910645,
+          altitude: 1700,
+          altitudeAccuracy: 1.3625929355621338,
+          heading: 327.75262451171875,
+          latitude: 30.24166,
+          longitude: -95.95935,
+          speed: 0.3030627369880676,
+        };
+        setLocationArr([...locationArr, campAllenCoords]);
+      }
       setIsStarted(true);
     } else {
       console.log("status: ", statusBG?.status || null);
@@ -203,7 +200,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
 
     const trailData: SubmitTrailData = {
-      trailId: null,
       name,
       description,
       difficulty,
@@ -320,7 +316,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, []);
 
   return (
-    <>
+    <SafeAreaView edges={["top", "bottom"]} style={styles.safeAreaView}>
       <View style={styles.bgContainer}>
         <SaveTrailModal
           modalVisible={modalVisible}
@@ -423,11 +419,16 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           <></>
         )}
       </View>
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeAreaView: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   bgContainer: {
     flex: 1,
     backgroundColor: "#fff",
