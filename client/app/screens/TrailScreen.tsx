@@ -19,6 +19,7 @@ import { AuthContext } from "../utils/authContext";
 // Components
 import MapView, { Polyline } from "react-native-maps";
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   Platform,
@@ -163,6 +164,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         };
         setLocationArr([...locationArr, campAllenCoords]);
       }
+
       setTrailID(null); // ensure trailId is not set
       setIsStarted(true);
     } else {
@@ -332,6 +334,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         saveTrail={doSaveTrail}
         doCancel={doCancel}
       />
+
+      {loading && <ActivityIndicator size="large" />}
 
       <MapView
         style={styles.map}
