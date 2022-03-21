@@ -13,12 +13,7 @@ interface LoginButtonProps {
 }
 export default function LoginButton({ onPress }: LoginButtonProps) {
   return (
-    <Pressable
-      onPress={() => {
-        console.log("Login btn pressed");
-        onPress();
-      }}
-    >
+    <Pressable onPress={onPress}>
       <Image source={require("./loginBtn.png")} style={styles.image} />
     </Pressable>
   );
