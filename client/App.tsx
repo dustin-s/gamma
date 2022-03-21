@@ -30,12 +30,16 @@ function App() {
             }}
           >
             <Stack.Screen
+              name="Trail Screen"
+              component={TrailScreen}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="Home"
               component={HomeScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen name="Admin" component={AdminLogin} />
-            <Stack.Screen name="Trail Screen" component={TrailScreen} />
             <Stack.Screen
               name="Point of Interest"
               component={PointOfInterest}

@@ -14,6 +14,8 @@ import * as Location from "expo-location";
 import { AuthContext } from "../utils/authContext";
 import MapButton from "../components/MapButton";
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
+import { SafeAreaView } from "react-native-safe-area-context";
+import LoginButton from "../components/LoginButton";
 
 type Props = StackNativeScreenProps<"Home">;
 
@@ -35,16 +37,30 @@ export default function HomeScreen({ navigation }: Props) {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          /* borderColor: "red", borderWidth: 5 */
+        },
+      ]}
+      // edges={["top"]}
+    >
       <MapView style={styles.map} region={location} showsUserLocation={true} />
       <StatusBar style="auto" />
 
       <View style={styles.btnContainer}>
-        {!auth.isAuthenticated && (
-          <TouchableOpacity onPress={() => navigation.navigate("Admin")}>
-            <Image source={require("./Settings.png")} style={styles.image} />
-          </TouchableOpacity>
-        )}
+        {
+          !auth.isAuthenticated && (
+            <LoginButton onPress={() => navigation.navigate("Admin")} />
+          )
+          // <TouchableOpacity onPress={() => navigation.navigate("Admin")}>
+          //   <Image
+          //     source={require("../components/loginBtn/loginBtn.png")}
+          //     style={styles.image}
+          //   />
+          // </TouchableOpacity>
+        }
       </View>
       <View style={{ flex: 1, flexDirection: "row", width: "100%" }}>
         <View
@@ -77,6 +93,7 @@ export default function HomeScreen({ navigation }: Props) {
           )}
         </View>
       </View>
+      {/* </SafeAreaView> */}
     </View>
   );
 }
@@ -96,7 +113,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     flexDirection: "row",
     right: 10,
-    top: 35,
+    top: 55,
+    elevation: 3,
   },
   image: {
     width: 30,
