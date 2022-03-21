@@ -60,8 +60,8 @@ export default function AdminLogin({ navigation }: Props) {
       return;
     }
 
-    navigation.navigate("Home");
-    // navigate to Trails?
+    // returns to calling screen
+    navigation.goBack();
 
     return () => {
       unmounted = true;
