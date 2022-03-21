@@ -18,10 +18,18 @@ import { AuthContext } from "../utils/authContext";
 
 // Components
 import MapView, { Polyline } from "react-native-maps";
-import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Dimensions,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
+import LoginButton from "../components/LoginButton";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
@@ -34,6 +42,7 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
+
 // https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
 type SubmitTrailData = Omit<
   TrailData,
@@ -265,16 +274,16 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const showTrails = () => {
     // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
 
-    console.log("showTrails:");
-    console.log(
-      "\ttrailID === null && locationArr.length:",
-      trailID === null && locationArr.length
-    );
-    console.log(`\ttrailID && dataL ${trailID && data}`);
-    console.log(`\tdata: ${Boolean(data)}`);
-    if (data?.length === undefined) {
-      console.log(data);
-    } else console.log(`\tdata.length: ${data.length}`);
+    // console.log("showTrails:");
+    // console.log(
+    //   "\ttrailID === null && locationArr.length:",
+    //   trailID === null && locationArr.length
+    // );
+    // console.log(`\ttrailID && data: ${trailID && Boolean(data)}`);
+    // console.log(`\tdata: ${Boolean(data)}`);
+    // if (data?.length === undefined) {
+    //   console.log(data);
+    // } else console.log(`\tdata.length: ${data.length}`);
 
     if (trailID === null && locationArr.length > 0) {
       return (
@@ -297,7 +306,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         />
       );
     } else if (data) {
-      console.log("data.length", data.length);
       return data.map((trailInfo) => (
         <Polyline
           key={trailInfo.trailId}
@@ -316,25 +324,36 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, []);
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} style={styles.safeAreaView}>
-      <View style={styles.bgContainer}>
-        <SaveTrailModal
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          saveTrail={doSaveTrail}
-          doCancel={doCancel}
-        />
+    <SafeAreaView /*edges={["top"]}*/ style={styles.safeAreaView}>
+      {/* <View style={styles.bgContainer}> */}
+      <SaveTrailModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        saveTrail={doSaveTrail}
+        doCancel={doCancel}
+      />
 
-        <MapView
-          style={styles.map}
-          initialRegion={region}
-          showsUserLocation={true}
-        >
-          {data && showTrails()}
-        </MapView>
+      <MapView
+        style={styles.map}
+        initialRegion={region}
+        showsUserLocation={true}
+      >
+        {data && showTrails()}
+      </MapView>
+      {/* </View> */}
+      <View style={[styles.loginBtnContainer]}>
+        {!auth.isAuthenticated && (
+          <LoginButton onPress={() => navigation.navigate("Admin")} />
+        )}
       </View>
-
-      <View style={styles.fgContainer}>
+      <View
+        style={[
+          styles.fgContainer,
+          {
+            /* borderColor: "red", borderWidth: 6 */
+          },
+        ]}
+      >
         <Text>Trail Screen</Text>
         <Text>Trail ID: {trailID === null ? "null" : trailID}</Text>
         {/* All user's buttons */}
@@ -426,10 +445,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 const styles = StyleSheet.create({
   safeAreaView: {
     flex: 1,
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
   },
   bgContainer: {
+    // position: "absolute",
+    // top: 0,
+    // left: 0,
+    // zIndex: 0,
+    // elevation: 0,
+    // height: "100%",
+    // width: "100%",
+
     flex: 1,
     backgroundColor: "#fff",
     alignItems: "center",
@@ -451,10 +478,14 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
-  paragraph: {
+  loginBtnContainer: {
     position: "absolute",
-    top: 100,
-    right: 30,
+
+    right: 10,
+    top: Platform.OS === "ios" ? 35 : 50,
+
+    zIndex: 3, // for iOS
+    elevation: 3, // for Android
   },
   btnContainer: {
     flexDirection: "row",
