@@ -71,11 +71,6 @@ export default function HomeScreen({ navigation }: Props) {
           }}
         >
           <MapButton
-            label="login"
-            backgroundColor="green"
-            handlePress={() => navigation.navigate("Admin")}
-          />
-          <MapButton
             label="Trails"
             backgroundColor="blue"
             handlePress={() => navigation.navigate("Trail Screen")}

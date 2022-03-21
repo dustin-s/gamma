@@ -163,6 +163,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         };
         setLocationArr([...locationArr, campAllenCoords]);
       }
+      setTrailID(null); // ensure trailId is not set
       setIsStarted(true);
     } else {
       console.log("status: ", statusBG?.status || null);
@@ -324,8 +325,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, []);
 
   return (
-    <SafeAreaView /*edges={["top"]}*/ style={styles.safeAreaView}>
-      {/* <View style={styles.bgContainer}> */}
+    <SafeAreaView style={styles.safeAreaView}>
       <SaveTrailModal
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
@@ -340,23 +340,20 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       >
         {data && showTrails()}
       </MapView>
-      {/* </View> */}
+
+      {/* login button is relative to map */}
       <View style={[styles.loginBtnContainer]}>
         {!auth.isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
         )}
       </View>
-      <View
-        style={[
-          styles.fgContainer,
-          {
-            /* borderColor: "red", borderWidth: 6 */
-          },
-        ]}
-      >
+
+      {/* Other button containers are at the bottom of the screen */}
+      <View style={[styles.fgContainer]}>
         <Text>Trail Screen</Text>
         <Text>Trail ID: {trailID === null ? "null" : trailID}</Text>
-        {/* All user's buttons */}
+
+        {/* Debug buttons */}
         <View style={styles.btnContainer}>
           <MapButton
             label="console.log(data)"
@@ -364,11 +361,29 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             handlePress={() => {
               const temp = data ? [...data] : [];
               console.log(temp.reverse());
-              console.log(trailID);
               console.log(locationArr);
+              console.log(trailID);
               console.log("data.length:", data?.length || "null");
+              console.log("userId: ", userId);
+              console.log("locationArr.length: ", locationArr.length);
             }}
           />
+          <MapButton
+            label="Home"
+            backgroundColor="orange"
+            handlePress={() => navigation.navigate("Home")}
+          />
+        </View>
+
+        {/* All user's buttons */}
+        <View style={styles.btnContainer}>
+          {trailID && (
+            <MapButton
+              label="Back"
+              backgroundColor="green"
+              handlePress={() => setTrailID(null)}
+            />
+          )}
           {trailID && (
             <MapButton
               label="Start Trail"
@@ -393,11 +408,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         {userId ? (
           <View style={styles.btnContainer}>
             {/* Only show the record buttons if there is no trailID */}
-
-            {!trailID && !isStarted && (
+            {!isStarted && (
               <MapButton
-                label="Start"
-                backgroundColor="green"
+                label={locationArr.length > 0 ? "Start" : "Add Trail"}
+                backgroundColor={locationArr.length > 0 ? "green" : "blue"}
                 handlePress={handleStartRecording}
               />
             )}
@@ -448,20 +462,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  bgContainer: {
-    // position: "absolute",
-    // top: 0,
-    // left: 0,
-    // zIndex: 0,
-    // elevation: 0,
-    // height: "100%",
-    // width: "100%",
 
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   fgContainer: {
     position: "absolute",
     top: 0,
@@ -474,23 +475,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
   },
+
   map: {
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
+
   loginBtnContainer: {
     position: "absolute",
 
     right: 10,
-    top: Platform.OS === "ios" ? 35 : 50,
+    top: Platform.OS === "ios" ? 35 : 110,
 
     zIndex: 3, // for iOS
     elevation: 3, // for Android
   },
+
   btnContainer: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "space-around",
+    width: "100%",
+    margin: 10,
   },
+
   permissionsText: {
     padding: 10,
     color: "red",
