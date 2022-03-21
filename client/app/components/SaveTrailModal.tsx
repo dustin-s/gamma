@@ -7,6 +7,7 @@ import {
   Pressable,
   View,
   Switch,
+  Alert,
 } from "react-native";
 import { SaveTrailData } from "../interfaces/SaveTrailData";
 
@@ -43,7 +44,30 @@ const SaveTrailModal = ({
   const handleCancel = () => {
     console.log("cancel was pressed on the modal");
     // do warning modal
-    doCancel();
+    // doCancel();
+
+    return Alert.alert(
+      "Cancel",
+      "Are you sure you want to cancel? This will delete your current trail data.",
+      [
+        {
+          text: "No",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          onPress: () => {
+            // reset modal's states
+            setName("");
+            setDescription("");
+            setDifficulty("easy");
+
+            doCancel();
+          },
+        },
+      ]
+    );
   };
 
   const handleSubmit = () => {
