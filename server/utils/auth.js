@@ -11,7 +11,7 @@ exports.signToken = ({ email, userId }) => {
   return jwt.sign({ data: payload }, SECRET, { expiresIn: EXPIRATION });
 };
 
-exports.verifyToken = ({ req }) => {
+exports.verifyToken = (req, res, next) => {
   logger.debug(req, {
     controller: "auth.js --> verifyToken()",
     message: "verify token reached",
@@ -48,6 +48,7 @@ exports.verifyToken = ({ req }) => {
     });
 
     req.user = data;
+    next();
   } catch (err) {
     logger.error(err, {
       controller: "auth.js --> verifyToken()",
