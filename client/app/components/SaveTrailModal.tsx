@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { SaveTrailData } from "../interfaces/SaveTrailData";
+import SlideSelector from "./SlideSelector/SlideSelector";
 
 interface SaveTrailModalProps {
   modalVisible: boolean;
@@ -126,7 +127,34 @@ const SaveTrailModal = ({
               />
             </View>
             <View style={styles.controlGroup}>
-              <Text style={styles.label}>Difficulty</Text>
+              <SlideSelector
+                data={[
+                  {
+                    label: "Easy",
+                    colorSelected: "green",
+                    colorNotSelected: "lightgreen",
+                    textColorSelected: "black",
+                    value: "easy",
+                  },
+                  {
+                    label: "Moderate",
+                    colorSelected: "orange",
+                    colorNotSelected: "gold",
+                    textColorSelected: "black",
+                    value: "moderate",
+                  },
+                  {
+                    label: "Hard",
+                    colorSelected: "red",
+                    colorNotSelected: "lightpink",
+                    textColorSelected: "black",
+                    value: "hard",
+                  },
+                ]}
+                onSelect={setDifficulty}
+                selected={difficulty}
+              />
+              {/* <Text style={styles.label}>Difficulty</Text>
               <TextInput
                 style={styles.txtInput}
                 placeholder={difficulty}
@@ -139,7 +167,7 @@ const SaveTrailModal = ({
                   )
                     setDifficulty(value);
                 }}
-              />
+              /> */}
             </View>
             <View style={styles.controlGroup}>
               <Text style={styles.label}>Closed?</Text>
