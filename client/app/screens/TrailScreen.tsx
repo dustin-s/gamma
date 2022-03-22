@@ -233,6 +233,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         Accept: "application/json",
         "Content-Type": "application/json",
         "Cache-control": "no-cache",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(trailData),
     };

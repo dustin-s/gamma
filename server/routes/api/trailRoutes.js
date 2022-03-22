@@ -7,7 +7,7 @@ const { listTrails, saveTrail } = require("../../controllers/trailControllers");
 
 router.get("/", listTrails);
 
-router.post("/", /* verifyToken,*/ saveTrail);
+router.post("/", verifyToken, saveTrail);
 
 // get "/:trailId", <-- returns all trail details (POIs, Hazards, etc.)
 // post "/:trailId/close", verifyToken,
