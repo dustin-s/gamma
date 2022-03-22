@@ -19,6 +19,11 @@ exports.verifyToken = ({ req }) => {
   // allows token to be sent via req.body, req.query, or headers
   let token = req.body.token || req.query.token || req.headers.authorization;
 
+  logger.debug(`# ${token} #`, {
+    controller: "auth.js --> verifyToken()",
+    message: "raw token (should include Bearer)",
+  });
+
   if (req.headers.authorization) {
     token = token.split(" ").pop().trim();
   }
