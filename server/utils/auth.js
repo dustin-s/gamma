@@ -22,8 +22,15 @@ exports.verifyToken = ({ req }) => {
   if (req.headers.authorization) {
     token = token.split(" ").pop().trim();
   }
+  logger.debug(token, {
+    controller: "auth.js --> verifyToken()",
+    message: "token value",
+  });
 
   if (!token) {
+    logger.debug("No token", {
+      controller: "auth.js --> verifyToken()",
+    });
     return req;
   }
 
