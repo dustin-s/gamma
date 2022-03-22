@@ -29,9 +29,17 @@ exports.verifyToken = ({ req }) => {
 
   try {
     const { data } = jwt.verify(token, SECRET, { maxAge: EXPIRATION });
+    logger.debug(data, {
+      controller: "auth.js --> verifyToken()",
+      message: "verify token success",
+    });
+
     req.user = data;
-  } catch (e) {
-    logger.error("Invalid token", { controller: "auth.js --> verifyToken()" });
+  } catch (err) {
+    logger.error(err, {
+      controller: "auth.js --> verifyToken()",
+      errorMsg: "Invalid token",
+    });
   }
 
   return req;
