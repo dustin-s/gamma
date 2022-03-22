@@ -12,8 +12,9 @@ exports.signToken = ({ email, userId }) => {
 };
 
 exports.verifyToken = ({ req }) => {
-  logger.debug("verify token reached", {
+  logger.debug(req, {
     controller: "auth.js --> verifyToken()",
+    message: "verify token reached",
   });
 
   // allows token to be sent via req.body, req.query, or headers
