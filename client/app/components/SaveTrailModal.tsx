@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-native";
 import { SaveTrailData } from "../interfaces/SaveTrailData";
-import SlideSelector from "./SlideSelector/SlideSelector";
+import SlideSelector from "./SlideSelector";
 
 interface SaveTrailModalProps {
   modalVisible: boolean;

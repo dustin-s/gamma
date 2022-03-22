@@ -1,5 +1,7 @@
 import { SetStateAction } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+// circle image from https://www.pinclipart.com/downpngs/ibRwwR_drawn-circle-white-png-hand-drawn-circle-png/
+import circleImage from "./circle.png";
 
 interface DataItem {
   label: string;
@@ -24,11 +26,12 @@ export default function SlideSelector({
   // render item
   const renderItem = (item: DataItem, key: number) => {
     const value = item?.value ?? item.label;
+    const isSelected = value === selected;
     let backgroundColor;
     let color;
     let border = {};
 
-    if (value === selected) {
+    if (isSelected) {
       backgroundColor = item.colorSelected;
       color = item.textColorSelected;
       border = { borderColor: "black", borderWidth: 2 };
@@ -44,6 +47,15 @@ export default function SlideSelector({
         key={key}
       >
         <Text style={[styles.title, { color }]}>{item.label}</Text>
+        {isSelected && (
+          <View style={styles.imageContainer}>
+            <Image
+              source={circleImage}
+              style={styles.circle}
+              // resizeMode={"contain"}
+            />
+          </View>
+        )}
       </Pressable>
     );
   };
@@ -70,5 +82,20 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: 20,
+  },
+  imageContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  circle: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+    resizeMode: "contain",
   },
 });
