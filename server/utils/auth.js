@@ -12,37 +12,24 @@ exports.signToken = ({ email, userId }) => {
 };
 
 exports.verifyToken = (req, res, next) => {
-  logger.debug(req, {
-    controller: "auth.js --> verifyToken()",
-    message: "verify token reached",
-  });
-
   // allows token to be sent via req.body, req.query, or headers
   let token = req.body.token || req.query.token || req.headers.authorization;
-
-  logger.debug(`# ${token} #`, {
-    controller: "auth.js --> verifyToken()",
-    message: "raw token (should include Bearer)",
-  });
 
   if (req.headers.authorization) {
     token = token.split(" ").pop().trim();
   }
-  logger.debug(token, {
-    controller: "auth.js --> verifyToken()",
-    message: "token value",
-  });
 
   if (!token) {
-    logger.debug("No token", {
+    logger.error("No token", {
       controller: "auth.js --> verifyToken()",
     });
-    return req;
+    res.sendStatus(400).send("Token not present");
+    return;
   }
 
   try {
     const { data } = jwt.verify(token, SECRET, { maxAge: EXPIRATION });
-    logger.debug(data, {
+    logger.debug(JSON.stringify(data), {
       controller: "auth.js --> verifyToken()",
       message: "verify token success",
     });
@@ -54,7 +41,6 @@ exports.verifyToken = (req, res, next) => {
       controller: "auth.js --> verifyToken()",
       errorMsg: "Invalid token",
     });
+    res.status(403).send("Token invalid");
   }
-
-  return req;
 };
