@@ -106,12 +106,19 @@ exports.saveTrail = [
         include: [Trail.TrailCoords],
       });
 
-      logger.debug(JSON.stringify(trail), {
+      let trailArr = [];
+      if (Array.isArray(trail)) {
+        trailArr = trail;
+      } else {
+        trailArr = [trail];
+      }
+
+      logger.debug(JSON.stringify(trailArr), {
         controller: "saveTrail",
-        msg: "trail created",
+        msg: "return data",
       });
 
-      res.status(201).json(trail);
+      res.status(201).json(trailArr);
     } catch (err) {
       logger.debug(err, {
         controller: "saveTrail",

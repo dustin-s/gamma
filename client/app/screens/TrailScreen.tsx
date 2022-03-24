@@ -14,13 +14,23 @@ import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 import { getColor, getCoords } from "../utils/mapFunctions";
+import { AuthContext } from "../utils/authContext";
 
 // Components
 import MapView, { Polyline } from "react-native-maps";
-import { Alert, Dimensions, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
-import { AuthContext } from "../utils/authContext";
+import { SafeAreaView } from "react-native-safe-area-context";
+import LoginButton from "../components/LoginButton";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
@@ -33,17 +43,12 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
-interface SubmitTrailData {
-  trailId: number | null;
-  name?: string;
-  description?: string;
-  difficulty: "easy" | "moderate" | "hard";
-  isClosed: boolean;
-  createdBy: number;
-  TrailCoords: LocationObjectCoords[];
-  // ptsOfInterest: POIObj[];
-  // hazards: HazardObj[];
-}
+
+// https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
+type SubmitTrailData = Omit<
+  TrailData,
+  "trailId" | "distance" | "hasNatureGuide" | "hasHazard"
+>;
 
 // Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
@@ -79,6 +84,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       requestFGPermission();
     }
   }, []);
+
   const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
   useEffect(() => {
     if (!statusBG?.granted && !trailID) {
@@ -146,17 +152,20 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         },
       });
       // For test:
-      const campAllenCoords = {
-        accuracy: 6.0980000495910645,
-        altitude: 1700,
-        altitudeAccuracy: 1.3625929355621338,
-        heading: 327.75262451171875,
-        latitude: 30.24166,
-        longitude: -95.95935,
-        speed: 0.3030627369880676,
-      };
-      setLocationArr([...locationArr, campAllenCoords]);
+      if (locationArr.length === 0) {
+        const campAllenCoords = {
+          accuracy: 6.0980000495910645,
+          altitude: 1700,
+          altitudeAccuracy: 1.3625929355621338,
+          heading: 327.75262451171875,
+          latitude: 30.24166,
+          longitude: -95.95935,
+          speed: 0.3030627369880676,
+        };
+        setLocationArr([...locationArr, campAllenCoords]);
+      }
 
+      setTrailID(null); // ensure trailId is not set
       setIsStarted(true);
     } else {
       console.log("status: ", statusBG?.status || null);
@@ -203,7 +212,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
 
     const trailData: SubmitTrailData = {
-      trailId: null,
       name,
       description,
       difficulty,
@@ -225,6 +233,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         Accept: "application/json",
         "Content-Type": "application/json",
         "Cache-control": "no-cache",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(trailData),
     };
@@ -269,16 +278,16 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const showTrails = () => {
     // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
 
-    console.log("showTrails:");
-    console.log(
-      "\ttrailID === null && locationArr.length:",
-      trailID === null && locationArr.length
-    );
-    console.log(`\ttrailID && dataL ${trailID && data}`);
-    console.log(`\tdata: ${Boolean(data)}`);
-    if (data?.length === undefined) {
-      console.log(data);
-    } else console.log(`\tdata.length: ${data.length}`);
+    // console.log("showTrails:");
+    // console.log(
+    //   "\ttrailID === null && locationArr.length:",
+    //   trailID === null && locationArr.length
+    // );
+    // console.log(`\ttrailID && data: ${trailID && Boolean(data)}`);
+    // console.log(`\tdata: ${Boolean(data)}`);
+    // if (data?.length === undefined) {
+    //   console.log(data);
+    // } else console.log(`\tdata.length: ${data.length}`);
 
     if (trailID === null && locationArr.length > 0) {
       return (
@@ -301,7 +310,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         />
       );
     } else if (data) {
-      console.log("data.length", data.length);
       return data.map((trailInfo) => (
         <Polyline
           key={trailInfo.trailId}
@@ -320,28 +328,37 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, []);
 
   return (
-    <>
-      <View style={styles.bgContainer}>
-        <SaveTrailModal
-          modalVisible={modalVisible}
-          setModalVisible={setModalVisible}
-          saveTrail={doSaveTrail}
-          doCancel={doCancel}
-        />
+    <SafeAreaView style={styles.safeAreaView}>
+      <SaveTrailModal
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        saveTrail={doSaveTrail}
+        doCancel={doCancel}
+      />
 
-        <MapView
-          style={styles.map}
-          initialRegion={region}
-          showsUserLocation={true}
-        >
-          {data && showTrails()}
-        </MapView>
+      {loading && <ActivityIndicator size="large" />}
+
+      <MapView
+        style={styles.map}
+        initialRegion={region}
+        showsUserLocation={true}
+      >
+        {data && showTrails()}
+      </MapView>
+
+      {/* login button is relative to map */}
+      <View style={[styles.loginBtnContainer]}>
+        {!auth.isAuthenticated && (
+          <LoginButton onPress={() => navigation.navigate("Admin")} />
+        )}
       </View>
 
-      <View style={styles.fgContainer}>
+      {/* Other button containers are at the bottom of the screen */}
+      <View style={[styles.fgContainer]}>
         <Text>Trail Screen</Text>
         <Text>Trail ID: {trailID === null ? "null" : trailID}</Text>
-        {/* All user's buttons */}
+
+        {/* Debug buttons */}
         <View style={styles.btnContainer}>
           <MapButton
             label="console.log(data)"
@@ -349,11 +366,29 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             handlePress={() => {
               const temp = data ? [...data] : [];
               console.log(temp.reverse());
-              console.log(trailID);
               console.log(locationArr);
+              console.log(trailID);
               console.log("data.length:", data?.length || "null");
+              console.log("userId: ", userId);
+              console.log("locationArr.length: ", locationArr.length);
             }}
           />
+          <MapButton
+            label="Home"
+            backgroundColor="orange"
+            handlePress={() => navigation.navigate("Home")}
+          />
+        </View>
+
+        {/* All user's buttons */}
+        <View style={styles.btnContainer}>
+          {trailID && (
+            <MapButton
+              label="Back"
+              backgroundColor="green"
+              handlePress={() => setTrailID(null)}
+            />
+          )}
           {trailID && (
             <MapButton
               label="Start Trail"
@@ -378,11 +413,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         {userId ? (
           <View style={styles.btnContainer}>
             {/* Only show the record buttons if there is no trailID */}
-
-            {!trailID && !isStarted && (
+            {!isStarted && (
               <MapButton
-                label="Start"
-                backgroundColor="green"
+                label={locationArr.length > 0 ? "Start" : "Add Trail"}
+                backgroundColor={locationArr.length > 0 ? "green" : "blue"}
                 handlePress={handleStartRecording}
               />
             )}
@@ -423,17 +457,17 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           <></>
         )}
       </View>
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  bgContainer: {
+  safeAreaView: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
   },
+
   fgContainer: {
     position: "absolute",
     top: 0,
@@ -446,19 +480,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
   },
+
   map: {
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
-  paragraph: {
+
+  loginBtnContainer: {
     position: "absolute",
-    top: 100,
-    right: 30,
+
+    right: 10,
+    top: Platform.OS === "ios" ? 35 : 110,
+
+    zIndex: 3, // for iOS
+    elevation: 3, // for Android
   },
+
   btnContainer: {
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "space-around",
+    width: "100%",
+    margin: 10,
   },
+
   permissionsText: {
     padding: 10,
     color: "red",

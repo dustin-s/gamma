@@ -1,5 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
+
+// Components
 import {
   StyleSheet,
   Text,
@@ -7,10 +9,15 @@ import {
   TouchableOpacity,
   TextInput,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import MapButton from "../components/MapButton";
+
+// Hooks
 import useFetch from "../hooks/useFetch";
-import { User } from "../interfaces/User";
 import { AuthContext } from "../utils/authContext";
 
+// Types
+import { User } from "../interfaces/User";
 type Props = StackNativeScreenProps<"Admin">;
 
 export default function AdminLogin({ navigation }: Props) {
@@ -24,7 +31,7 @@ export default function AdminLogin({ navigation }: Props) {
   // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
 
-  const handleSignIn = async () => {
+  async function handleSignIn() {
     const options = {
       method: "POST",
       headers: {
@@ -36,7 +43,7 @@ export default function AdminLogin({ navigation }: Props) {
     };
     const url = "users/login";
     fetchData({ url, options });
-  };
+  }
 
   // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
   useEffect(() => {
@@ -53,8 +60,8 @@ export default function AdminLogin({ navigation }: Props) {
       return;
     }
 
-    navigation.navigate("Home");
-    // navigate to Trails?
+    // returns to calling screen
+    navigation.goBack();
 
     return () => {
       unmounted = true;
@@ -62,7 +69,7 @@ export default function AdminLogin({ navigation }: Props) {
   }, [data]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
 
       <View style={styles.controlGroup}>
@@ -87,9 +94,11 @@ export default function AdminLogin({ navigation }: Props) {
           secureTextEntry
         />
       </View>
-      <TouchableOpacity onPress={handleSignIn}>
-        <Text>Sign in</Text>
-      </TouchableOpacity>
+      <MapButton
+        backgroundColor={"green"}
+        handlePress={handleSignIn}
+        label={"Sign in"}
+      />
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
@@ -98,16 +107,16 @@ export default function AdminLogin({ navigation }: Props) {
         </>
       )}
 
-      <TouchableOpacity
-        onPress={() => {
+      <MapButton
+        handlePress={() => {
           alert(
             "You now see three more TextInputs in order to change your password."
           );
         }}
-      >
-        <Text>Update Password</Text>
-      </TouchableOpacity>
-    </View>
+        label={"Update Password"}
+        backgroundColor={"red"}
+      />
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
