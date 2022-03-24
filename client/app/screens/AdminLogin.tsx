@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
 } from "react-native";
-import { BASE_API } from "../utils/constants";
 import useFetch from "../hooks/useFetch";
 import { User } from "../interfaces/User";
 import { AuthContext } from "../utils/authContext";
@@ -35,7 +34,7 @@ export default function AdminLogin({ navigation }: Props) {
       },
       body: JSON.stringify({ email, password }),
     };
-    const url = BASE_API + "users/login";
+    const url = "users/login";
     fetchData({ url, options });
   };
 
@@ -99,7 +98,13 @@ export default function AdminLogin({ navigation }: Props) {
         </>
       )}
 
-      <TouchableOpacity onPress={() => {alert("You now see three more TextInputs inorder to change your password.")}}>
+      <TouchableOpacity
+        onPress={() => {
+          alert(
+            "You now see three more TextInputs in order to change your password."
+          );
+        }}
+      >
         <Text>Update Password</Text>
       </TouchableOpacity>
     </View>

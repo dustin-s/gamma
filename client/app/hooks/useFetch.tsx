@@ -1,6 +1,7 @@
 // https://stackoverflow.com/questions/70195659/how-do-i-use-my-custom-usefetch-hook-when-a-button-is-clicked
 // https://stackoverflow.com/questions/69433942/how-to-fetch-data-from-a-custom-react-hook-api-with-onclick-and-display-it-in
 import { useCallback, useState } from "react";
+import { BASE_API } from "../utils/constants";
 
 interface FetchQuery {
   url?: string;
@@ -24,7 +25,7 @@ export const useFetch = <T = unknown,>(): State<T> => {
     if (!url) return;
 
     setLoading(true);
-    const response = await fetch(url, options);
+    const response = await fetch(BASE_API + url, options);
 
     const data = await response.json();
 

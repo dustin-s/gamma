@@ -27,9 +27,15 @@ exports.saveTrail = [
     .bail()
     .toInt()
     .custom(async (value) => {
-      logger.debug(`value: ${value}`);
+      logger.debug(value, {
+        controller: "saveTrail validation",
+        msg: "createdBy id",
+      });
       const user = await User.findByPk(value);
-      logger.debug(JSON.stringify(user));
+      logger.debug(JSON.stringify(user), {
+        controller: "saveTrail validation",
+        msg: "createdBy info",
+      });
       if (!user) {
         throw new Error("UserID doesn't exist");
       }
@@ -98,6 +104,11 @@ exports.saveTrail = [
 
       const trail = await Trail.create(newTrail, {
         include: [Trail.TrailCoords],
+      });
+
+      logger.debug(JSON.stringify(trail), {
+        controller: "saveTrail",
+        msg: "trail created",
       });
 
       res.status(201).json(trail);

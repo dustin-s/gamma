@@ -27,7 +27,6 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
   mapBtn: {
-    marginVertical: 20,
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 20,
