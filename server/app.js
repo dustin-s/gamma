@@ -15,6 +15,7 @@ const fs = require("fs");
 
 // Import the express module
 const express = require("express");
+const path = require("path");
 
 // Create and import the loggers
 const expressWinston = require("express-winston");
@@ -34,6 +35,8 @@ const PORT = IS_PASSENGER ? "passenger" : 3001;
 // set up middleware (parses incoming req as JSON)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, "./public")));
 
 app.use(expressWinston.logger({ winstonInstance: logger }));
 
