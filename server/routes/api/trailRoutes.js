@@ -1,13 +1,15 @@
 const router = require("express").Router();
 const { verifyToken } = require("../../utils/auth");
 
+const { fieldsUpload } = require("../../config/imageUpload");
+
 const { listTrails, saveTrail } = require("../../controllers/trailControllers");
 
 // base url: https://gamma.lessthangeeky.com/api/trails/ +
 
 router.get("/", listTrails);
 
-router.post("/", verifyToken, saveTrail);
+router.post("/", verifyToken, fieldsUpload, saveTrail);
 
 // get "/:trailId", <-- returns all trail details (POIs, Hazards, etc.)
 // post "/:trailId/close", verifyToken,

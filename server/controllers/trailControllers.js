@@ -20,6 +20,14 @@ exports.listTrails = async (req, res) => {
   }
 };
 
+// How to save a trail:
+// 1. Validation of data
+//    a. ensure the data is of the correct type
+//    b. ensure each poi has an image (req.files['poi'].length === req.poi.length)
+// 2. save the trail and TrailCoords
+// 3. save the Points of Interest
+//    a. save the images (../public/images/poi/trailId/<image index>.jpg)
+//    b. save the poi
 exports.saveTrail = [
   // Trail validation
   body("createdBy", "Invalid data type, must be an integer")
@@ -59,7 +67,7 @@ exports.saveTrail = [
   body("isClosed", "isClosed must be true/false").toBoolean().optional(),
 
   // Trail Points validation
-  body("TrailCoords", "The trail must have at least 2 points.")
+  body("trailCoords", "The trail must have at least 2 points.")
     .exists()
     .isArray({
       min: 2,
@@ -75,6 +83,7 @@ exports.saveTrail = [
   // Points of Interest validation
 
   async (req, res) => {
+    console.log("TrailCoords[]:", req.body);
     try {
       // handle validation errors
       const errors = validationResult(req);
@@ -83,7 +92,8 @@ exports.saveTrail = [
           controller: "saveTrail",
           errorMsg: "validation error",
         });
-        res.status(400).json({ error: validationErrors(errors.array()) });
+        res.status(400).json({ error: errors.array() });
+        return;
       }
 
       const newTrail = req.body;
@@ -119,12 +129,14 @@ exports.saveTrail = [
       });
 
       res.status(201).json(trailArr);
+      return;
     } catch (err) {
       logger.debug(err, {
         controller: "saveTrail",
         errorMsg: "catch error",
       });
       res.status(500).json({ error: err });
+      return;
     }
   },
 ];
