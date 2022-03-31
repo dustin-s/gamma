@@ -35,6 +35,7 @@ exports.saveTrail = [
     .bail()
     .toInt()
     .custom(async (value) => {
+      console.log(req.body);
       logger.debug(value, {
         controller: "saveTrail validation",
         msg: "createdBy id",
@@ -67,7 +68,7 @@ exports.saveTrail = [
   body("isClosed", "isClosed must be true/false").toBoolean().optional(),
 
   // Trail Points validation
-  body("trailCoords", "The trail must have at least 2 points.")
+  body("TrailCoords", "The trail must have at least 2 points.")
     .exists()
     .isArray({
       min: 2,
