@@ -27,6 +27,15 @@ PointsOfInterest.init(
     },
 
     // location
+    latitude: {
+      type: DataTypes.DECIMAL(23, 18),
+      allowNull: false,
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(23, 18),
+      allowNull: false,
+    },
+
     accuracy: {
       type: DataTypes.DECIMAL(23, 18),
     },
@@ -39,13 +48,8 @@ PointsOfInterest.init(
     heading: {
       type: DataTypes.DECIMAL(23, 18),
     },
-    latitude: {
+    speed: {
       type: DataTypes.DECIMAL(23, 18),
-      allowNull: false,
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(23, 18),
-      allowNull: false,
     },
   },
   {
