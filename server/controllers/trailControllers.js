@@ -1,4 +1,4 @@
-const { body, validationResult } = require("express-validator");
+const { body, validationResult, check, param } = require("express-validator");
 
 const { loggers } = require("winston");
 const logger = loggers.get("logger");
@@ -61,14 +61,6 @@ exports.saveTrail = [
   // Trail Points validation
   body().custom((value, { req }) => {
     // use latitude array to make sure that there are at least 2 points on the trail (.isArray({ min:2 }))
-    console.log(
-      "Array.isArray(req.body.TrailCoords_latitude) ",
-      !Array.isArray(req.body.TrailCoords_latitude)
-    );
-    console.log(
-      "req.body.TrailCoords_latitude.length ",
-      req.body.TrailCoords_latitude.length
-    );
     if (
       !Array.isArray(req.body.TrailCoords_latitude) ||
       req.body.TrailCoords_latitude.length < 2
@@ -95,7 +87,7 @@ exports.saveTrail = [
     if (!lengths.every((val) => val === lengths[0])) {
       throw new Error("TrailCoords arrays must be the same length");
     }
-    return value;
+    return true;
   }),
   body("TrailCoords_latitude.*").exists().toFloat(),
   body("TrailCoords_longitude.*").exists().toFloat(),
@@ -106,6 +98,101 @@ exports.saveTrail = [
   body("TrailCoords_speed.*").optional().toFloat(),
 
   // Points of Interest validation
+  // POI is optional, however if 1 item exists, they all must exist and an image is required for each item. (use express-validator.check so I have access to req.files and not just req.body) All existence error checking is done here. Type checking and sanitization will be done later.
+  body().custom((value, { req }) => {
+    console.log("*****************************\n");
+    // an array to keep track of errors that occur here
+    const errors = [];
+
+    const required = [
+      "POI_Image",
+      "POI_description",
+      "POI_isActive",
+      "POI_latitude",
+      "POI_longitude",
+    ];
+    const optional = [
+      "POI_accuracy",
+      "POI_altitude",
+      "POI_altitudeAccuracy",
+      "POI_heading",
+      "POI_speed",
+    ];
+    const both = required.concat(optional);
+
+    // check if this is an array. If so, make sure all other required fields (including Files[]) are also arrays and that their lengths are the same. If not, ensure Files[].length=1.
+    const details = [];
+
+    // check the fields for existence and length. If an optional does not exist, it isn't added to the details array
+    both.forEach((key) => {
+      if (req.body[key] || req.files[key]) {
+        let len;
+        if (key === "POI_Image") {
+          len = Array.isArray(req.files[key]) ? req.files[key].length : 1;
+        } else {
+          len = Array.isArray(req.body[key]) ? req.body[key].length : 1;
+        }
+
+        details.push({
+          key,
+          exists: true,
+          len,
+        });
+      } else {
+        if (!optional.find((item) => item === key)) {
+          details.push({
+            key,
+            exists: false,
+            len: 0,
+          });
+        }
+      }
+    });
+
+    // first check if the arrays are all the same size
+    const maxLen = details.reduce(
+      (previous, { len }) => Math.max(previous, len),
+      details[0].len
+    );
+
+    if (!details.every((val) => val.len === maxLen)) {
+      errors.push("POI arrays must be the same length");
+    }
+
+    // if no fields exist, then exit
+    if (maxLen === 0) {
+      return true;
+    }
+
+    // create an array of missing required fields
+    const checkExist = [];
+    details.map(({ exists, key }) => {
+      if (!exists) return checkExist.push(key);
+    });
+
+    if (checkExist.length !== 0) {
+      errors.push(`Missing required POI fields: ${checkExist.join(", ")}`);
+    }
+
+    console.log("errors.length:", errors.length);
+    if (errors.length) {
+      throw new Error(errors.join("\n"));
+    }
+
+    return true;
+  }),
+  body("POI_description.*").exists().trim().escape(),
+  body("POI_Image.*").exists(),
+  body("POI_isActive.*", "Point of Interest isActive must be true/false")
+    .toBoolean()
+    .optional(),
+  body("POI_latitude.*").exists().toFloat(),
+  body("POI_longitude.*").exists().toFloat(),
+  body("POI_accuracy.*").optional().toFloat(),
+  body("POI_altitude.*").optional().toFloat(),
+  body("POI_altitudeAccuracy.*").optional().toFloat(),
+  body("POI_heading.*").optional().toFloat(),
+  body("POI_speed.*").optional().toFloat(),
 
   async (req, res) => {
     console.log("TrailCoords[]:", req.body);
@@ -122,29 +209,36 @@ exports.saveTrail = [
         return;
       }
 
-      const newTrail = req.body;
+      const body = req.body;
 
-      newTrail.TrailCoords = [];
+      const newTrail = {
+        name: body.name,
+        description: body.description,
+        difficulty: body.difficulty,
+        isClosed: body.isClosed,
+        createdBy: body.userId,
+      };
 
-      for (let i = 0; i < newTrail.TrailCoords_latitude.length; i++) {
-        const location = {
-          latitude: newTrail.TrailCoords_latitude[i],
-          longitude: newTrail.TrailCoords_longitude[i],
-        };
+      // make TrailCoords array for newTrail
+      // newTrail.TrailCoords = [];
+      // for (let i = 0; i < body.TrailCoords_latitude.length; i++) {
+      //   const location = {
+      //     latitude: body.TrailCoords_latitude[i],
+      //     longitude: body.TrailCoords_longitude[i],
+      //   };
 
-        if (newTrail.TrailCoords_accuracy)
-          location.accuracy = newTrail.TrailCoords_accuracy[i];
-        if (newTrail.TrailCoords_altitude)
-          location.altitude = newTrail.TrailCoords_altitude[i];
-        if (newTrail.TrailCoords_altitudeAccuracy)
-          location.altitudeAccuracy = newTrail.TrailCoords_altitudeAccuracy[i];
-        if (newTrail.TrailCoords_heading)
-          location.heading = newTrail.TrailCoords_heading[i];
-        if (newTrail.TrailCoords_speed)
-          location.speed = newTrail.TrailCoords_speed[i];
+      //   if (body.TrailCoords_accuracy)
+      //     location.accuracy = body.TrailCoords_accuracy[i];
+      //   if (body.TrailCoords_altitude)
+      //     location.altitude = body.TrailCoords_altitude[i];
+      //   if (body.TrailCoords_altitudeAccuracy)
+      //     location.altitudeAccuracy = body.TrailCoords_altitudeAccuracy[i];
+      //   if (body.TrailCoords_heading)
+      //     location.heading = body.TrailCoords_heading[i];
+      //   if (body.TrailCoords_speed) location.speed = body.TrailCoords_speed[i];
 
-        newTrail.TrailCoords.push(location);
-      }
+      //   newTrail.TrailCoords.push(location);
+      // }
 
       // clean coords? remove duplicates... check for backtracking?
 
@@ -155,15 +249,16 @@ exports.saveTrail = [
 
         dist += distance(a.latitude, a.longitude, b.latitude, b.longitude);
       }
-
       newTrail.distance = dist;
 
       // console.log("\nnewTrail:\n", newTrail, "\n\ndistance:", dist, "\n");
 
+      // create the new trail
       const trail = await Trail.create(newTrail, {
         include: [Trail.TrailCoords],
       });
 
+      // ensure new trail returns an array (if only 1 item is returned)
       let trailArr = [];
       if (Array.isArray(trail)) {
         trailArr = trail;
@@ -176,6 +271,7 @@ exports.saveTrail = [
         msg: "return data",
       });
 
+      // send the new trail back to the client
       res.status(201).json(trailArr);
       return;
     } catch (err) {
