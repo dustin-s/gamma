@@ -35,16 +35,7 @@ exports.saveTrail = [
     .bail()
     .toInt()
     .custom(async (value) => {
-      console.log(req.body);
-      logger.debug(value, {
-        controller: "saveTrail validation",
-        msg: "createdBy id",
-      });
       const user = await User.findByPk(value);
-      logger.debug(JSON.stringify(user), {
-        controller: "saveTrail validation",
-        msg: "createdBy info",
-      });
       if (!user) {
         throw new Error("UserID doesn't exist");
       }
@@ -68,23 +59,57 @@ exports.saveTrail = [
   body("isClosed", "isClosed must be true/false").toBoolean().optional(),
 
   // Trail Points validation
-  body("TrailCoords", "The trail must have at least 2 points.")
-    .exists()
-    .isArray({
-      min: 2,
-    }),
-  body("TrailCoords.*.latitude").exists().toFloat(),
-  body("TrailCoords.*.longitude").exists().toFloat(),
-  body("TrailCoords.*.accuracy").optional().toFloat(),
-  body("TrailCoords.*.altitude").optional().toFloat(),
-  body("TrailCoords.*.altitudeAccuracy").optional().toFloat(),
-  body("TrailCoords.*.heading").optional().toFloat(),
-  body("TrailCoords.*.speed").optional().toFloat(),
+  body().custom((value, { req }) => {
+    // use latitude array to make sure that there are at least 2 points on the trail (.isArray({ min:2 }))
+    console.log(
+      "Array.isArray(req.body.TrailCoords_latitude) ",
+      !Array.isArray(req.body.TrailCoords_latitude)
+    );
+    console.log(
+      "req.body.TrailCoords_latitude.length ",
+      req.body.TrailCoords_latitude.length
+    );
+    if (
+      !Array.isArray(req.body.TrailCoords_latitude) ||
+      req.body.TrailCoords_latitude.length < 2
+    ) {
+      throw new Error("There must be at least 2 points on the trail");
+    }
+
+    // check if the all of the arrays are the same length. Only Lat and Long are required, so only check the others if they exist. Put all of the lengths that exist into an array and then make sure every item in the array matches (the first).
+    const lengths = [
+      req.body.TrailCoords_latitude.length,
+      req.body.TrailCoords_longitude.length,
+    ];
+
+    if (req.body.TrailCoords_accuracy)
+      lengths.push(req.body.TrailCoords_accuracy);
+    if (req.body.TrailCoords_altitude)
+      lengths.push(req.body.TrailCoords_altitude);
+    if (req.body.TrailCoords_altitudeAccuracy)
+      lengths.push(req.body.TrailCoords_altitudeAccuracy);
+    if (req.body.TrailCoords_heading)
+      lengths.push(req.body.TrailCoords_heading);
+    if (req.body.TrailCoords_speed) lengths.push(req.body.TrailCoords_speed);
+
+    if (!lengths.every((val) => val === lengths[0])) {
+      throw new Error("TrailCoords arrays must be the same length");
+    }
+    return value;
+  }),
+  body("TrailCoords_latitude.*").exists().toFloat(),
+  body("TrailCoords_longitude.*").exists().toFloat(),
+  body("TrailCoords_accuracy.*").optional().toFloat(),
+  body("TrailCoords_altitude.*").optional().toFloat(),
+  body("TrailCoords_altitudeAccuracy.*").optional().toFloat(),
+  body("TrailCoords_heading.*").optional().toFloat(),
+  body("TrailCoords_speed.*").optional().toFloat(),
 
   // Points of Interest validation
 
   async (req, res) => {
     console.log("TrailCoords[]:", req.body);
+
     try {
       // handle validation errors
       const errors = validationResult(req);
@@ -99,6 +124,28 @@ exports.saveTrail = [
 
       const newTrail = req.body;
 
+      newTrail.TrailCoords = [];
+
+      for (let i = 0; i < newTrail.TrailCoords_latitude.length; i++) {
+        const location = {
+          latitude: newTrail.TrailCoords_latitude[i],
+          longitude: newTrail.TrailCoords_longitude[i],
+        };
+
+        if (newTrail.TrailCoords_accuracy)
+          location.accuracy = newTrail.TrailCoords_accuracy[i];
+        if (newTrail.TrailCoords_altitude)
+          location.altitude = newTrail.TrailCoords_altitude[i];
+        if (newTrail.TrailCoords_altitudeAccuracy)
+          location.altitudeAccuracy = newTrail.TrailCoords_altitudeAccuracy[i];
+        if (newTrail.TrailCoords_heading)
+          location.heading = newTrail.TrailCoords_heading[i];
+        if (newTrail.TrailCoords_speed)
+          location.speed = newTrail.TrailCoords_speed[i];
+
+        newTrail.TrailCoords.push(location);
+      }
+
       // clean coords? remove duplicates... check for backtracking?
 
       let dist = 0;
@@ -111,7 +158,7 @@ exports.saveTrail = [
 
       newTrail.distance = dist;
 
-      // console.log(informationMsg("\nnewTrail:\n"), newTrail, informationMsg("\n\ndistance:"), dist, "\n");
+      // console.log("\nnewTrail:\n", newTrail, "\n\ndistance:", dist, "\n");
 
       const trail = await Trail.create(newTrail, {
         include: [Trail.TrailCoords],
@@ -136,7 +183,7 @@ exports.saveTrail = [
         controller: "saveTrail",
         errorMsg: "catch error",
       });
-      res.status(500).json({ error: err });
+      res.status(500).json({ error: err.message });
       return;
     }
   },
