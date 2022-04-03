@@ -17,6 +17,7 @@ const {
   validationErrors,
   checkLengthOfObjectArrays,
   arrayLength,
+  makeObjectArray,
 } = require("../utils/helpers");
 
 // returns a list of all of the trails and the trail's points
@@ -83,19 +84,19 @@ exports.saveTrail = [
   // Trail Points validation
   body()
     .custom((value) => {
-      // .isArray({ min:2 }
-      return (
-        arrayLength(value.TrailCoords_latitude) >= 2 &&
-        arrayLength(value.TrailCoords_longitude) >= 2
-      );
-    })
-    .withMessage("There must be at least 2 points on the trail")
-    .custom((value) => {
       return checkLengthOfObjectArrays(value, "TrailCoords");
     })
-    .withMessage("TrailCoords arrays must be the same length"),
+    .withMessage("TrailCoords arrays must be the same length")
+    .bail()
+    .custom((value) => {
+      value.TrailCoords = makeObjectArray(value, "TrailCoords");
+      return true;
+    }),
+  body("TrailCoords", "There must be at least 2 points on the trail").isArray({
+    min: 2,
+  }),
   body(
-    ["TrailCoords_latitude.*", "TrailCoords_longitude.*"],
+    ["TrailCoords.*.latitude", "TrailCoords.*.longitude"],
     "Invalid data type, must be a float (#.#)"
   )
     .exists()
@@ -103,11 +104,11 @@ exports.saveTrail = [
     .toFloat(),
   body(
     [
-      "TrailCoords_accuracy.*",
-      "TrailCoords_altitude.*",
-      "TrailCoords_altitudeAccuracy.*",
-      "TrailCoords_heading.*",
-      "TrailCoords_speed.*",
+      "TrailCoords.*.accuracy.*",
+      "TrailCoords.*.altitude.*",
+      "TrailCoords.*.altitudeAccuracy.*",
+      "TrailCoords.*.heading.*",
+      "TrailCoords.*.speed.*",
     ],
     "Invalid data type, must be a float (#.#)"
   )
@@ -119,8 +120,17 @@ exports.saveTrail = [
   // POI is optional, however if 1 item exists, they all must exist and an image is required for each item. (use express-validator.check so I have access to req.files and not just req.body) All existence error checking is done here. Type checking and sanitization will be done later.
   body()
     .custom((value, { req }) => {
-      console.log("*****************************\n"); //, req.files);
-
+      console.log("************ POI Validation ************"); //, req.files);
+      return true;
+    })
+    .custom((value, { req }) => {
+      console.log("****** validate lengths of array ******");
+      const files = req.files.POI_image;
+      value.POI_image = files;
+      console.log("value with images?", value);
+      return true;
+    })
+    .custom((value, { req }) => {
       // an array to keep track of errors that occur here
       const errors = [];
 
@@ -148,11 +158,11 @@ exports.saveTrail = [
         if (value[key] || req.files[key]) {
           let len;
 
-          if (key === "POI_image") {
-            len = Array.isArray(req.files[key]) ? req.files[key].length : 1;
-          } else {
-            len = Array.isArray(value[key]) ? value[key].length : 1;
-          }
+          // if (key === "POI_image") {
+          //   len = arrayLength(req.files[key]);
+          // } else {
+          len = arrayLength(value[key]);
+          // }
 
           details.push({
             key,
@@ -216,13 +226,13 @@ exports.saveTrail = [
     .isString()
     .trim()
     .escape(),
-  // check("POI_image.*")
-  //   .exists()
-  //   .custom((value, { req }) => {
-  //     // check valid mime types
-  //     console.log("POI_Image.* value:", value);
-  //     console.log("POI_Image.* req:", req.files);
-  //   }),
+  body("POI_image.*")
+    .exists()
+    .custom((value, { req }) => {
+      // check valid mime types
+      console.log("POI_Image.* value:", value);
+      return true;
+    }),
   body("POI_isActive.*", "Point of Interest isActive must be true/false")
     .optional()
     .isBoolean()
@@ -250,6 +260,7 @@ exports.saveTrail = [
 
   // Finally, the actual function!
   async (req, res) => {
+    console.log("************ Main Function ************"); //, req.files);
     console.log("req.body:", req.body);
 
     try {
@@ -273,28 +284,8 @@ exports.saveTrail = [
         difficulty: body.difficulty,
         isClosed: body.isClosed,
         createdBy: body.createdBy,
+        TrailCoords: body.TrailCoords,
       };
-
-      // make TrailCoords array for newTrail
-      newTrail.TrailCoords = [];
-      for (let i = 0; i < body.TrailCoords_latitude.length; i++) {
-        const location = {
-          latitude: body.TrailCoords_latitude[i],
-          longitude: body.TrailCoords_longitude[i],
-        };
-
-        if (body.TrailCoords_accuracy)
-          location.accuracy = body.TrailCoords_accuracy[i];
-        if (body.TrailCoords_altitude)
-          location.altitude = body.TrailCoords_altitude[i];
-        if (body.TrailCoords_altitudeAccuracy)
-          location.altitudeAccuracy = body.TrailCoords_altitudeAccuracy[i];
-        if (body.TrailCoords_heading)
-          location.heading = body.TrailCoords_heading[i];
-        if (body.TrailCoords_speed) location.speed = body.TrailCoords_speed[i];
-
-        newTrail.TrailCoords.push(location);
-      }
 
       // clean coords? remove duplicates... check for backtracking?
 
@@ -314,57 +305,59 @@ exports.saveTrail = [
         include: [Trail.TrailCoords],
       });
 
-      // Make Point of Interest array
-      // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/<index #>jpg
-      console.log("trailID:", trail.trailId);
+      if (body.POI) {
+        // Make Point of Interest array
+        // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/<index #>jpg
+        console.log("trailID:", trail.trailId);
 
-      // due to validation we can assume that if descriptions is an array, then all of the POI properties are an array.
-      const PointsOfInterest = [];
+        // due to validation we can assume that if descriptions is an array, then all of the POI properties are an array.
+        const PointsOfInterest = [];
 
-      console.log("body.POI_description.length:", body.POI_description.length);
-      console.log(
-        "Array.isArray(body.POI_description):",
-        Array.isArray(body.POI_description)
-      );
-
-      if (!Array.isArray(body.POI_description)) {
-        const poiObj = await makePointOfInterest(
-          trail.trailId,
-          body.POI_description,
-          req.files.POI_image[0],
-          body.POI_isActive,
-          body.POI_latitude,
-          body.POI_longitude,
-          body.POI_accuracy,
-          body.POI_altitude,
-          body.POI_altitudeAccuracy,
-          body.POI_heading,
-          body.POI_speed
+        // console.log("body.POI_description.length:", body.POI_description.length);
+        console.log(
+          "Array.isArray(body.POI_description):",
+          Array.isArray(body.POI_description)
         );
-        PointsOfInterest.push(poiObj);
-      } else {
-        console.log("POI: Else");
-        for (let i = 0; i < body.POI_description.length; i++) {
+
+        if (!Array.isArray(body.POI_description)) {
           const poiObj = await makePointOfInterest(
             trail.trailId,
-            body.POI_description[i],
-            req.files.POI_image[i],
-            body.POI_isActive[i],
-            body.POI_latitude[i],
-            body.POI_longitude[i],
-            body.POI_accuracy ? body.POI_accuracy[i] : undefined,
-            body.POI_altitude ? body.POI_altitude[i] : undefined,
-            body.POI_altitudeAccuracy
-              ? body.POI_altitudeAccuracy[i]
-              : undefined,
-            body.POI_heading ? body.POI_heading[i] : undefined,
-            body.POI_speed ? body.POI_speed[i] : undefined
+            body.POI_description,
+            req.files.POI_image[0],
+            body.POI_isActive,
+            body.POI_latitude,
+            body.POI_longitude,
+            body.POI_accuracy,
+            body.POI_altitude,
+            body.POI_altitudeAccuracy,
+            body.POI_heading,
+            body.POI_speed
           );
           PointsOfInterest.push(poiObj);
+        } else {
+          console.log("POI: Else");
+          for (let i = 0; i < body.POI_description.length; i++) {
+            const poiObj = await makePointOfInterest(
+              trail.trailId,
+              body.POI_description[i],
+              req.files.POI_image[i],
+              body.POI_isActive[i],
+              body.POI_latitude[i],
+              body.POI_longitude[i],
+              body.POI_accuracy ? body.POI_accuracy[i] : undefined,
+              body.POI_altitude ? body.POI_altitude[i] : undefined,
+              body.POI_altitudeAccuracy
+                ? body.POI_altitudeAccuracy[i]
+                : undefined,
+              body.POI_heading ? body.POI_heading[i] : undefined,
+              body.POI_speed ? body.POI_speed[i] : undefined
+            );
+            PointsOfInterest.push(poiObj);
+          }
         }
-      }
 
-      console.log("POI: ", PointsOfInterest);
+        console.log("POI: ", PointsOfInterest);
+      }
 
       // ensure new trail returns an array (if only 1 item is returned)
       let trailArr = [];
@@ -381,7 +374,6 @@ exports.saveTrail = [
 
       // send the new trail back to the client
       res.status(201).json(trailArr);
-      // res.status(200).json({ message: "success - Save is commented out" });
       return;
     } catch (err) {
       logger.debug(err, {
