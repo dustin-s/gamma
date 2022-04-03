@@ -19,7 +19,8 @@ PointsOfInterest.init(
       allowNull: false,
     },
     image: {
-      type: DataTypes.BLOB,
+      type: DataTypes.TEXT,
+      comment: "This is a string that contains the link to the image.",
     },
     isActive: {
       type: DataTypes.BOOLEAN,
