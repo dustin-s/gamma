@@ -1,5 +1,4 @@
-const { body, validationResult, check, param } = require("express-validator");
-const fs = require("fs");
+const { body, validationResult } = require("express-validator");
 const sharp = require("sharp");
 
 const { loggers } = require("winston");
@@ -10,8 +9,10 @@ const {
   QUALITY: quality,
   RESIZE,
 } = require("../config/imageUpload");
-const { Trail, TrailCoords, User } = require("../models");
 const { distance } = require("../utils/distance");
+const { ensureDirExists, getFileName } = require("../utils/fileHelpers");
+
+const { Trail, TrailCoords, User } = require("../models");
 
 // returns a list of all of the trails and the trail's points
 exports.listTrails = async (req, res) => {
@@ -47,161 +48,213 @@ exports.saveTrail = [
         throw new Error("UserID doesn't exist");
       }
     }),
-  body("name")
+  body("name", "Invalid data type, must be a string")
     .optional()
+    .isString()
     .trim()
+    .escape()
     .custom(async (value) => {
       const trail = await Trail.findAll({ where: { name: value } });
       if (trail.length > 0) {
         throw new Error(`Trail name, ${value}, is already in use`);
       }
     }),
-  body("description").trim().escape().optional(),
+  body("description", "Invalid data type, must be a string")
+    .optional()
+    .isString()
+    .trim()
+    .escape(),
   body("difficulty", "Invalid selection for difficulty")
     .exists()
     .withMessage("Difficulty field is required")
     .bail()
     .trim()
     .isIn(["easy", "moderate", "hard"]),
-  body("isClosed", "isClosed must be true/false").toBoolean().optional(),
+  body("isClosed", "isClosed must be true/false")
+    .optional()
+    .isBoolean()
+    .toBoolean(),
 
   // Trail Points validation
-  body().custom((value, { req }) => {
-    // use latitude array to make sure that there are at least 2 points on the trail (.isArray({ min:2 }))
-    if (
-      !Array.isArray(req.body.TrailCoords_latitude) ||
-      req.body.TrailCoords_latitude.length < 2
-    ) {
-      throw new Error("There must be at least 2 points on the trail");
-    }
+  body()
+    .custom((value) => {
+      // .isArray({ min:2 }
+      return (
+        value.TrailCoords_latitude.length >= 2 &&
+        value.TrailCoords_longitude.length >= 2
+      );
+    })
+    .withMessage("There must be at least 2 points on the trail")
+    .custom((value) => {
+      // check if the all of the arrays are the same length. Only Lat and Long are required, so only check the others if they exist. Put all of the lengths that exist into an array and then make sure every item in the array matches (the first).
+      const lengths = [
+        value.TrailCoords_latitude.length,
+        value.TrailCoords_longitude.length,
+      ];
 
-    // check if the all of the arrays are the same length. Only Lat and Long are required, so only check the others if they exist. Put all of the lengths that exist into an array and then make sure every item in the array matches (the first).
-    const lengths = [
-      req.body.TrailCoords_latitude.length,
-      req.body.TrailCoords_longitude.length,
-    ];
+      if (value.TrailCoords_accuracy) lengths.push(value.TrailCoords_accuracy);
+      if (value.TrailCoords_altitude) lengths.push(value.TrailCoords_altitude);
+      if (value.TrailCoords_altitudeAccuracy)
+        lengths.push(value.TrailCoords_altitudeAccuracy);
+      if (value.TrailCoords_heading) lengths.push(value.TrailCoords_heading);
+      if (value.TrailCoords_speed) lengths.push(value.TrailCoords_speed);
 
-    if (req.body.TrailCoords_accuracy)
-      lengths.push(req.body.TrailCoords_accuracy);
-    if (req.body.TrailCoords_altitude)
-      lengths.push(req.body.TrailCoords_altitude);
-    if (req.body.TrailCoords_altitudeAccuracy)
-      lengths.push(req.body.TrailCoords_altitudeAccuracy);
-    if (req.body.TrailCoords_heading)
-      lengths.push(req.body.TrailCoords_heading);
-    if (req.body.TrailCoords_speed) lengths.push(req.body.TrailCoords_speed);
-
-    if (!lengths.every((val) => val === lengths[0])) {
-      throw new Error("TrailCoords arrays must be the same length");
-    }
-    return true;
-  }),
-  body("TrailCoords_latitude.*").exists().toFloat(),
-  body("TrailCoords_longitude.*").exists().toFloat(),
-  body("TrailCoords_accuracy.*").optional().toFloat(),
-  body("TrailCoords_altitude.*").optional().toFloat(),
-  body("TrailCoords_altitudeAccuracy.*").optional().toFloat(),
-  body("TrailCoords_heading.*").optional().toFloat(),
-  body("TrailCoords_speed.*").optional().toFloat(),
+      return lengths.every((val) => val === lengths[0]);
+    })
+    .withMessage("TrailCoords arrays must be the same length"),
+  body(
+    ["TrailCoords_latitude.*", "TrailCoords_longitude.*"],
+    "Invalid data type, must be a float (#.#)"
+  )
+    .exists()
+    .isFloat()
+    .toFloat(),
+  body(
+    [
+      "TrailCoords_accuracy.*",
+      "TrailCoords_altitude.*",
+      "TrailCoords_altitudeAccuracy.*",
+      "TrailCoords_heading.*",
+      "TrailCoords_speed.*",
+    ],
+    "Invalid data type, must be a float (#.#)"
+  )
+    .optional()
+    .isFloat()
+    .toFloat(),
 
   // Points of Interest validation
   // POI is optional, however if 1 item exists, they all must exist and an image is required for each item. (use express-validator.check so I have access to req.files and not just req.body) All existence error checking is done here. Type checking and sanitization will be done later.
-  body().custom((value, { req }) => {
-    console.log("*****************************\n"); //, req.files);
+  body()
+    .custom((value, { req }) => {
+      console.log("*****************************\n"); //, req.files);
 
-    // an array to keep track of errors that occur here
-    const errors = [];
+      // an array to keep track of errors that occur here
+      const errors = [];
 
-    const required = [
-      "POI_image",
-      "POI_description",
-      "POI_isActive",
-      "POI_latitude",
-      "POI_longitude",
-    ];
-    const optional = [
-      "POI_accuracy",
-      "POI_altitude",
-      "POI_altitudeAccuracy",
-      "POI_heading",
-      "POI_speed",
-    ];
-    const both = required.concat(optional);
+      const required = [
+        "POI_image",
+        "POI_description",
+        "POI_isActive",
+        "POI_latitude",
+        "POI_longitude",
+      ];
+      const optional = [
+        "POI_accuracy",
+        "POI_altitude",
+        "POI_altitudeAccuracy",
+        "POI_heading",
+        "POI_speed",
+      ];
+      const both = required.concat(optional);
 
-    // check if this is an array. If so, make sure all other required fields (including Files[]) are also arrays and that their lengths are the same. If not, ensure Files[].length=1.
-    const details = [];
+      // check if this is an array. If so, make sure all other required fields (including Files[]) are also arrays and that their lengths are the same. If not, ensure Files[].length=1.
+      const details = [];
 
-    // check the fields for existence and length. If an optional does not exist, it isn't added to the details array
-    both.forEach((key) => {
-      if (req.body[key] || req.files[key]) {
-        let len;
-        if (key === "POI_image") {
-          len = Array.isArray(req.files[key]) ? req.files[key].length : 1;
-        } else {
-          len = Array.isArray(req.body[key]) ? req.body[key].length : 1;
-        }
+      // check the fields for existence and length. If an optional does not exist, it isn't added to the details array
+      both.forEach((key) => {
+        if (value[key] || req.files[key]) {
+          let len;
 
-        details.push({
-          key,
-          exists: true,
-          len,
-        });
-        // console.log(details[details.length - 1]);
-      } else {
-        if (!optional.find((item) => item === key)) {
+          if (key === "POI_image") {
+            len = Array.isArray(req.files[key]) ? req.files[key].length : 1;
+          } else {
+            len = Array.isArray(value[key]) ? value[key].length : 1;
+          }
+
           details.push({
             key,
-            exists: false,
-            len: 0,
+            exists: true,
+            len,
           });
-          // console.log(details[details.length - 1]);
+          console.log(details[details.length - 1]);
+        } else {
+          if (!optional.find((item) => item === key)) {
+            details.push({
+              key,
+              exists: false,
+              len: 0,
+            });
+            console.log(details[details.length - 1]);
+          }
         }
+      });
+
+      // first check if the arrays are all the same size
+      const maxLen = details.reduce(
+        (previous, { len }) => Math.max(previous, len),
+        details[0].len
+      );
+
+      if (!details.every((val) => val.len === maxLen)) {
+        errors.push("POI arrays must be the same length");
       }
-    });
 
-    // first check if the arrays are all the same size
-    const maxLen = details.reduce(
-      (previous, { len }) => Math.max(previous, len),
-      details[0].len
-    );
+      // if no fields exist, then exit
+      if (maxLen === 0) {
+        return true;
+      }
 
-    if (!details.every((val) => val.len === maxLen)) {
-      errors.push("POI arrays must be the same length");
-    }
+      // create an array of missing required fields
+      const checkExist = [];
+      details.map(({ exists, key }) => {
+        if (!exists) return checkExist.push(key);
+      });
 
-    // if no fields exist, then exit
-    if (maxLen === 0) {
+      if (checkExist.length !== 0) {
+        errors.push(`Missing required POI fields: ${checkExist.join(", ")}`);
+      }
+
+      if (errors.length) {
+        throw new Error(errors.join("\n"));
+      }
+
       return true;
-    }
+    })
+    .custom((value, { req }) => {
+      // check valid mime types
+      const errors = [];
 
-    // create an array of missing required fields
-    const checkExist = [];
-    details.map(({ exists, key }) => {
-      if (!exists) return checkExist.push(key);
-    });
+      console.log("POI_image", req.files.POI_image ? true : false);
 
-    if (checkExist.length !== 0) {
-      errors.push(`Missing required POI fields: ${checkExist.join(", ")}`);
-    }
-
-    if (errors.length) {
-      throw new Error(errors.join("\n"));
-    }
-
-    return true;
-  }),
-  body("POI_description.*").exists().trim().escape(),
-  body("POI_Image.*").exists(),
+      return true;
+    }),
+  body("POI_description.*", "Invalid data type, must be a string")
+    .exists()
+    .isString()
+    .trim()
+    .escape(),
+  // check("POI_image.*")
+  //   .exists()
+  //   .custom((value, { req }) => {
+  //     // check valid mime types
+  //     console.log("POI_Image.* value:", value);
+  //     console.log("POI_Image.* req:", req.files);
+  //   }),
   body("POI_isActive.*", "Point of Interest isActive must be true/false")
-    .toBoolean()
-    .optional(),
-  body("POI_latitude.*").exists().toFloat(),
-  body("POI_longitude.*").exists().toFloat(),
-  body("POI_accuracy.*").optional().toFloat(),
-  body("POI_altitude.*").optional().toFloat(),
-  body("POI_altitudeAccuracy.*").optional().toFloat(),
-  body("POI_heading.*").optional().toFloat(),
-  body("POI_speed.*").optional().toFloat(),
+    .optional()
+    .isBoolean()
+    .toBoolean(),
+  body(
+    ["POI_latitude.*", "POI_longitude.*"],
+    "Invalid data type, must be a float (#.#)"
+  )
+    .exists()
+    .isFloat()
+    .toFloat(),
+  body(
+    [
+      "POI_accuracy.*",
+      "POI_altitude.*",
+      "POI_altitudeAccuracy.*",
+      "POI_heading.*",
+      "POI_speed.*",
+    ],
+    "Invalid data type, must be a float (#.#)"
+  )
+    .optional()
+    .isFloat()
+    .toFloat(),
 
   // Finally, the actual function!
   async (req, res) => {
@@ -348,21 +401,6 @@ exports.saveTrail = [
   },
 ];
 
-const getFileName = (originalname) => {
-  const origFullName = originalname.split(".");
-  const ext = origFullName.pop();
-  const fileName = origFullName.join(".").split(" ").join("-");
-  return { fileName, ext };
-};
-
-const ensureDirExists = async (path) => {
-  try {
-    return await fs.promises.access(path);
-  } catch (error) {
-    return await fs.promises.mkdir(path, { recursive: true });
-  }
-};
-
 // image is the record from req.files (object)
 async function makePointOfInterest(
   trailId,
@@ -378,31 +416,6 @@ async function makePointOfInterest(
   speed
 ) {
   try {
-    console.log(
-      "makePointOfInterest: params:",
-      "\n\ttrailId",
-      trailId,
-      "\n\tdescription",
-      description,
-      "\nimage",
-      image,
-      "\n\tisActive",
-      isActive,
-      "\n\tlatitude",
-      latitude,
-      "\n\tlongitude",
-      longitude,
-      "\n\taccuracy",
-      accuracy,
-      "\n\taltitude",
-      altitude,
-      "\n\taltitudeAccuracy",
-      altitudeAccuracy,
-      "\n\theading",
-      heading,
-      "\n\tspeed",
-      speed
-    );
     // ensure filesystem exists for save
     const path = SAVE_DIRECTORY + trailId + "/POI/";
     console.log("makePointOfInterest: path", path);
