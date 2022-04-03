@@ -13,6 +13,11 @@ const { distance } = require("../utils/distance");
 const { ensureDirExists, getFileName } = require("../utils/fileHelpers");
 
 const { Trail, TrailCoords, User } = require("../models");
+const {
+  validationErrors,
+  checkLengthOfObjectArrays,
+  arrayLength,
+} = require("../utils/helpers");
 
 // returns a list of all of the trails and the trail's points
 exports.listTrails = async (req, res) => {
@@ -80,26 +85,13 @@ exports.saveTrail = [
     .custom((value) => {
       // .isArray({ min:2 }
       return (
-        value.TrailCoords_latitude.length >= 2 &&
-        value.TrailCoords_longitude.length >= 2
+        arrayLength(value.TrailCoords_latitude) >= 2 &&
+        arrayLength(value.TrailCoords_longitude) >= 2
       );
     })
     .withMessage("There must be at least 2 points on the trail")
     .custom((value) => {
-      // check if the all of the arrays are the same length. Only Lat and Long are required, so only check the others if they exist. Put all of the lengths that exist into an array and then make sure every item in the array matches (the first).
-      const lengths = [
-        value.TrailCoords_latitude.length,
-        value.TrailCoords_longitude.length,
-      ];
-
-      if (value.TrailCoords_accuracy) lengths.push(value.TrailCoords_accuracy);
-      if (value.TrailCoords_altitude) lengths.push(value.TrailCoords_altitude);
-      if (value.TrailCoords_altitudeAccuracy)
-        lengths.push(value.TrailCoords_altitudeAccuracy);
-      if (value.TrailCoords_heading) lengths.push(value.TrailCoords_heading);
-      if (value.TrailCoords_speed) lengths.push(value.TrailCoords_speed);
-
-      return lengths.every((val) => val === lengths[0]);
+      return checkLengthOfObjectArrays(value, "TrailCoords");
     })
     .withMessage("TrailCoords arrays must be the same length"),
   body(
@@ -268,6 +260,7 @@ exports.saveTrail = [
           controller: "saveTrail",
           errorMsg: "validation error",
         });
+        // res.status(400).json({ error: validationErrors(errors.array()) });
         res.status(400).json({ error: errors.array() });
         return;
       }
