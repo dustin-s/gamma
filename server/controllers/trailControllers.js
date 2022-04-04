@@ -17,7 +17,6 @@ const { Trail, TrailCoords, User } = require("../models");
 const {
   validationErrors,
   checkLengthOfObjectArrays,
-  arrayLength,
   makeObjectArray,
 } = require("../utils/helpers");
 
@@ -183,7 +182,7 @@ exports.saveTrail = [
   // Finally, the actual function!
   async (req, res) => {
     console.log("************ Main Function ************"); //, req.files);
-    console.log("req.body:", req.body);
+    console.log("req.body:\n", req.body, "\n****");
 
     try {
       // handle validation errors
@@ -230,12 +229,10 @@ exports.saveTrail = [
       // Make Point of Interest array
       // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/
       if (body.POI) {
-        console.log("trailID:", trail.trailId);
-
         for (const point of body.POI) {
-          const link = getPOIImageLinks(trail.trailId, point.files);
+          // const link = getImageLinks(trail.trailId, point.files, "POI");
           point.trailId = trail.trailId;
-          point.image = await link;
+          point.image = await getImageLinks(trail.trailId, point.files, "POI");
         }
 
         console.log("body.POI: ", body.POI);
@@ -269,12 +266,21 @@ exports.saveTrail = [
   },
 ];
 
-// image is the record from req.files (object)
-async function getPOIImageLinks(trailId, file) {
+/**
+ * Takes in a trailId, file (from req.files) and a type, either POI or Hazard to define where the image will be stored. Images will be stored in:
+ *
+ *    ./public/images/<trailId>/<POI | Hazard>/
+ *
+ * @param {number} trailId
+ * @param {fileObject} file
+ * @param {"POI" | "Hazard"} type
+ * @returns The link to the files storage location
+ */
+async function getImageLinks(trailId, file, type) {
   try {
     // ensure filesystem exists for save
     const path = SAVE_DIRECTORY + trailId + "/POI/";
-    console.log("makePointOfInterest: path", path);
+    console.log("getImageLinks: path", path);
 
     await ensureDirExists(path);
 
@@ -286,21 +292,22 @@ async function getPOIImageLinks(trailId, file) {
       .resize(RESIZE)
       .webp({ quality })
       .toFile(link)
-      .then(async (info) => {
-        console.log("Sharp info:", await info);
-      })
       .catch((err) => {
         console.log(err);
         logger.debug(err, {
-          controller: "makePointOfInterest",
-          errorMsg: "makePointOfInterest Sharp Error writing file",
+          controller: "getImageLinks",
+          errorMsg: "getImageLinks Sharp Error writing file",
         });
         throw new Error(err);
       });
 
-    console.log("return link:", link);
+    console.log("getImageLinks: link", link);
     return link;
   } catch (err) {
     console.log(err);
+    logger.debug(err, {
+      controller: "getImageLinks",
+      errorMsg: "catch error",
+    });
   }
 }

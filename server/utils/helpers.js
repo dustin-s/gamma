@@ -8,6 +8,13 @@ exports.validationErrors = (arr) => arr.map((el) => el.msg).join("\n");
  */
 exports.arrayLength = (value) => (Array.isArray(value) ? value.length : 1);
 
+/**
+ * Checks the length of arrays that begin with the input objectName on the body to ensure they are all the same length
+ *
+ * @param {*} body a group of properties
+ * @param {string} objectName the name of the object you are looking for ("objectName_property")
+ * @returns true/false
+ */
 exports.checkLengthOfObjectArrays = (body, objectName) => {
   const newObj = [];
 
@@ -20,6 +27,15 @@ exports.checkLengthOfObjectArrays = (body, objectName) => {
   return newObj.every((val) => val === newObj[0]);
 };
 
+/**
+ * Takes a group of items that being with "objectName_" and converts them in to an array of objects. If there is only 1 item in the array, it will still return an array with a length === 1.
+ *
+ * Note: Arrays are assumed to be the same length. If they are not, then some objects in the returned array may be malformed.
+ *
+ * @param {*} body a group of properties
+ * @param {string} objectName the name of the object you are looking for ("objectName_property")
+ * @returns {object[]} an array of objects
+ */
 exports.makeObjectArray = (body, objectName) => {
   // console.log("****** makeObjectArray Start ******");
 
