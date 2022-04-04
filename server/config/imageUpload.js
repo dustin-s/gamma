@@ -15,6 +15,9 @@ exports.QUALITY = 75;
 // This will define the base folder where images will be saved Note: this must end with a "/"
 exports.SAVE_DIRECTORY = "./public/images/";
 
+// The extensions that are valid for the file upload. These will be checked against their expected mime type.
+exports.VALID_IMAGE_TYPES = ["jpg", "jpeg", "png", "gif", "webp"];
+
 //
 // ******************
 //

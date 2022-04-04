@@ -8,6 +8,7 @@ const {
   SAVE_DIRECTORY,
   QUALITY: quality,
   RESIZE,
+  VALID_IMAGE_TYPES,
 } = require("../config/imageUpload");
 const { distance } = require("../utils/distance");
 const { ensureDirExists, getFileName } = require("../utils/fileHelpers");
@@ -127,7 +128,7 @@ exports.saveTrail = [
         value.POI_files = files;
       }
 
-      // then check to ensure all existing arrays are of the same length
+      // Check to ensure all existing arrays are of the same length
       return checkLengthOfObjectArrays(value, "POI");
     })
     .withMessage("POI arrays must be the same length")
@@ -146,9 +147,14 @@ exports.saveTrail = [
     .exists()
     .custom((value, { req }) => {
       // check valid mime types
-      console.log("POI_Image.* value:", value);
-      return true;
-    }),
+      const mimetypeArr = value.mimetype.split("/");
+
+      return (
+        mimetypeArr[0] === "image" &&
+        VALID_IMAGE_TYPES.indexOf(mimetypeArr[1]) > -1
+      );
+    })
+    .withMessage(`Files must be of type: .${VALID_IMAGE_TYPES.join(", .")}`),
   body("POI.*.isActive", "Point of Interest isActive must be true/false")
     .exists()
     .isBoolean()
