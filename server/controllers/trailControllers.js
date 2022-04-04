@@ -120,125 +120,41 @@ exports.saveTrail = [
   // POI is optional, however if 1 item exists, they all must exist and an image is required for each item. (use express-validator.check so I have access to req.files and not just req.body) All existence error checking is done here. Type checking and sanitization will be done later.
   body()
     .custom((value, { req }) => {
-      console.log("************ POI Validation ************"); //, req.files);
-      return true;
-    })
-    .custom((value, { req }) => {
-      console.log("****** validate lengths of array ******");
+      console.log("************ POI Validation ************");
+      // Add the files back in to the req.body so that they can be treated normally in validation
       const files = req.files.POI_image;
-      value.POI_image = files;
-      console.log("value with images?", value);
-      return true;
+      if (files) {
+        value.POI_files = files;
+      }
+
+      // then check to ensure all existing arrays are of the same length
+      return checkLengthOfObjectArrays(value, "POI");
     })
-    .custom((value, { req }) => {
-      // an array to keep track of errors that occur here
-      const errors = [];
-
-      const required = [
-        "POI_image",
-        "POI_description",
-        "POI_isActive",
-        "POI_latitude",
-        "POI_longitude",
-      ];
-      const optional = [
-        "POI_accuracy",
-        "POI_altitude",
-        "POI_altitudeAccuracy",
-        "POI_heading",
-        "POI_speed",
-      ];
-      const both = required.concat(optional);
-
-      // check if this is an array. If so, make sure all other required fields (including Files[]) are also arrays and that their lengths are the same. If not, ensure Files[].length=1.
-      const details = [];
-
-      // check the fields for existence and length. If an optional does not exist, it isn't added to the details array
-      both.forEach((key) => {
-        if (value[key] || req.files[key]) {
-          let len;
-
-          // if (key === "POI_image") {
-          //   len = arrayLength(req.files[key]);
-          // } else {
-          len = arrayLength(value[key]);
-          // }
-
-          details.push({
-            key,
-            exists: true,
-            len,
-          });
-          console.log(details[details.length - 1]);
-        } else {
-          if (!optional.find((item) => item === key)) {
-            details.push({
-              key,
-              exists: false,
-              len: 0,
-            });
-            console.log(details[details.length - 1]);
-          }
-        }
-      });
-
-      // first check if the arrays are all the same size
-      const maxLen = details.reduce(
-        (previous, { len }) => Math.max(previous, len),
-        details[0].len
-      );
-
-      if (!details.every((val) => val.len === maxLen)) {
-        errors.push("POI arrays must be the same length");
-      }
-
-      // if no fields exist, then exit
-      if (maxLen === 0) {
-        return true;
-      }
-
-      // create an array of missing required fields
-      const checkExist = [];
-      details.map(({ exists, key }) => {
-        if (!exists) return checkExist.push(key);
-      });
-
-      if (checkExist.length !== 0) {
-        errors.push(`Missing required POI fields: ${checkExist.join(", ")}`);
-      }
-
-      if (errors.length) {
-        throw new Error(errors.join("\n"));
-      }
-
-      return true;
-    })
-    .custom((value, { req }) => {
-      // check valid mime types
-      const errors = [];
-
-      console.log("POI_image", req.files.POI_image ? true : false);
-
+    .withMessage("POI arrays must be the same length")
+    .bail()
+    .custom((value) => {
+      value.POI = makeObjectArray(value, "POI");
       return true;
     }),
-  body("POI_description.*", "Invalid data type, must be a string")
+  body("POI").optional(),
+  body("POI.*.description.*", "Invalid data type, must be a string")
     .exists()
     .isString()
     .trim()
     .escape(),
-  body("POI_image.*")
+  body("POI.*.files")
     .exists()
     .custom((value, { req }) => {
       // check valid mime types
       console.log("POI_Image.* value:", value);
       return true;
     }),
-  body("POI_isActive.*", "Point of Interest isActive must be true/false")
-    .optional()
+  body("POI.*.isActive", "Point of Interest isActive must be true/false")
+    .exists()
     .isBoolean()
     .toBoolean(),
   body(
-    ["POI_latitude.*", "POI_longitude.*"],
+    ["POI.*.latitude", "POI.*.longitude"],
     "Invalid data type, must be a float (#.#)"
   )
     .exists()
@@ -246,11 +162,11 @@ exports.saveTrail = [
     .toFloat(),
   body(
     [
-      "POI_accuracy.*",
-      "POI_altitude.*",
-      "POI_altitudeAccuracy.*",
-      "POI_heading.*",
-      "POI_speed.*",
+      "POI.*.accuracy",
+      "POI.*.altitude",
+      "POI.*.altitudeAccuracy",
+      "POI.*.heading",
+      "POI.*.speed",
     ],
     "Invalid data type, must be a float (#.#)"
   )
