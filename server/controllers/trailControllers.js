@@ -121,7 +121,7 @@ exports.saveTrail = [
   // POI is optional, however if 1 item exists, they all must exist and an image is required for each item. (use express-validator.check so I have access to req.files and not just req.body) All existence error checking is done here. Type checking and sanitization will be done later.
   body()
     .custom((value, { req }) => {
-      console.log("************ POI Validation ************");
+      // console.log("************ POI Validation ************");
       // Add the files back in to the req.body so that they can be treated normally in validation
       const files = req.files.POI_image;
       if (files) {
@@ -227,58 +227,18 @@ exports.saveTrail = [
         include: [Trail.TrailCoords],
       });
 
+      // Make Point of Interest array
+      // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/
       if (body.POI) {
-        // Make Point of Interest array
-        // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/<index #>jpg
         console.log("trailID:", trail.trailId);
 
-        // due to validation we can assume that if descriptions is an array, then all of the POI properties are an array.
-        const PointsOfInterest = [];
-
-        // console.log("body.POI_description.length:", body.POI_description.length);
-        console.log(
-          "Array.isArray(body.POI_description):",
-          Array.isArray(body.POI_description)
-        );
-
-        if (!Array.isArray(body.POI_description)) {
-          const poiObj = await makePointOfInterest(
-            trail.trailId,
-            body.POI_description,
-            req.files.POI_image[0],
-            body.POI_isActive,
-            body.POI_latitude,
-            body.POI_longitude,
-            body.POI_accuracy,
-            body.POI_altitude,
-            body.POI_altitudeAccuracy,
-            body.POI_heading,
-            body.POI_speed
-          );
-          PointsOfInterest.push(poiObj);
-        } else {
-          console.log("POI: Else");
-          for (let i = 0; i < body.POI_description.length; i++) {
-            const poiObj = await makePointOfInterest(
-              trail.trailId,
-              body.POI_description[i],
-              req.files.POI_image[i],
-              body.POI_isActive[i],
-              body.POI_latitude[i],
-              body.POI_longitude[i],
-              body.POI_accuracy ? body.POI_accuracy[i] : undefined,
-              body.POI_altitude ? body.POI_altitude[i] : undefined,
-              body.POI_altitudeAccuracy
-                ? body.POI_altitudeAccuracy[i]
-                : undefined,
-              body.POI_heading ? body.POI_heading[i] : undefined,
-              body.POI_speed ? body.POI_speed[i] : undefined
-            );
-            PointsOfInterest.push(poiObj);
-          }
+        for (const point of body.POI) {
+          const link = getPOIImageLinks(trail.trailId, point.files);
+          point.trailId = trail.trailId;
+          point.image = await link;
         }
 
-        console.log("POI: ", PointsOfInterest);
+        console.log("body.POI: ", body.POI);
       }
 
       // ensure new trail returns an array (if only 1 item is returned)
@@ -295,6 +255,7 @@ exports.saveTrail = [
       });
 
       // send the new trail back to the client
+      // res.status(201).json(body.POI);
       res.status(201).json(trailArr);
       return;
     } catch (err) {
@@ -309,19 +270,7 @@ exports.saveTrail = [
 ];
 
 // image is the record from req.files (object)
-async function makePointOfInterest(
-  trailId,
-  description,
-  image,
-  isActive,
-  latitude,
-  longitude,
-  accuracy,
-  altitude,
-  altitudeAccuracy,
-  heading,
-  speed
-) {
+async function getPOIImageLinks(trailId, file) {
   try {
     // ensure filesystem exists for save
     const path = SAVE_DIRECTORY + trailId + "/POI/";
@@ -329,7 +278,7 @@ async function makePointOfInterest(
 
     await ensureDirExists(path);
 
-    const { buffer, originalname } = image;
+    const { buffer, originalname } = file;
     const { fileName } = getFileName(originalname);
     const link = `${path}${fileName}.webp`;
 
@@ -337,6 +286,9 @@ async function makePointOfInterest(
       .resize(RESIZE)
       .webp({ quality })
       .toFile(link)
+      .then(async (info) => {
+        console.log("Sharp info:", await info);
+      })
       .catch((err) => {
         console.log(err);
         logger.debug(err, {
@@ -346,32 +298,8 @@ async function makePointOfInterest(
         throw new Error(err);
       });
 
-    const poiObj = {
-      trailId,
-      description,
-      image: link,
-      isActive,
-      latitude,
-      longitude,
-    };
-
-    if (accuracy) {
-      poiObj.accuracy = accuracy;
-    }
-    if (altitude) {
-      poiObj.altitude = altitude;
-    }
-    if (altitudeAccuracy) {
-      poiObj.altitudeAccuracy = altitudeAccuracy;
-    }
-    if (heading) {
-      poiObj.heading = heading;
-    }
-    if (speed) {
-      poiObj.speed = speed;
-    }
-
-    return poiObj;
+    console.log("return link:", link);
+    return link;
   } catch (err) {
     console.log(err);
   }
