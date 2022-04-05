@@ -13,7 +13,7 @@ const {
 const { distance } = require("../utils/distance");
 const { ensureDirExists, getFileName } = require("../utils/fileHelpers");
 
-const { Trail, TrailCoords, User } = require("../models");
+const { Trail, TrailCoords, User, PointsOfInterest } = require("../models");
 const {
   validationErrors,
   checkLengthOfObjectArrays,
@@ -23,7 +23,7 @@ const {
 // returns a list of all of the trails and the trail's points
 exports.listTrails = async (req, res) => {
   try {
-    trails = await Trail.findAll({ include: TrailCoords });
+    trails = await Trail.findAll({ include: [TrailCoords, PointsOfInterest] });
     res.status(200).json(trails);
   } catch (err) {
     logger.debug(err, {
@@ -223,8 +223,11 @@ exports.saveTrail = [
 
       // create the new trail
       const trail = await Trail.create(newTrail, {
-        include: [Trail.TrailCoords],
+        include: [Trail.TrailCoords, PointsOfInterest],
       });
+      if (!trail) {
+        throw new Error("No trail created.");
+      }
 
       // Make Point of Interest array
       // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/
@@ -235,7 +238,13 @@ exports.saveTrail = [
           point.image = await getImageLinks(trail.trailId, point.files, "POI");
         }
 
-        console.log("body.POI: ", body.POI);
+        const pois = await PointsOfInterest.bulkCreate(body.POI);
+        if (!pois) {
+          throw new Error("No points of interest created.");
+        }
+
+        // repopulate trail with the POIs
+        await trail.reload();
       }
 
       // ensure new trail returns an array (if only 1 item is returned)
@@ -251,6 +260,7 @@ exports.saveTrail = [
         msg: "return data",
       });
 
+      console.log(trailArr);
       // send the new trail back to the client
       // res.status(201).json(body.POI);
       res.status(201).json(trailArr);
@@ -280,7 +290,7 @@ async function getImageLinks(trailId, file, type) {
   try {
     // ensure filesystem exists for save
     const path = SAVE_DIRECTORY + trailId + "/POI/";
-    console.log("getImageLinks: path", path);
+    // console.log("getImageLinks: path", path);
 
     await ensureDirExists(path);
 
@@ -301,7 +311,7 @@ async function getImageLinks(trailId, file, type) {
         throw new Error(err);
       });
 
-    console.log("getImageLinks: link", link);
+    // console.log("getImageLinks: link", link);
     return link;
   } catch (err) {
     console.log(err);
