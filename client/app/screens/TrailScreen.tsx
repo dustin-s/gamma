@@ -211,18 +211,22 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       throw new Error("userId is null when saving trail");
     }
 
-    const trailData: SubmitTrailData = {
-      name,
-      description,
-      difficulty,
-      isClosed,
-      createdBy: userId,
-      TrailCoords: locationArr,
-      // ptsOfInterest: POIObj[];
-      // hazards: HazardObj[];
-    };
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("description", description);
+    formData.append("difficulty", difficulty);
+    formData.append("isClosed", isClosed.toString());
+    formData.append("createdBy", userId.toString());
+    for (let location of locationArr) {
+      for (const [key, value] of Object.entries(location)) {
+        formData.append(`TrailCoords.${key}`, value?.toString() ?? "");
+      }
+    }
+    // ptsOfInterest: POIObj[];
+    // hazards: HazardObj[];
+
     console.log("*** Save Data ***");
-    console.log(JSON.stringify(trailData));
+    console.log(formData);
     console.log("\n************************************");
 
     const token = auth.userData?.token;
@@ -230,12 +234,11 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     const options: RequestInit = {
       method: "POST",
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+        Accept: "multipart/form-data",
         "Cache-control": "no-cache",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(trailData),
+      body: formData,
     };
     fetchData({ url: "trails/", options });
     setLocationArr([]);

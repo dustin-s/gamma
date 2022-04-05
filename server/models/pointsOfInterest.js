@@ -19,7 +19,8 @@ PointsOfInterest.init(
       allowNull: false,
     },
     image: {
-      type: DataTypes.BLOB,
+      type: DataTypes.TEXT,
+      comment: "This is a string that contains the link to the image.",
     },
     isActive: {
       type: DataTypes.BOOLEAN,
@@ -27,6 +28,15 @@ PointsOfInterest.init(
     },
 
     // location
+    latitude: {
+      type: DataTypes.DECIMAL(23, 18),
+      allowNull: false,
+    },
+    longitude: {
+      type: DataTypes.DECIMAL(23, 18),
+      allowNull: false,
+    },
+
     accuracy: {
       type: DataTypes.DECIMAL(23, 18),
     },
@@ -39,13 +49,8 @@ PointsOfInterest.init(
     heading: {
       type: DataTypes.DECIMAL(23, 18),
     },
-    latitude: {
+    speed: {
       type: DataTypes.DECIMAL(23, 18),
-      allowNull: false,
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(23, 18),
-      allowNull: false,
     },
   },
   {
