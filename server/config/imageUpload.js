@@ -30,4 +30,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // middleware to upload the images. Add any other keys to the array that will need to be uploaded
-exports.fieldsUpload = upload.fields([{ name: "POI_image" }]);
+exports.fieldsUpload = upload.fields([
+  { name: "POI_image" },
+  { name: "image", maxCount: 1 },
+]);

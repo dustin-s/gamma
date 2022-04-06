@@ -1,5 +1,11 @@
 const { body, validationResult } = require("express-validator");
 
+const { loggers } = require("winston");
+const logger = loggers.get("logger");
+
+const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
+const { getImageLinks } = require("../utils/images");
+
 /**
  * Adds a point of interest to the DB
  *
@@ -7,7 +13,7 @@ const { body, validationResult } = require("express-validator");
  * The following fields are required:
  * trailId {int}
  * description {string}
- * image {buffer object from multer}
+ * image {buffer object from multer (req.files)}
  * isActive (boolean)
  * latitude (float)
  * longitude (float)
@@ -25,7 +31,7 @@ exports.addPOI = [
     // Add the files back in to the req.body so that they can be treated normally in validation
     const files = req.files.image;
     if (files) {
-      value.files = files;
+      value.files = files[0];
     }
     return true;
   }),
@@ -65,12 +71,13 @@ exports.addPOI = [
 
   // main function
   async (req, res) => {
+    console.log("req.body", req.body);
     const controller = "addPOI";
 
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        logger.debug(errors.array(), {
+        logger.error(errors.array(), {
           controller,
           errorMsg: "validation error",
         });
@@ -78,9 +85,17 @@ exports.addPOI = [
         res.status(400).json({ error: errors.array() });
         return;
       }
+      // make POI to save
+      const body = req.body;
+      body.image = await getImageLinks(body.trailId, body.files, "POI");
+
       // save POI to DB
+      console.log(body);
+
+      res.status(201).json({ POI: body });
+      return;
     } catch (err) {
-      logger.debug(err, {
+      logger.error(err, {
         controller,
         errorMsg: "catch error",
       });
