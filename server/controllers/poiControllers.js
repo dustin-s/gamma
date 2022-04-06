@@ -4,6 +4,8 @@ const { loggers } = require("winston");
 const logger = loggers.get("logger");
 
 const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
+const { PointsOfInterest } = require("../models");
+const { validationErrors } = require("../utils/helpers");
 const { getImageLinks } = require("../utils/images");
 
 /**
@@ -71,7 +73,7 @@ exports.addPOI = [
 
   // main function
   async (req, res) => {
-    console.log("req.body", req.body);
+    // console.log("req.body", req.body);
     const controller = "addPOI";
 
     try {
@@ -81,8 +83,7 @@ exports.addPOI = [
           controller,
           errorMsg: "validation error",
         });
-        // res.status(400).json({ error: validationErrors(errors.array()) });
-        res.status(400).json({ error: errors.array() });
+        res.status(400).json({ error: validationErrors(errors.array()) });
         return;
       }
       // make POI to save
@@ -90,9 +91,12 @@ exports.addPOI = [
       body.image = await getImageLinks(body.trailId, body.files, "POI");
 
       // save POI to DB
-      console.log(body);
+      const poi = await PointsOfInterest.create(body);
+      if (!poi) {
+        throw new Error("No points of interest created.");
+      }
 
-      res.status(201).json({ POI: body });
+      res.status(201).json({ poi });
       return;
     } catch (err) {
       logger.error(err, {
