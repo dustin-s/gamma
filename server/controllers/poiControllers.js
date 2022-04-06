@@ -13,19 +13,19 @@ const { getImageLinks } = require("../utils/images");
  *
  * This will be from a multipart form (because of the image).
  * The following fields are required:
- * trailId {int}
- * description {string}
- * image {buffer object from multer (req.files)}
- * isActive (boolean)
- * latitude (float)
- * longitude (float)
+ *    trailId {int}
+ *    description {string}
+ *    image {buffer object from multer (req.files)}
+ *    isActive (boolean)
+ *    latitude (float)
+ *    longitude (float)
  *
  * The following fields are optional:
- * accuracy {float}
- * altitude {float}
- * altitudeAccuracy {float}
- * heading {float}
- * speed {float}
+ *    accuracy {float}
+ *    altitude {float}
+ *    altitudeAccuracy {float}
+ *    heading {float}
+ *    speed {float}
  */
 exports.addPOI = [
   // Points of Interest validation
@@ -107,4 +107,30 @@ exports.addPOI = [
       return;
     }
   },
+];
+
+/**
+ * Change an existing point of interest in the DB
+ *
+ * This will be from a multipart form (because of the image).
+ * The following fields are required:
+ *    pointsOfInterestId (int)
+ *
+ * The following fields are optional:
+ *    trailId {int}
+ *    description {string}
+ *    image {buffer object from multer (req.files)}
+ *    isActive (boolean)
+ *    latitude (float)
+ *    longitude (float)
+ *    accuracy {float}
+ *    altitude {float}
+ *    altitudeAccuracy {float}
+ *    heading {float}
+ *    speed {float}
+ */
+
+exports.updatePOI = [
+  // validation
+  // main function
 ];
