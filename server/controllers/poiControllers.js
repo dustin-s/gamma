@@ -145,7 +145,17 @@ exports.updatePOI = [
   // required fields
   body("pointsOfInterestId").exists().isInt().toInt(),
   // optional fields
-  body("trailId").optional().isInt().toInt(),
+  body("trailId")
+    .optional()
+    .isInt()
+    .toInt()
+    .bail()
+    .custom(async (value) => {
+      const trail = await Trail.findByPk(value);
+      if (!trail) {
+        throw new Error("trailId doesn't exist");
+      }
+    }),
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
@@ -184,5 +194,31 @@ exports.updatePOI = [
     .toFloat(),
 
   // main function
-  async (req, res) => {},
+  async (req, res) => {
+    const controller = "updatePOI";
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        logger.error(errors.array(), {
+          controller,
+          errorMsg: "validation error",
+        });
+        // res.status(400).json({ error: validationErrors(errors.array()) });
+        res.status(400).json({ error: errors.array() });
+        return;
+      }
+
+      const body = req.body;
+      const poi = await PointsOfInterest.findByPk(body.pointsOfInterestId);
+
+      res.status(200).json(req.body);
+    } catch (err) {
+      logger.error(err, {
+        controller,
+        errorMsg: "catch error",
+      });
+      res.status(500).json({ error: err.message });
+      return;
+    }
+  },
 ];
