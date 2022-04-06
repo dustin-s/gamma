@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, validationResult } = require("express-validator");
 
 /**
  * Adds a point of interest to the DB
@@ -65,6 +65,27 @@ exports.addPOI = [
 
   // main function
   async (req, res) => {
-    // save POI to DB
+    const controller = "addPOI";
+
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        logger.debug(errors.array(), {
+          controller,
+          errorMsg: "validation error",
+        });
+        // res.status(400).json({ error: validationErrors(errors.array()) });
+        res.status(400).json({ error: errors.array() });
+        return;
+      }
+      // save POI to DB
+    } catch (err) {
+      logger.debug(err, {
+        controller,
+        errorMsg: "catch error",
+      });
+      res.status(500).json({ error: err.message });
+      return;
+    }
   },
 ];

@@ -15,12 +15,13 @@ const { getImageLinks } = require("../utils/images");
 
 // returns a list of all of the trails and the trail's points
 exports.listTrails = async (req, res) => {
+  const controller = "listTrails";
   try {
     trails = await Trail.findAll({ include: [TrailCoords, PointsOfInterest] });
     res.status(200).json(trails);
   } catch (err) {
     logger.debug(err, {
-      controller: "listTrails",
+      controller,
       errorMsg: "listTrails Catch Error",
     });
     res.status(500).json(err);
@@ -175,12 +176,14 @@ exports.saveTrail = [
     console.log("************ Main Function ************"); //, req.files);
     console.log("req.body:\n", req.body, "\n****");
 
+    const controller = "saveTrail";
+
     try {
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         logger.debug(errors.array(), {
-          controller: "saveTrail",
+          controller,
           errorMsg: "validation error",
         });
         // res.status(400).json({ error: validationErrors(errors.array()) });
@@ -247,7 +250,7 @@ exports.saveTrail = [
       }
 
       logger.debug(JSON.stringify(trailArr), {
-        controller: "saveTrail",
+        controller,
         msg: "return data",
       });
 
@@ -258,7 +261,7 @@ exports.saveTrail = [
       return;
     } catch (err) {
       logger.debug(err, {
-        controller: "saveTrail",
+        controller,
         errorMsg: "catch error",
       });
       res.status(500).json({ error: err.message });
