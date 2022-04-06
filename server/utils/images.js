@@ -49,7 +49,7 @@ async function getImageLinks(trailId, file, type) {
     return link;
   } catch (err) {
     console.log(err);
-    logger.debug(err, {
+    logger.error(err, {
       controller: "getImageLinks",
       errorMsg: "catch error",
     });
