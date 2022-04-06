@@ -128,7 +128,7 @@ exports.saveTrail = [
       return true;
     }),
   body("POI").optional(),
-  body("POI.*.description.*", "Invalid data type, must be a string")
+  body("POI.*.description", "Invalid data type, must be a string")
     .exists()
     .isString()
     .trim()

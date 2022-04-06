@@ -5,6 +5,7 @@ const { body } = require("express-validator");
  *
  * This will be from a multipart form (because of the image).
  * The following fields are required:
+ * trailId {int}
  * description {string}
  * image {buffer object from multer}
  * isActive (boolean)
@@ -28,7 +29,8 @@ exports.addPOI = [
     }
     return true;
   }),
-  body("description.*", "Invalid data type, must be a string")
+  body("trailId").exists().isInt().toInt(),
+  body("description", "Invalid data type, must be a string")
     .exists()
     .isString()
     .trim()
