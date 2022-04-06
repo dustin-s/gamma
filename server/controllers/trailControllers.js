@@ -110,11 +110,9 @@ exports.saveTrail = [
     .toFloat(),
 
   // Points of Interest validation
-  // POI is optional, however if 1 item exists, they all must exist and an image is required for each item. (use express-validator.check so I have access to req.files and not just req.body) All existence error checking is done here. Type checking and sanitization will be done later.
+  // This adds the files and then creates an array of POI objects back in to the req.body so the POI object can be validated normally
   body()
     .custom((value, { req }) => {
-      // console.log("************ POI Validation ************");
-      // Add the files back in to the req.body so that they can be treated normally in validation
       const files = req.files.POI_image;
       if (files) {
         value.POI_files = files;
@@ -137,7 +135,7 @@ exports.saveTrail = [
     .escape(),
   body("POI.*.files")
     .exists()
-    .custom((value, { req }) => {
+    .custom((value) => {
       // check valid mime types
       const mimetypeArr = value.mimetype.split("/");
 
