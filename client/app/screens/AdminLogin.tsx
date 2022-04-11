@@ -24,6 +24,9 @@ export default function AdminLogin({ navigation }: Props) {
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [getNewPassword, setGetNewPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   // Auth stuff...
   const { auth, setAuth } = useContext(AuthContext);
@@ -45,6 +48,9 @@ export default function AdminLogin({ navigation }: Props) {
     fetchData({ url, options });
   }
 
+  async function handleUpdatePassword() {
+    //Do somthing
+  }
   // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
   useEffect(() => {
     let unmounted = false;
@@ -56,7 +62,8 @@ export default function AdminLogin({ navigation }: Props) {
     });
 
     if (data.user.requestPwdReset) {
-      // navigate to reset password
+      // show reset password
+      setGetNewPassword (true);
       return;
     }
 
@@ -73,7 +80,7 @@ export default function AdminLogin({ navigation }: Props) {
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
 
       <View style={styles.controlGroup}>
-        <Text style={styles.UnPw}>Email</Text>
+        <Text style={styles.unPw}>Email</Text>
         <TextInput
           style={styles.txInput}
           keyboardType="email-address"
@@ -84,18 +91,19 @@ export default function AdminLogin({ navigation }: Props) {
       </View>
 
       <View style={styles.controlGroup}>
-        <Text style={styles.UnPw}>Password</Text>
+        <Text style={styles.unPw}>Password</Text>
         <TextInput
           style={styles.txInput}
           maxLength={18}
           placeholder="Password"
+          placeholderTextColor="#ff7670"
           value={password}
           onChangeText={(value) => setPassword(value)}
           secureTextEntry
         />
       </View>
       <MapButton
-        backgroundColor={"green"}
+        backgroundColor={"#ff8c00"}
         handlePress={handleSignIn}
         label={"Sign in"}
       />
@@ -107,15 +115,35 @@ export default function AdminLogin({ navigation }: Props) {
         </>
       )}
 
+      {getNewPassword &&  (<View>
+        <View style={styles.controlGroup}>
+        <Text style={styles.unPw}>Password</Text>
+        <TextInput
+          style={styles.txInput}
+          maxLength={18}
+          placeholder="Password"
+          placeholderTextColor="#ff7670"
+          value={newPassword}
+          onChangeText={(value) => setNewPassword(value)}
+          secureTextEntry
+        />
+      </View> <View style={styles.controlGroup}>
+        <Text style={styles.unPw}>Password</Text>
+        <TextInput
+          style={styles.txInput}
+          maxLength={18}
+          placeholder="Password"
+          placeholderTextColor="#ff7670"
+          value={confirmPassword}
+          onChangeText={(value) => setConfirmPassword(value)}
+          secureTextEntry
+        />
+      </View>
       <MapButton
-        handlePress={() => {
-          alert(
-            "You now see three more TextInputs in order to change your password."
-          );
-        }}
-        label={"Update Password"}
-        backgroundColor={"red"}
-      />
+      label ={"Summit"}
+      backgroundColor = {"blue"}
+      handlePress = {handleUpdatePassword}/>
+      </View>)}
     </SafeAreaView>
   );
 }
@@ -123,32 +151,40 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
+    backgroundColor: "#98002D",
   },
   controlGroup: {
     flexDirection: "row",
   },
   errText: {
-    color: "red",
+    color: "white",
     fontWeight: "bold",
     padding: 10,
   },
   msg: {
     textAlign: "center",
-    fontSize: 30,
+    top: -20,
+    color: "#ff8c00",
+    fontSize: 20,
     fontWeight: "700",
     lineHeight: 50,
   },
   txInput: {
+    borderColor: "#b63b3b",
     borderWidth: 2,
+    borderRadius: 20,
     margin: 5,
     marginEnd: 125,
+    paddingHorizontal: 18,
+    paddingVertical: 6,
     fontSize: 20,
     fontWeight: "500",
     lineHeight: 30,
     flex: 3,
   },
-  UnPw: {
-    bottom: -10,
+  unPw: {
+    bottom: -17,
+    color: "#ff7670",
     fontSize: 20,
     fontWeight: "500",
   },

@@ -39,7 +39,19 @@ function App() {
               component={HomeScreen}
               options={{ headerShown: false }}
             />
-            <Stack.Screen name="Admin" component={AdminLogin} />
+            <Stack.Screen 
+              name="Admin" 
+              component={AdminLogin} 
+              options={{
+                title: 'Admin Login',
+                headerStyle: {
+                  backgroundColor:"#ff8c00"
+                },
+                headerTitleStyle: {
+                  color: "#98002D",
+                  fontSize: 30,
+                  fontWeight: "700",
+                },}}/>
             <Stack.Screen
               name="Point of Interest"
               component={PointOfInterest}
