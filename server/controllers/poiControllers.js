@@ -117,20 +117,11 @@ exports.addPOI = [
  * This will be from a multipart form (because of the image).
  * The following fields are required - and con not be changed:
  *    pointsOfInterestId (int)
- *    trailId {int}
  *
  * The following fields are optional:
  *    description {string}
  *    image {buffer object from multer (req.files)}
  *    isActive (boolean)
- *
- *    latitude (float)
- *    longitude (float)
- *    accuracy {float}
- *    altitude {float}
- *    altitudeAccuracy {float}
- *    heading {float}
- *    speed {float}
  */
 exports.updatePOI = [
   // Points of Interest validation
@@ -160,21 +151,6 @@ exports.updatePOI = [
       return true;
     }),
   // optional fields
-  body("trailId")
-    .exists()
-    .isInt()
-    .toInt()
-    .bail()
-    .custom(async (value) => {
-      console.log("***** Check if trail exists");
-      const trail = await Trail.findByPk(value);
-      if (!trail) {
-        console.log("****** trail doesn't exists");
-        throw new Error("trailId doesn't exist");
-      }
-      console.log("****** trail exists");
-      return true;
-    }),
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
@@ -196,27 +172,14 @@ exports.updatePOI = [
     .optional()
     .isBoolean()
     .toBoolean(),
-  body(
-    [
-      "latitude",
-      "longitude",
-      "accuracy",
-      "altitude",
-      "altitudeAccuracy",
-      "heading",
-      "speed",
-    ],
-    "Invalid data type, must be a float (#.#)"
-  )
-    .optional()
-    .isFloat()
-    .toFloat(),
 
   // main function
   async (req, res) => {
     console.log("\n***** Update Points Of Interest Function ******\n");
     const controller = "updatePOI";
     try {
+      const editableFields = ["description", "image", "isActive"];
+
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         logger.error(errors.array(), {
@@ -230,7 +193,7 @@ exports.updatePOI = [
 
       const newPOI = {};
       for (const [key, value] of Object.entries(req.body)) {
-        if (key !== "pointsOfInterestId" || key !== "trailId") {
+        if (editableFields.includes(key)) {
           newPOI[key] = value;
         }
       }
@@ -242,17 +205,17 @@ exports.updatePOI = [
 
       // deal with image
       console.log("POI:\n", poi.toJSON());
-      console.log("newPOI:\n", newPOI);
       // - if new image - create new link, delete old image
-      if (newPOI.files) {
+      if (req.body.files) {
         console.log("update image");
-        newPOI.image = await getImageLinks(poi.trailId, newPOI.files, "POI");
+        newPOI.image = await getImageLinks(poi.trailId, req.body.files, "POI");
         if (newPOI.image !== poi.image) {
           console.log("remove old image");
           removeImage(poi.image);
         }
       }
 
+      console.log("newPOI:\n", newPOI);
       poi.update(newPOI);
 
       res.status(200).json(poi);
