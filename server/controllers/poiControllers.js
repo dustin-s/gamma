@@ -4,7 +4,7 @@ const { loggers } = require("winston");
 const logger = loggers.get("logger");
 
 const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
-const { PointsOfInterest, Trail } = require("../models");
+const { PointsOfInterest } = require("../models");
 const { validationErrors } = require("../utils/helpers");
 const { getImageLinks, removeImage } = require("../utils/images");
 
