@@ -6,7 +6,7 @@ const logger = loggers.get("logger");
 const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
 const { PointsOfInterest, Trail } = require("../models");
 const { validationErrors } = require("../utils/helpers");
-const { getImageLinks } = require("../utils/images");
+const { getImageLinks, removeImage } = require("../utils/images");
 
 /**
  * Adds a point of interest to the DB
@@ -246,9 +246,10 @@ exports.updatePOI = [
       if (newPOI.files) {
         console.log("update image");
         newPOI.image = await getImageLinks(poi.trailId, newPOI.files, "POI");
-        console.log("poi.image:", newPOI.image);
-        console.log("remove old image");
-        // await removeImage()
+        if (newPOI.image !== poi.image) {
+          console.log("remove old image");
+          removeImage(poi.image);
+        }
       }
 
       res.status(200).json(newPOI);

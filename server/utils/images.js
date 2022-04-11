@@ -1,4 +1,5 @@
 const sharp = require("sharp");
+const fs = require("fs");
 
 const { loggers } = require("winston");
 const logger = loggers.get("logger");
@@ -51,6 +52,23 @@ exports.getImageLinks = async (trailId, file, type) => {
     console.log(err);
     logger.error(err, {
       controller: "getImageLinks",
+      errorMsg: "catch error",
+    });
+  }
+};
+
+/**
+ * removes the image specified in the path location. This does not return an error to the calling function, but will log it in the error logs.
+ *
+ * @param {string} path the location of the file to be deleted (including filename)
+ */
+exports.removeImage = (path) => {
+  try {
+    fs.unlinkSync(path);
+  } catch (err) {
+    console.log(err);
+    logger.error(err, {
+      controller: "removeImage",
       errorMsg: "catch error",
     });
   }
