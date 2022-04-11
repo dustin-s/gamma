@@ -126,7 +126,6 @@ exports.addPOI = [
 exports.updatePOI = [
   // Points of Interest validation
   body().custom((value, { req }) => {
-    console.log("\n***** Update Points Of Interest Validation ******\n");
     // Add the files back in to the req.body so that they can be treated normally in validation
     const files = req.files.image;
     if (files) {
@@ -175,19 +174,18 @@ exports.updatePOI = [
 
   // main function
   async (req, res) => {
-    console.log("\n***** Update Points Of Interest Function ******\n");
+    const editableFields = ["description", "image", "isActive"];
     const controller = "updatePOI";
-    try {
-      const editableFields = ["description", "image", "isActive"];
 
+    try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         logger.error(errors.array(), {
           controller,
           errorMsg: "validation error",
         });
-        // res.status(400).json({ error: validationErrors(errors.array()) });
-        res.status(400).json({ error: errors.array() });
+        res.status(400).json({ error: validationErrors(errors.array()) });
+        // res.status(400).json({ error: errors.array() });
         return;
       }
 
@@ -203,19 +201,15 @@ exports.updatePOI = [
         throw new Error("Point of Interest not found");
       }
 
-      // deal with image
-      console.log("POI:\n", poi.toJSON());
-      // - if new image - create new link, delete old image
+      // deal with image - if new image - create new link, delete old image
       if (req.body.files) {
-        console.log("update image");
         newPOI.image = await getImageLinks(poi.trailId, req.body.files, "POI");
         if (newPOI.image !== poi.image) {
-          console.log("remove old image");
           removeImage(poi.image);
         }
       }
 
-      console.log("newPOI:\n", newPOI);
+      // console.log("newPOI:\n", newPOI);
       poi.update(newPOI);
 
       res.status(200).json(poi);
