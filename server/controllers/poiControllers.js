@@ -4,7 +4,7 @@ const { loggers } = require("winston");
 const logger = loggers.get("logger");
 
 const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
-const { PointsOfInterest } = require("../models");
+const { PointsOfInterest, Trail } = require("../models");
 const { validationErrors } = require("../utils/helpers");
 const { getImageLinks } = require("../utils/images");
 
@@ -115,11 +115,11 @@ exports.addPOI = [
  * Change an existing point of interest in the DB
  *
  * This will be from a multipart form (because of the image).
- * The following fields are required:
+ * The following fields are required - and con not be changed:
  *    pointsOfInterestId (int)
+ *    trailId {int}
  *
  * The following fields are optional:
- *    trailId {int}
  *    description {string}
  *    image {buffer object from multer (req.files)}
  *    isActive (boolean)
@@ -131,10 +131,10 @@ exports.addPOI = [
  *    heading {float}
  *    speed {float}
  */
-
 exports.updatePOI = [
   // Points of Interest validation
   body().custom((value, { req }) => {
+    console.log("\n***** Update Points Of Interest Validation ******\n");
     // Add the files back in to the req.body so that they can be treated normally in validation
     const files = req.files.image;
     if (files) {
@@ -143,18 +143,36 @@ exports.updatePOI = [
     return true;
   }),
   // required fields
-  body("pointsOfInterestId").exists().isInt().toInt(),
-  // optional fields
-  body("trailId")
-    .optional()
+  body("pointsOfInterestId")
+    .exists()
     .isInt()
     .toInt()
     .bail()
     .custom(async (value) => {
+      const poi = await PointsOfInterest.findByPk(value);
+      console.log("***** Check if POI exists");
+      if (!poi) {
+        console.log("****** POI doesn't exists");
+        throw new Error("pointsOfInterestId doesn't exist");
+      }
+      console.log("****** POI exists");
+      return true;
+    }),
+  // optional fields
+  body("trailId")
+    .exists()
+    .isInt()
+    .toInt()
+    .bail()
+    .custom(async (value) => {
+      console.log("***** Check if trail exists");
       const trail = await Trail.findByPk(value);
       if (!trail) {
+        console.log("****** trail doesn't exists");
         throw new Error("trailId doesn't exist");
       }
+      console.log("****** trail exists");
+      return true;
     }),
   body("description", "Invalid data type, must be a string")
     .optional()
@@ -195,6 +213,7 @@ exports.updatePOI = [
 
   // main function
   async (req, res) => {
+    console.log("\n***** Update Points Of Interest Function ******\n");
     const controller = "updatePOI";
     try {
       const errors = validationResult(req);
@@ -208,11 +227,33 @@ exports.updatePOI = [
         return;
       }
 
-      const body = req.body;
-      const poi = await PointsOfInterest.findByPk(body.pointsOfInterestId);
+      const newPOI = {};
+      for (const [key, value] of Object.entries(req.body)) {
+        if (key !== "pointsOfInterestId" || key !== "trailId") {
+          newPOI[key] = value;
+        }
+      }
 
-      res.status(200).json(req.body);
+      const poi = await PointsOfInterest.findByPk(req.body.pointsOfInterestId);
+      if (!poi) {
+        throw new Error("Point of Interest not found");
+      }
+
+      // deal with image
+      console.log("POI:\n", poi.toJSON());
+      console.log("newPOI:\n", newPOI);
+      // - if new image - create new link, delete old image
+      if (newPOI.files) {
+        console.log("update image");
+        newPOI.image = await getImageLinks(poi.trailId, newPOI.files, "POI");
+        console.log("poi.image:", newPOI.image);
+        console.log("remove old image");
+        // await removeImage()
+      }
+
+      res.status(200).json(newPOI);
     } catch (err) {
+      console.log(err);
       logger.error(err, {
         controller,
         errorMsg: "catch error",

@@ -21,7 +21,7 @@ const { ensureDirExists, getFileName } = require("./fileHelpers");
  * @returns The link to the files storage location
  */
 
-async function getImageLinks(trailId, file, type) {
+exports.getImageLinks = async (trailId, file, type) => {
   try {
     // ensure filesystem exists for save
     const path = `${SAVE_DIRECTORY}${trailId}/${type}/`;
@@ -54,5 +54,4 @@ async function getImageLinks(trailId, file, type) {
       errorMsg: "catch error",
     });
   }
-}
-exports.getImageLinks = getImageLinks;
+};
