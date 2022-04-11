@@ -123,6 +123,7 @@ exports.addPOI = [
  *    description {string}
  *    image {buffer object from multer (req.files)}
  *    isActive (boolean)
+ *
  *    latitude (float)
  *    longitude (float)
  *    accuracy {float}
@@ -252,7 +253,9 @@ exports.updatePOI = [
         }
       }
 
-      res.status(200).json(newPOI);
+      poi.update(newPOI);
+
+      res.status(200).json(poi);
     } catch (err) {
       console.log(err);
       logger.error(err, {
