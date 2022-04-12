@@ -219,7 +219,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     formData.append("createdBy", userId.toString());
     for (let location of locationArr) {
       for (const [key, value] of Object.entries(location)) {
-        formData.append(`TrailCoords.${key}`, value?.toString() ?? "");
+        formData.append(`TrailCoords_${key}`, value?.toString() ?? "");
       }
     }
     // ptsOfInterest: POIObj[];
