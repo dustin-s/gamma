@@ -241,10 +241,10 @@ exports.updateUser = [
       const oldPwd = req.body.oldPassword;
 
       // get the user to update
-      const userData = await User.findByPk(userId);
+      const user = await User.findByPk(userId);
 
       // check for user found
-      if (!userData) {
+      if (!user) {
         logger.debug("user not found", {
           controller,
         });
@@ -255,7 +255,7 @@ exports.updateUser = [
       }
 
       // validate password
-      const validPwd = await userData.checkPassword(oldPwd);
+      const validPwd = await user.checkPassword(oldPwd);
       if (!validPwd) {
         logger.debug("invalid Password", {
           controller,
@@ -277,13 +277,16 @@ exports.updateUser = [
         newData.requestPwdReset = req.body.newRequestPwdReset;
 
       // execute update of new data
-      await userData.update(newData);
+      await user.update(newData);
 
       // delete field password for return data
-      delete userData.dataValues.password;
+      delete user.dataValues.password;
+
+      const token = signToken({ email: user.email, userId: user.userId });
 
       res.json({
-        user: userData,
+        user: user,
+        token,
         message: "Update Succeeded!",
       });
     } catch (err) {
