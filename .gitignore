@@ -18,3 +18,6 @@ web-build/
 
 # Images
 server/public/images/
+
+#local certs
+*.cert
