@@ -58,7 +58,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
 
-  const [trailID, setTrailID] = useState(route.params?.trailID || null);
+  const [trailId, setTrailID] = useState(route.params?.trailID || null);
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
 
@@ -81,45 +81,48 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
   useEffect(() => {
     if (!statusFG?.granted) {
+      console.log("requestFGPermission");
       requestFGPermission();
     }
   }, []);
 
   const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
   useEffect(() => {
-    if (!statusBG?.granted && !trailID) {
+    if (!statusBG?.granted && !trailId) {
+      console.log("requestBGPermission");
       requestBGPermission();
     }
-  }, []);
+  }, [statusFG]);
 
-  const createPermissionAlert = (msg: string, type: "FG" | "BG") => {
-    let cb;
-    console.log("\ncreatePermissionAlert\nstatusFG:", statusFG?.status);
-    console.log("statusBG:", statusBG?.status);
-    if (type === "FG") {
-      cb = requestFGPermission;
-    } else if (type === "BG") {
-      cb = requestBGPermission;
-    } else {
-      throw new Error("createPermissionAlert: invalid type");
-    }
+  // const createPermissionAlert = (msg: string, type: "FG" | "BG") => {
+  //   let cb;
+  //   console.log("\ncreatePermissionAlert\nstatusFG:", statusFG?.status);
+  //   console.log("statusBG:", statusBG?.status);
+  //   if (type === "FG") {
+  //     cb = requestFGPermission;
+  //   } else if (type === "BG") {
+  //     cb = requestBGPermission;
+  //   } else {
+  //     throw new Error("createPermissionAlert: invalid type");
+  //   }
 
-    return Alert.alert(
-      "Missing Permission",
-      msg,
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel",
-        },
-        { text: "OK", onPress: cb },
-      ],
-      { onDismiss: cb }
-    );
-  };
+  //   return Alert.alert(
+  //     "Missing Permission",
+  //     msg,
+  //     [
+  //       {
+  //         text: "Cancel",
+  //         onPress: () => console.log("Cancel Pressed"),
+  //         style: "cancel",
+  //       },
+  //       { text: "OK", onPress: cb },
+  //     ],
+  //     { onDismiss: cb }
+  //   );
+  // };
 
   // Define the task passing its name and a callback that will be called whenever the location changes
+
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
     if (error) {
       console.error("TaskManager.defineTask error:");
@@ -168,7 +171,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       setTrailID(null); // ensure trailId is not set
       setIsStarted(true);
     } else {
-      console.log("status: ", statusBG?.status || null);
+      console.log("handleStartRecording: statusBG:", statusBG?.status || null);
+      await requestBGPermission();
+      console.log(
+        "handleStartRecording: statusBG (post request):",
+        statusBG?.status || null
+      );
     }
   };
 
@@ -292,7 +300,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     //   console.log(data);
     // } else console.log(`\tdata.length: ${data.length}`);
 
-    if (trailID === null && locationArr.length > 0) {
+    if (trailId === null && locationArr.length > 0) {
       return (
         <Polyline
           coordinates={locationArr}
@@ -300,9 +308,9 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           strokeWidth={6}
         />
       );
-    } else if (trailID && data) {
+    } else if (trailId && data) {
       const trailInfo = data.filter(
-        (el: TrailData) => el.trailId === trailID
+        (el: TrailData) => el.trailId === trailId
       )[0];
 
       return (
@@ -359,7 +367,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       {/* Other button containers are at the bottom of the screen */}
       <View style={[styles.fgContainer]}>
         <Text>Trail Screen</Text>
-        <Text>Trail ID: {trailID === null ? "null" : trailID}</Text>
+        <Text>Trail ID: {trailId === null ? "null" : trailId}</Text>
 
         {/* Debug buttons */}
         <View style={styles.btnContainer}>
@@ -367,13 +375,15 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             label="console.log(data)"
             backgroundColor="orange"
             handlePress={() => {
-              const temp = data ? [...data] : [];
-              console.log(temp.reverse());
-              console.log(locationArr);
-              console.log(trailID);
-              console.log("data.length:", data?.length || "null");
-              console.log("userId: ", userId);
-              console.log("locationArr.length: ", locationArr.length);
+              // const temp = data ? [...data] : [];
+              // console.log(temp.reverse());
+              // console.log(locationArr);
+              console.log("trailId:", trailId);
+              // console.log("data.length:", data?.length || "null");
+              // console.log("userId: ", userId);
+              // console.log("locationArr.length: ", locationArr.length);
+              console.log("statusFG:", statusFG);
+              console.log("statusBG:", statusBG);
             }}
           />
           <MapButton
@@ -385,14 +395,14 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         {/* All user's buttons */}
         <View style={styles.btnContainer}>
-          {trailID && (
+          {trailId && (
             <MapButton
               label="Back"
               backgroundColor="green"
               handlePress={() => setTrailID(null)}
             />
           )}
-          {trailID && (
+          {trailId && (
             <MapButton
               label="Start Trail"
               backgroundColor="green"
@@ -424,7 +434,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               />
             )}
 
-            {!trailID && isStarted && (
+            {!trailId && isStarted && (
               <MapButton
                 label="Stop"
                 backgroundColor="red"
@@ -432,7 +442,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               />
             )}
 
-            {!trailID && !isStarted && locationArr.length > 0 && (
+            {!trailId && !isStarted && locationArr.length > 0 && (
               <MapButton
                 label="Save"
                 backgroundColor="blue"
@@ -449,7 +459,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                   let poi;
                   navigation.navigate("Point of Interest", {
                     handleSetPoI,
-                    trailID,
+                    trailID: trailId,
                     currentLocation: curLoc,
                   });
                 }}
