@@ -90,7 +90,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
 
   // Define the task passing its name and a callback that will be called whenever the location changes
-
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
     if (error) {
       console.error("TaskManager.defineTask error:");
@@ -141,10 +140,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     } else {
       console.log("handleStartRecording: statusFG:", statusFG?.status || null);
       await requestFGPermission();
-      console.log(
-        "handleStartRecording: statusFG (post request):",
-        statusFG?.status || null
-      );
     }
   };
 
@@ -343,14 +338,21 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             label="console.log(data)"
             backgroundColor="orange"
             handlePress={() => {
+              console.log("\n*************");
               // const temp = data ? [...data] : [];
               // console.log(temp.reverse());
               // console.log(locationArr);
+              console.log("userId: ", userId);
               console.log("trailId:", trailId);
-              // console.log("data.length:", data?.length || "null");
-              // console.log("userId: ", userId);
-              // console.log("locationArr.length: ", locationArr.length);
-              console.log("statusFG:", statusFG);
+              console.log("data.length:", data?.length || "null");
+              console.log("locationArr.length: ", locationArr.length);
+              console.log("trails");
+              data?.forEach((trail) =>
+                console.log(
+                  `${trail.trailId}\t${trail.difficulty}\t${trail.name}`
+                )
+              );
+              // console.log("statusFG:", statusFG);
             }}
           />
           <MapButton
