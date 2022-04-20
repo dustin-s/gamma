@@ -86,40 +86,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
   }, []);
 
-  const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
-  useEffect(() => {
-    if (!statusBG?.granted && !trailId) {
-      console.log("requestBGPermission");
-      requestBGPermission();
-    }
-  }, [statusFG]);
-
-  // const createPermissionAlert = (msg: string, type: "FG" | "BG") => {
-  //   let cb;
-  //   console.log("\ncreatePermissionAlert\nstatusFG:", statusFG?.status);
-  //   console.log("statusBG:", statusBG?.status);
-  //   if (type === "FG") {
-  //     cb = requestFGPermission;
-  //   } else if (type === "BG") {
-  //     cb = requestBGPermission;
-  //   } else {
-  //     throw new Error("createPermissionAlert: invalid type");
-  //   }
-
-  //   return Alert.alert(
-  //     "Missing Permission",
-  //     msg,
-  //     [
-  //       {
-  //         text: "Cancel",
-  //         onPress: () => console.log("Cancel Pressed"),
-  //         style: "cancel",
-  //       },
-  //       { text: "OK", onPress: cb },
-  //     ],
-  //     { onDismiss: cb }
-  //   );
-  // };
+  // removing BGPermissions based on comment made by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
+  // const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
 
   // Define the task passing its name and a callback that will be called whenever the location changes
 
@@ -142,7 +110,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   });
 
   const handleStartRecording = async () => {
-    if (statusBG?.granted) {
+    if (statusFG?.granted) {
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Highest,
         distanceInterval: 1, // minimum change (in meters) betweens updates
@@ -171,11 +139,11 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       setTrailID(null); // ensure trailId is not set
       setIsStarted(true);
     } else {
-      console.log("handleStartRecording: statusBG:", statusBG?.status || null);
-      await requestBGPermission();
+      console.log("handleStartRecording: statusFG:", statusFG?.status || null);
+      await requestFGPermission();
       console.log(
-        "handleStartRecording: statusBG (post request):",
-        statusBG?.status || null
+        "handleStartRecording: statusFG (post request):",
+        statusFG?.status || null
       );
     }
   };
@@ -383,7 +351,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               // console.log("userId: ", userId);
               // console.log("locationArr.length: ", locationArr.length);
               console.log("statusFG:", statusFG);
-              console.log("statusBG:", statusBG);
             }}
           />
           <MapButton
