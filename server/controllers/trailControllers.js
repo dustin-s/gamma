@@ -74,8 +74,7 @@ exports.saveTrail = async (req, res, next) => {
         controller,
         errorMsg: "validation error",
       });
-      // res.status(400).json({ error: validationErrors(errors.array()) });
-      res.status(400).json({ error: errors.array() });
+      res.status(400).json({ error: validationErrors(errors.array()) });
       return;
     }
 
@@ -131,11 +130,60 @@ exports.saveTrail = async (req, res, next) => {
 
     next();
   } catch (err) {
+    console.log("\ncatch error:");
+    console.log(err);
     logger.debug(err, {
       controller,
       errorMsg: "catch error",
     });
     res.status(500).json({ error: err.message });
-    return;
+  }
+};
+
+/**
+ * This switches whether or not a trail is opened or closed.
+ *
+ * The req.body should have a JSON format of:
+ * {
+ *    "userId": "existing id",
+ *    "trailId": "existing id",
+ *  }
+ */
+exports.toggleCloseTrail = async (req, res, next) => {
+  const controller = "closeTrail";
+
+  try {
+    // handle validation errors
+    const { userId, trailId } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      logger.error(errors.array(), {
+        controller,
+        errorMsg: "validation error",
+      });
+      res.status(400).json({ error: validationErrors(errors.array()) });
+      return;
+    }
+
+    const trail = await Trail.findByPk(trailId);
+    if (!trail) {
+      throw new Error(`Trail ID: ${trailId} could not be retrieved`);
+    }
+
+    await trail.update({
+      updatedBy: userId,
+      isClosed: !trail.isClosed,
+    });
+
+    next();
+  } catch (err) {
+    console.log("\ncatch error:");
+    console.log(err);
+    logger.debug(err, {
+      controller,
+      errorMsg: "catch error",
+    });
+    res.status(500).json({ error: err.message });
   }
 };

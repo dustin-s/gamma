@@ -143,3 +143,26 @@ exports.saveTrailValidator = [
     .isFloat()
     .toFloat(),
 ];
+
+exports.toggleCloseTrailValidator = [
+  body("userId", "Invalid data type, must be an integer")
+    .isInt()
+    .bail()
+    .toInt()
+    .custom(async (value) => {
+      const user = await User.findByPk(value);
+      if (!user) {
+        throw new Error("User ID doesn't exist");
+      }
+    }),
+  body("trailId", "Invalid data type, must be an integer")
+    .isInt()
+    .bail()
+    .toInt()
+    .custom(async (value) => {
+      const trail = await Trail.findByPk(value);
+      if (!trail) {
+        throw new Error("Trail ID doesn't exist");
+      }
+    }),
+];
