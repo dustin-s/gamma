@@ -51,8 +51,16 @@ exports.addPOI = async (req, res, next) => {
       throw new Error("No points of interest created.");
     }
 
+    console.log("\nadd POI Success\n", poi.toJSON());
+    logger.debug(poi.toJSON(), {
+      controller,
+      errorMsg: "add POI Success",
+    });
+
     next();
   } catch (err) {
+    console.log("\ncatch error:");
+    console.log(err);
     logger.error(err, {
       controller,
       errorMsg: "catch error",
@@ -73,104 +81,58 @@ exports.addPOI = async (req, res, next) => {
  *    image {buffer object from multer (req.files)}
  *    isActive (boolean)
  */
-exports.updatePOI = [
-  // Points of Interest validation
-  body().custom((value, { req }) => {
-    // Add the files back in to the req.body so that they can be treated normally in validation
-    const files = req.files.image;
-    if (files) {
-      value.files = files[0];
-    }
-    return true;
-  }),
-  // required fields
-  body("pointsOfInterestId")
-    .exists()
-    .isInt()
-    .toInt()
-    .bail()
-    .custom(async (value) => {
-      const poi = await PointsOfInterest.findByPk(value);
-      console.log("***** Check if POI exists");
-      if (!poi) {
-        console.log("****** POI doesn't exists");
-        throw new Error("pointsOfInterestId doesn't exist");
-      }
-      console.log("****** POI exists");
-      return true;
-    }),
-  // optional fields
-  body("description", "Invalid data type, must be a string")
-    .optional()
-    .isString()
-    .trim()
-    .escape(),
-  body("files")
-    .optional()
-    .custom((value) => {
-      // check valid mime types
-      const mimetypeArr = value.mimetype.split("/");
+exports.updatePOI = async (req, res, next) => {
+  const editableFields = ["description", "image", "isActive"];
+  const controller = "updatePOI";
 
-      return (
-        mimetypeArr[0] === "image" &&
-        VALID_IMAGE_TYPES.indexOf(mimetypeArr[1]) > -1
-      );
-    })
-    .withMessage(`Files must be of type: .${VALID_IMAGE_TYPES.join(", .")}`),
-  body("isActive", "Point of Interest isActive must be true/false")
-    .optional()
-    .isBoolean()
-    .toBoolean(),
-
-  // main function
-  async (req, res) => {
-    const editableFields = ["description", "image", "isActive"];
-    const controller = "updatePOI";
-
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        logger.error(errors.array(), {
-          controller,
-          errorMsg: "validation error",
-        });
-        res.status(400).json({ error: validationErrors(errors.array()) });
-        // res.status(400).json({ error: errors.array() });
-        return;
-      }
-
-      const newPOI = {};
-      for (const [key, value] of Object.entries(req.body)) {
-        if (editableFields.includes(key)) {
-          newPOI[key] = value;
-        }
-      }
-
-      const poi = await PointsOfInterest.findByPk(req.body.pointsOfInterestId);
-      if (!poi) {
-        throw new Error("Point of Interest not found");
-      }
-
-      // deal with image - if new image - create new link, delete old image
-      if (req.body.files) {
-        newPOI.image = await getImageLinks(poi.trailId, req.body.files, "POI");
-        if (newPOI.image !== poi.image) {
-          removeImage(poi.image);
-        }
-      }
-
-      // console.log("newPOI:\n", newPOI);
-      poi.update(newPOI);
-
-      res.status(200).json(poi);
-    } catch (err) {
-      console.log(err);
-      logger.error(err, {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      logger.error(errors.array(), {
         controller,
-        errorMsg: "catch error",
+        errorMsg: "validation error",
       });
-      res.status(500).json({ error: err.message });
+      res.status(400).json({ error: validationErrors(errors.array()) });
+      // res.status(400).json({ error: errors.array() });
       return;
     }
-  },
-];
+
+    const newPOI = {};
+    for (const [key, value] of Object.entries(req.body)) {
+      if (editableFields.includes(key)) {
+        newPOI[key] = value;
+      }
+    }
+
+    const poi = await PointsOfInterest.findByPk(req.body.pointsOfInterestId);
+    if (!poi) {
+      throw new Error("Point of Interest not found");
+    }
+
+    // deal with image - if new image - create new link, delete old image
+    if (req.body.files) {
+      newPOI.image = await getImageLinks(poi.trailId, req.body.files, "POI");
+      if (newPOI.image !== poi.image) {
+        removeImage(poi.image);
+      }
+    }
+
+    // console.log("newPOI:\n", newPOI);
+    poi.update(newPOI);
+
+    console.log("\nupdate POI Success\n", poi.toJSON());
+    logger.debug(poi.toJSON(), {
+      controller,
+      errorMsg: "update POI Success",
+    });
+    next();
+  } catch (err) {
+    console.log(err);
+    logger.error(err, {
+      controller,
+      errorMsg: "catch error",
+    });
+    res.status(500).json({ error: err.message });
+  }
+};
