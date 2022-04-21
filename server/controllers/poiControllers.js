@@ -1,9 +1,8 @@
-const { body, validationResult } = require("express-validator");
+const { validationResult } = require("express-validator");
 
 const { loggers } = require("winston");
 const logger = loggers.get("logger");
 
-const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
 const { PointsOfInterest } = require("../models");
 const { validationErrors } = require("../utils/helpers");
 const { getImageLinks, removeImage } = require("../utils/images");
@@ -119,7 +118,7 @@ exports.updatePOI = async (req, res, next) => {
     }
 
     // console.log("newPOI:\n", newPOI);
-    poi.update(newPOI);
+    await poi.update(newPOI);
 
     console.log("\nupdate POI Success\n", poi.toJSON());
     logger.debug(poi.toJSON(), {

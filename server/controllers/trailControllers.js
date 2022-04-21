@@ -8,11 +8,15 @@ const { Trail, TrailCoords, PointsOfInterest } = require("../models");
 const { distance } = require("../utils/distance");
 const { getImageLinks } = require("../utils/images");
 
-// returns a list of all of the trails and the trail's points
+/**
+ * returns a list of all of the trails (open and closed), the trail's points, and if they exist, the active points of interest and hazards
+ */
 exports.listTrails = async (req, res, next) => {
   const controller = "listTrails";
   try {
-    trails = await Trail.findAll({ include: [TrailCoords, PointsOfInterest] });
+    trails = await Trail.findAll({
+      include: [TrailCoords, PointsOfInterest],
+    });
     res.status(200).json(trails);
   } catch (err) {
     logger.debug(err, {
@@ -23,14 +27,38 @@ exports.listTrails = async (req, res, next) => {
   }
 };
 
-// How to save a trail:
-// 1. Validation of data
-//    a. ensure the data is of the correct type
-//    b. ensure each poi has an image (req.files['poi'].length === req.poi.length)
-// 2. save the trail and TrailCoords
-// 3. save the Points of Interest
-//    a. save the images (../public/images/poi/trailId/<image index>.jpg)
-//    b. save the poi
+/**
+ * Adds a trail to the DB
+ *
+ * This will be from a multipart form (because of the potential image).
+ * The following fields are required:
+ *    createdBy {int}
+ *    difficulty {"easy", "moderate", "hard"}
+ *
+ *    At least 2 TrailCoords which require:
+ *      TrailCoords.latitude (float)
+ *      TrailCoords.longitude (float)
+ *
+ *    If a POI array exists it requires
+ *      POI.description {string}
+ *      POI.image {buffer object from multer (req.files)}
+ *      POI.isActive (boolean)
+ *      POI.latitude (float)
+ *      POI.longitude (float)
+ *
+ * The following fields are optional for the trail:
+ *    name {string}
+ *    description {string}
+ *    isClosed {boolean}
+ *
+ * The following fields are optional for the TrailCoords and POIs:
+ *    accuracy {float}
+ *    altitude {float}
+ *    altitudeAccuracy {float}
+ *    heading {float}
+ *    speed {float}
+ *
+ */
 exports.saveTrail = async (req, res, next) => {
   console.log("************ Main Function ************"); //, req.files);
   console.log("req.body:\n", req.body, "\n****");
