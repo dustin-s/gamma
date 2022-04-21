@@ -6,6 +6,7 @@ const logger = loggers.get("logger");
 const { Trail, TrailCoords, PointsOfInterest } = require("../models");
 
 const { distance } = require("../utils/distance");
+const { validationErrors } = require("../utils/helpers");
 const { getImageLinks } = require("../utils/images");
 
 /**
@@ -145,12 +146,17 @@ exports.saveTrail = async (req, res, next) => {
  *
  * The req.body should have a JSON format of:
  * {
- *    "userId": "existing id",
- *    "trailId": "existing id",
+ *    "userId": "required existing id",
+ *    "trailId": "required existing id",
+ *    "name": "optional string",
+ *    "description": "optional string",
+ *    "difficulty": "optional string ("easy", "moderate", "hard")",
+ *    "isClosed": "optional boolean"
  *  }
  */
-exports.toggleCloseTrail = async (req, res, next) => {
-  const controller = "closeTrail";
+exports.updateTrail = async (req, res, next) => {
+  const editableFields = ["name", "description", "difficulty", "isClosed"];
+  const controller = "updateTrail";
 
   try {
     // handle validation errors
@@ -166,16 +172,27 @@ exports.toggleCloseTrail = async (req, res, next) => {
       return;
     }
 
+    const newTrailData = {
+      updatedBy: userId,
+    };
+    for (const [key, value] of Object.entries(req.body)) {
+      if (editableFields.includes(key)) {
+        newTrailData[key] = value;
+      }
+    }
+
     const trail = await Trail.findByPk(trailId);
     if (!trail) {
       throw new Error(`Trail ID: ${trailId} could not be retrieved`);
     }
 
-    await trail.update({
-      updatedBy: userId,
-      isClosed: !trail.isClosed,
-    });
+    await trail.update(newTrailData);
 
+    console.log("\nupdate trail success\n", trail.toJSON());
+    logger.debug(trail.toJSON(), {
+      controller,
+      errorMsg: "update trail success",
+    });
     next();
   } catch (err) {
     console.log("\ncatch error:");

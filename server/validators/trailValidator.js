@@ -144,7 +144,7 @@ exports.saveTrailValidator = [
     .toFloat(),
 ];
 
-exports.toggleCloseTrailValidator = [
+exports.updateTrailValidator = [
   body("userId", "Invalid data type, must be an integer")
     .isInt()
     .bail()
@@ -165,4 +165,32 @@ exports.toggleCloseTrailValidator = [
         throw new Error("Trail ID doesn't exist");
       }
     }),
+  body("name", "Invalid data type, must be a string")
+    .optional()
+    .isString()
+    .trim()
+    .escape()
+    .custom(async (value, { req }) => {
+      const trail = await Trail.findAll({ where: { name: value } });
+      if (trail.length > 0) {
+        trail.foreach((t) => {
+          if (t.trailId !== req.body.trailId) {
+            throw new Error(`Trail name, ${value}, is already in use`);
+          }
+        });
+      }
+    }),
+  body("description", "Invalid data type, must be a string")
+    .optional()
+    .isString()
+    .trim()
+    .escape(),
+  body("difficulty", "Invalid selection for difficulty")
+    .optional()
+    .trim()
+    .isIn(["easy", "moderate", "hard"]),
+  body("isClosed", "isClosed must be true/false")
+    .optional()
+    .isBoolean()
+    .toBoolean(),
 ];

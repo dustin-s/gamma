@@ -6,12 +6,12 @@ const { fieldsUpload } = require("../../config/imageUpload");
 const {
   listTrails,
   saveTrail,
-  toggleCloseTrail,
+  updateTrail: updateTrail,
 } = require("../../controllers/trailControllers");
 const { addPOI, updatePOI } = require("../../controllers/poiControllers");
 const {
   saveTrailValidator,
-  toggleCloseTrailValidator,
+  updateTrailValidator,
 } = require("../../validators/trailValidator");
 const {
   addPOIValidator,
@@ -32,6 +32,14 @@ router.post(
 );
 
 router.post(
+  "/updateTrail",
+  verifyToken,
+  updateTrailValidator,
+  updateTrail,
+  listTrails
+);
+
+router.post(
   "/addPOI",
   verifyToken,
   fieldsUpload,
@@ -45,14 +53,6 @@ router.post(
   fieldsUpload,
   updatePOIValidator,
   updatePOI,
-  listTrails
-);
-
-router.post(
-  "/toggleClose",
-  verifyToken,
-  toggleCloseTrailValidator,
-  toggleCloseTrail,
   listTrails
 );
 // post "/:trailID/add_hazard"
