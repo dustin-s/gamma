@@ -5,12 +5,20 @@ const { fieldsUpload } = require("../../config/imageUpload");
 
 const { listTrails, saveTrail } = require("../../controllers/trailControllers");
 const { addPOI, updatePOI } = require("../../controllers/poiControllers");
+const { saveTrailValidator } = require("../../validators/saveTrailValidator");
 
 // base url: https://gamma.lessthangeeky.com/api/trails/ +
 
 router.get("/", listTrails);
 
-router.post("/", verifyToken, fieldsUpload, saveTrail, listTrails);
+router.post(
+  "/",
+  verifyToken,
+  fieldsUpload,
+  saveTrailValidator,
+  saveTrail,
+  listTrails
+);
 
 router.post("/addPOI", verifyToken, fieldsUpload, addPOI);
 router.post("/updatePOI", verifyToken, fieldsUpload, updatePOI);
