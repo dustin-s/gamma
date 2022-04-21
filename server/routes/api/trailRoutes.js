@@ -6,6 +6,7 @@ const { fieldsUpload } = require("../../config/imageUpload");
 const { listTrails, saveTrail } = require("../../controllers/trailControllers");
 const { addPOI, updatePOI } = require("../../controllers/poiControllers");
 const { saveTrailValidator } = require("../../validators/saveTrailValidator");
+const { addPOIValidator } = require("../../validators/pOIValidators");
 
 // base url: https://gamma.lessthangeeky.com/api/trails/ +
 
@@ -20,7 +21,14 @@ router.post(
   listTrails
 );
 
-router.post("/addPOI", verifyToken, fieldsUpload, addPOI);
+router.post(
+  "/addPOI",
+  verifyToken,
+  fieldsUpload,
+  addPOIValidator,
+  addPOI,
+  listTrails
+);
 router.post("/updatePOI", verifyToken, fieldsUpload, updatePOI);
 
 // get "/:trailId", <-- returns all trail details (POIs, Hazards, etc.)
