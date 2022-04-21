@@ -1,7 +1,7 @@
 const { body } = require("express-validator");
 
 const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
-const { PointsOfInterest } = require("../models");
+const { PointsOfInterest, Trail } = require("../models");
 
 exports.addPOIValidator = [
   // Points of Interest validation
@@ -14,7 +14,16 @@ exports.addPOIValidator = [
     return true;
   }),
   // required fields
-  body("trailId").exists().isInt().toInt(),
+  body("trailId", "Invalid data type, must be an integer")
+    .isInt()
+    .bail()
+    .toInt()
+    .custom(async (value) => {
+      const trail = await Trail.findByPk(value);
+      if (!trail) {
+        throw new Error("Trail ID doesn't exist");
+      }
+    }),
   body("description", "Invalid data type, must be a string")
     .exists()
     .isString()
