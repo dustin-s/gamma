@@ -10,7 +10,7 @@ const { addPOI, updatePOI } = require("../../controllers/poiControllers");
 
 router.get("/", listTrails);
 
-router.post("/", verifyToken, fieldsUpload, saveTrail);
+router.post("/", verifyToken, fieldsUpload, saveTrail, listTrails);
 
 router.post("/addPOI", verifyToken, fieldsUpload, addPOI);
 router.post("/updatePOI", verifyToken, fieldsUpload, updatePOI);

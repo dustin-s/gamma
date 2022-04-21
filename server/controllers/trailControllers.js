@@ -14,7 +14,7 @@ const {
 const { getImageLinks } = require("../utils/images");
 
 // returns a list of all of the trails and the trail's points
-exports.listTrails = async (req, res) => {
+exports.listTrails = async (req, res, next) => {
   const controller = "listTrails";
   try {
     trails = await Trail.findAll({ include: [TrailCoords, PointsOfInterest] });
@@ -172,7 +172,7 @@ exports.saveTrail = [
     .toFloat(),
 
   // Finally, the actual function!
-  async (req, res) => {
+  async (req, res, next) => {
     console.log("************ Main Function ************"); //, req.files);
     console.log("req.body:\n", req.body, "\n****");
 
@@ -182,7 +182,7 @@ exports.saveTrail = [
       // handle validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        logger.debug(errors.array(), {
+        logger.error(errors.array(), {
           controller,
           errorMsg: "validation error",
         });
@@ -241,24 +241,7 @@ exports.saveTrail = [
         await trail.reload();
       }
 
-      // ensure new trail returns an array (if only 1 item is returned)
-      let trailArr = [];
-      if (Array.isArray(trail)) {
-        trailArr = trail;
-      } else {
-        trailArr = [trail];
-      }
-
-      logger.debug(JSON.stringify(trailArr), {
-        controller,
-        msg: "return data",
-      });
-
-      console.log(trailArr);
-      // send the new trail back to the client
-      // res.status(201).json(body.POI);
-      res.status(201).json(trailArr);
-      return;
+      next();
     } catch (err) {
       logger.debug(err, {
         controller,
