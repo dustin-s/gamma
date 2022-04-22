@@ -10,9 +10,9 @@ export interface TrailData {
   createdBy: number;
   updatedBy?: number;
   distance: number;
-  hasNatureGuide: boolean;
-  hasHazard: boolean;
+  createdAt: string | Date;
+  updatedAt: string | Date;
   TrailCoords: LocationObjectCoords[];
-  POI?: POIObj[];
+  PointsOfInterests?: POIObj[];
   // hazards: HazardObj[];
 }
