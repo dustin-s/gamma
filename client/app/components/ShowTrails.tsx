@@ -7,6 +7,7 @@ import { getColor, getCoords } from "../utils/mapFunctions";
 import { View } from "react-native";
 import TrailHeadMarker from "./TrailHeadMarker";
 import FlowerMarker from "./FlowerMarker";
+import ConeMarker from "./ConeMarker";
 
 interface ShowTrailsProps {
   data: TrailData[];
@@ -101,6 +102,14 @@ export default function ShowTrails({
                 }}
               />
             )}
+          {trailInfo.isClosed && (
+            <ConeMarker
+              coords={{
+                latitude: +trailInfo.TrailCoords[1].latitude,
+                longitude: +trailInfo.TrailCoords[1].longitude,
+              }}
+            />
+          )}
         </View>
       ));
     }
