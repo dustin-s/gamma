@@ -2,8 +2,9 @@ import { SetStateAction } from "react";
 import { LocationObjectCoords } from "expo-location";
 import { TrailData } from "../interfaces/TrailData";
 
-import { Polyline } from "react-native-maps";
+import { Marker, Polyline } from "react-native-maps";
 import { getColor, getCoords } from "../utils/mapFunctions";
+import { View } from "react-native";
 
 interface ShowTrailsProps {
   data: TrailData[];
@@ -18,20 +19,32 @@ export default function ShowTrails({
   trailId,
   setTrailId,
 }: ShowTrailsProps) {
-  // const showTrails = () => {
-  // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
+  const getDescription = (trailInfo: TrailData) => {
+    const lines = [];
 
-  // console.log("showTrails:");
-  // console.log(
-  //   "\ttrailID === null && locationArr.length:",
-  //   trailID === null && locationArr.length
-  // );
-  // console.log(`\ttrailID && data: ${trailID && Boolean(data)}`);
-  // console.log(`\tdata: ${Boolean(data)}`);
-  // if (data?.length === undefined) {
-  //   console.log(data);
-  // } else console.log(`\tdata.length: ${data.length}`);
+    lines.push(`trailId: ${trailInfo.trailId}`);
+    if (trailInfo.name) lines.push(`name: ${trailInfo.name}`);
+    if (trailInfo.description)
+      lines.push(`Description\n${trailInfo.description}`);
+    lines.push(`difficulty: ${trailInfo.difficulty}`);
+    lines.push(`distance: ${+trailInfo.distance}`);
+    lines.push(`closed: ${trailInfo.isClosed ? "yes" : "no"}`);
+
+    return lines.join("\n");
+  };
+
+  // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
   const renderTrails = () => {
+    // console.log("showTrails:");
+    // console.log(
+    //   "\ttrailID === null && locationArr.length:",
+    //   trailID === null && locationArr.length
+    // );
+    // console.log(`\ttrailID && data: ${trailID && Boolean(data)}`);
+    // console.log(`\tdata: ${Boolean(data)}`);
+    // if (data?.length === undefined) {
+    //   console.log(data);
+    // } else console.log(`\tdata.length: ${data.length}`);
     if (trailId === null && locationArr.length > 0) {
       return (
         <Polyline
@@ -54,14 +67,23 @@ export default function ShowTrails({
       );
     } else if (data) {
       return data.map((trailInfo) => (
-        <Polyline
-          key={trailInfo.trailId}
-          coordinates={getCoords(trailInfo)}
-          strokeColor={getColor(trailInfo.difficulty)}
-          strokeWidth={6}
-          tappable={true}
-          onPress={() => setTrailId(trailInfo.trailId)}
-        />
+        <View key={trailInfo.trailId}>
+          <Polyline
+            coordinates={getCoords(trailInfo)}
+            strokeColor={getColor(trailInfo.difficulty)}
+            strokeWidth={6}
+            tappable={true}
+            onPress={() => setTrailId(trailInfo.trailId)}
+          />
+          <Marker
+            coordinate={{
+              latitude: +trailInfo.TrailCoords[0].latitude,
+              longitude: +trailInfo.TrailCoords[0].longitude,
+            }}
+            title={trailInfo.name}
+            description={getDescription(trailInfo)}
+          />
+        </View>
       ));
     }
   };
