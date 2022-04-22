@@ -6,6 +6,7 @@ import { Marker, Polyline } from "react-native-maps";
 import { getColor, getCoords } from "../utils/mapFunctions";
 import { View } from "react-native";
 import TrailHeadMarker from "./TrailHeadMarker";
+import FlowerMarker from "./FlowerMarker";
 
 interface ShowTrailsProps {
   data: TrailData[];
@@ -85,6 +86,21 @@ export default function ShowTrails({
           >
             <TrailHeadMarker trailInfo={trailInfo} />
           </Marker>
+          {trailInfo.PointsOfInterests &&
+            trailInfo.PointsOfInterests.length > 0 && (
+              <FlowerMarker
+                coords={{
+                  latitude:
+                    (+trailInfo.TrailCoords[0].latitude +
+                      +trailInfo.TrailCoords[1].latitude) /
+                    2,
+                  longitude:
+                    (+trailInfo.TrailCoords[0].longitude +
+                      +trailInfo.TrailCoords[1].longitude) /
+                    2,
+                }}
+              />
+            )}
         </View>
       ));
     }

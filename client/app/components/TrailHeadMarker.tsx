@@ -25,9 +25,8 @@ export default function TrailHeadMarker({ trailInfo }: TrailHeadMarkerProps) {
           <Text>{trailInfo.description}</Text>
           <Text>Details:</Text>
           <Text>Distance: {+trailInfo.distance}</Text>
-          {trailInfo.POI && trailInfo.POI.length > 0 && (
-            <Text>Nature Trail</Text>
-          )}
+          {trailInfo.PointsOfInterests &&
+            trailInfo.PointsOfInterests.length > 0 && <Text>Nature Trail</Text>}
           <Text>{trailInfo.isClosed ? "Closed" : "Open"}</Text>
         </View>
         <View style={styles.arrowBorder} />
