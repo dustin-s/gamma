@@ -69,26 +69,34 @@ export default function ShowTrails({
         />
       );
     } else if (data) {
-      return data.map((trailInfo) => (
-        <View key={trailInfo.trailId}>
-          <Polyline
-            coordinates={getCoords(trailInfo)}
-            strokeColor={getColor(trailInfo.difficulty)}
-            strokeWidth={6}
-            tappable={true}
-            onPress={() => setTrailId(trailInfo.trailId)}
-          />
-          <Marker
-            coordinate={{
-              latitude: +trailInfo.TrailCoords[0].latitude,
-              longitude: +trailInfo.TrailCoords[0].longitude,
-            }}
-            pinColor={getColor(trailInfo.difficulty)}
-          >
-            <TrailHeadMarker trailInfo={trailInfo} />
-          </Marker>
-          {trailInfo.PointsOfInterests &&
-            trailInfo.PointsOfInterests.length > 0 && (
+      return data.map((trailInfo) => {
+        const activePOI = [];
+        if (trailInfo.PointsOfInterests) {
+          trailInfo.PointsOfInterests.map((poi) => {
+            if (poi.isActive) {
+              activePOI.push(poi);
+            }
+          });
+        }
+        return (
+          <View key={trailInfo.trailId}>
+            <Polyline
+              coordinates={getCoords(trailInfo)}
+              strokeColor={getColor(trailInfo.difficulty)}
+              strokeWidth={6}
+              tappable={true}
+              onPress={() => setTrailId(trailInfo.trailId)}
+            />
+            <Marker
+              coordinate={{
+                latitude: +trailInfo.TrailCoords[0].latitude,
+                longitude: +trailInfo.TrailCoords[0].longitude,
+              }}
+              pinColor={getColor(trailInfo.difficulty)}
+            >
+              <TrailHeadMarker trailInfo={trailInfo} />
+            </Marker>
+            {activePOI.length > 0 && (
               <FlowerMarker
                 coords={{
                   latitude:
@@ -102,16 +110,17 @@ export default function ShowTrails({
                 }}
               />
             )}
-          {trailInfo.isClosed && (
-            <ConeMarker
-              coords={{
-                latitude: +trailInfo.TrailCoords[1].latitude,
-                longitude: +trailInfo.TrailCoords[1].longitude,
-              }}
-            />
-          )}
-        </View>
-      ));
+            {trailInfo.isClosed && (
+              <ConeMarker
+                coords={{
+                  latitude: +trailInfo.TrailCoords[1].latitude,
+                  longitude: +trailInfo.TrailCoords[1].longitude,
+                }}
+              />
+            )}
+          </View>
+        );
+      });
     }
   };
 
