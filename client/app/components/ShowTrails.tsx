@@ -5,6 +5,7 @@ import { TrailData } from "../interfaces/TrailData";
 import { Marker, Polyline } from "react-native-maps";
 import { getColor, getCoords } from "../utils/mapFunctions";
 import { View } from "react-native";
+import TrailHeadMarker from "./TrailHeadMarker";
 
 interface ShowTrailsProps {
   data: TrailData[];
@@ -80,9 +81,10 @@ export default function ShowTrails({
               latitude: +trailInfo.TrailCoords[0].latitude,
               longitude: +trailInfo.TrailCoords[0].longitude,
             }}
-            title={trailInfo.name}
-            description={getDescription(trailInfo)}
-          />
+            pinColor={getColor(trailInfo.difficulty)}
+          >
+            <TrailHeadMarker trailInfo={trailInfo} />
+          </Marker>
         </View>
       ));
     }
