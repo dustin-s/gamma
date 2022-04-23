@@ -8,6 +8,7 @@ import { View } from "react-native";
 import TrailHeadMarker from "./TrailHeadMarker";
 import FlowerMarker from "./FlowerMarker";
 import ConeMarker from "./ConeMarker";
+import TrailStatusMarkers from "./TrailStatusMarkers";
 
 interface ShowTrailsProps {
   data: TrailData[];
@@ -96,6 +97,9 @@ export default function ShowTrails({
             >
               <TrailHeadMarker trailInfo={trailInfo} />
             </Marker>
+
+            <TrailStatusMarkers trailInfo={trailInfo} />
+            {/*
             {activePOI.length > 0 && (
               <FlowerMarker
                 coords={{
@@ -117,7 +121,7 @@ export default function ShowTrails({
                   longitude: +trailInfo.TrailCoords[1].longitude,
                 }}
               />
-            )}
+            )} */}
           </View>
         );
       });
