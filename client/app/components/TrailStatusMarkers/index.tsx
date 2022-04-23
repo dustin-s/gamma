@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// arrow functionality of the custom marker came from: https://www.youtube.com/watch?v=4N-8RTeQ1fA&ab_channel=PradipDebnath
+
 import { Image, StyleSheet, Text, View } from "react-native";
 import { LatLng, Marker } from "react-native-maps";
 import { TrailData } from "../../interfaces/TrailData";
@@ -33,6 +34,7 @@ export default function TrailStatusMarkers({
   return (
     <Marker coordinate={getPlacement()}>
       <View>
+        {/* add appropriate images on top of the distance bubble -- this will keep the bubble centered on the marker's location */}
         <View style={styles.container}>
           {trailInfo.isClosed && (
             <Image
@@ -49,6 +51,7 @@ export default function TrailStatusMarkers({
             />
           )}
         </View>
+        {/* show the distance bubble */}
         <View style={styles.bubble}>
           <Text style={styles.label}>
             {Number(trailInfo.distance).toFixed(2)}

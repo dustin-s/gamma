@@ -2,7 +2,7 @@ import { SetStateAction } from "react";
 import { LocationObjectCoords } from "expo-location";
 import { TrailData } from "../interfaces/TrailData";
 
-import { Marker, Polyline } from "react-native-maps";
+import { Polyline } from "react-native-maps";
 import { getColor, getCoords } from "../utils/mapFunctions";
 import { View } from "react-native";
 import TrailHeadMarker from "./TrailHeadMarker";
@@ -23,21 +23,6 @@ export default function ShowTrails({
   trailId,
   setTrailId,
 }: ShowTrailsProps) {
-  const getDescription = (trailInfo: TrailData) => {
-    const lines = [];
-
-    lines.push(`trailId: ${trailInfo.trailId}`);
-    if (trailInfo.name) lines.push(`name: ${trailInfo.name}`);
-    if (trailInfo.description)
-      lines.push(`Description\n${trailInfo.description}`);
-    lines.push(`difficulty: ${trailInfo.difficulty}`);
-    lines.push(`distance: ${+trailInfo.distance}`);
-    lines.push(`closed: ${trailInfo.isClosed ? "yes" : "no"}`);
-
-    return lines.join("\n");
-  };
-
-  // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
   const renderTrails = () => {
     // console.log("showTrails:");
     // console.log(
@@ -88,16 +73,8 @@ export default function ShowTrails({
               tappable={true}
               onPress={() => setTrailId(trailInfo.trailId)}
             />
-            <Marker
-              coordinate={{
-                latitude: +trailInfo.TrailCoords[0].latitude,
-                longitude: +trailInfo.TrailCoords[0].longitude,
-              }}
-              pinColor={getColor(trailInfo.difficulty)}
-            >
-              <TrailHeadMarker trailInfo={trailInfo} />
-            </Marker>
 
+            <TrailHeadMarker trailInfo={trailInfo} />
             <TrailStatusMarkers trailInfo={trailInfo} />
             {/*
             {activePOI.length > 0 && (

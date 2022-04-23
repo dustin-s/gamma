@@ -1,38 +1,41 @@
-import React, { useContext } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Callout } from "react-native-maps";
+import { Callout, Marker } from "react-native-maps";
 import { TrailData } from "../interfaces/TrailData";
-import { AuthContext } from "../utils/authContext";
-import MapButton from "./MapButton";
+import { getColor } from "../utils/mapFunctions";
 
 interface TrailHeadMarkerProps {
   trailInfo: TrailData;
 }
 
 export default function TrailHeadMarker({ trailInfo }: TrailHeadMarkerProps) {
-  const auth = useContext(AuthContext);
-
-  const edit = () => {
-    console.log("edit pressed");
-  };
   return (
-    <Callout tooltip>
-      <View>
-        <View style={styles.bubble}>
-          <Text style={styles.header}>
-            {trailInfo?.name ?? trailInfo.trailId}
-          </Text>
-          <Text>{trailInfo.description}</Text>
-          <Text>Details:</Text>
-          <Text>Distance: {+trailInfo.distance}</Text>
-          {trailInfo.PointsOfInterests &&
-            trailInfo.PointsOfInterests.length > 0 && <Text>Nature Trail</Text>}
-          <Text>{trailInfo.isClosed ? "Closed" : "Open"}</Text>
+    <Marker
+      coordinate={{
+        latitude: +trailInfo.TrailCoords[0].latitude,
+        longitude: +trailInfo.TrailCoords[0].longitude,
+      }}
+      pinColor={getColor(trailInfo.difficulty)}
+    >
+      <Callout tooltip>
+        <View>
+          <View style={styles.bubble}>
+            <Text style={styles.header}>
+              {trailInfo?.name ?? trailInfo.trailId}
+            </Text>
+            <Text>{trailInfo.description}</Text>
+            <Text>Details:</Text>
+            <Text>Distance: {+trailInfo.distance}</Text>
+            {trailInfo.PointsOfInterests &&
+              trailInfo.PointsOfInterests.length > 0 && (
+                <Text>Nature Trail</Text>
+              )}
+            <Text>{trailInfo.isClosed ? "Closed" : "Open"}</Text>
+          </View>
+          <View style={styles.arrowBorder} />
+          <View style={styles.arrow} />
         </View>
-        <View style={styles.arrowBorder} />
-        <View style={styles.arrow} />
-      </View>
-    </Callout>
+      </Callout>
+    </Marker>
   );
 }
 

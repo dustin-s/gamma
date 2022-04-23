@@ -82,7 +82,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
   useEffect(() => {
     if (!statusFG?.granted) {
-      console.log("requestFGPermission");
+      // console.log("requestFGPermission");
       requestFGPermission();
     }
   }, []);
