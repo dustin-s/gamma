@@ -2,6 +2,7 @@
 // https://stackoverflow.com/questions/69433942/how-to-fetch-data-from-a-custom-react-hook-api-with-onclick-and-display-it-in
 import { useCallback, useState } from "react";
 import { BASE_API } from "../utils/constants";
+import { guardDataType } from "../utils/typeGuard";
 
 interface FetchQuery {
   url?: string;
@@ -33,7 +34,8 @@ export const useFetch = <T = unknown,>(): State<T> => {
       setData(undefined);
       setError(data.error);
     } else {
-      setData(data);
+      const cleanData = guardDataType<T>(data);
+      setData(cleanData);
       setError(null);
     }
     setLoading(false);

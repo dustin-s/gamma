@@ -26,8 +26,8 @@ export default function TrailStatusMarkers({
   const getPlacement = (): LatLng => {
     // console.log("middle of the trail lat/lng coords", trailInfo.trailId);
     return {
-      latitude: +trailInfo.TrailCoords[1].latitude,
-      longitude: +trailInfo.TrailCoords[1].longitude,
+      latitude: trailInfo.TrailCoords[1].latitude,
+      longitude: trailInfo.TrailCoords[1].longitude,
     };
   };
 
@@ -53,9 +53,7 @@ export default function TrailStatusMarkers({
         </View>
         {/* show the distance bubble */}
         <View style={styles.bubble}>
-          <Text style={styles.label}>
-            {Number(trailInfo.distance).toFixed(2)}
-          </Text>
+          <Text style={styles.label}>{trailInfo.distance.toFixed(2)}</Text>
         </View>
         <View style={styles.arrowBorder} />
         <View style={styles.arrow} />

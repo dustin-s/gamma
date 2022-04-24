@@ -11,8 +11,8 @@ export default function TrailHeadMarker({ trailInfo }: TrailHeadMarkerProps) {
   return (
     <Marker
       coordinate={{
-        latitude: +trailInfo.TrailCoords[0].latitude,
-        longitude: +trailInfo.TrailCoords[0].longitude,
+        latitude: trailInfo.TrailCoords[0].latitude,
+        longitude: trailInfo.TrailCoords[0].longitude,
       }}
       pinColor={getColor(trailInfo.difficulty)}
     >
@@ -24,7 +24,7 @@ export default function TrailHeadMarker({ trailInfo }: TrailHeadMarkerProps) {
             </Text>
             <Text>{trailInfo.description}</Text>
             <Text>Details:</Text>
-            <Text>Distance: {+trailInfo.distance}</Text>
+            <Text>Distance: {trailInfo.distance}</Text>
             {trailInfo.PointsOfInterests &&
               trailInfo.PointsOfInterests.length > 0 && (
                 <Text>Nature Trail</Text>
