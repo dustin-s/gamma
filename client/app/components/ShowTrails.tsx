@@ -3,12 +3,10 @@ import { LocationObjectCoords } from "expo-location";
 import { TrailData } from "../interfaces/TrailData";
 
 import { Polyline } from "react-native-maps";
-import { getColor, getCoords } from "../utils/mapFunctions";
 import { View } from "react-native";
 import TrailHeadMarker from "./TrailHeadMarker";
-import FlowerMarker from "./FlowerMarker";
-import ConeMarker from "./ConeMarker";
 import TrailStatusMarkers from "./TrailStatusMarkers";
+import { getColor, getCoords } from "../utils/mapFunctions";
 
 interface ShowTrailsProps {
   data: TrailData[];
