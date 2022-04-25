@@ -42,6 +42,7 @@ import { POIObj } from "../interfaces/POIObj";
 import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
+import ShowTrails from "../components/ShowTrails";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
@@ -81,7 +82,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
   useEffect(() => {
     if (!statusFG?.granted) {
-      console.log("requestFGPermission");
+      // console.log("requestFGPermission");
       requestFGPermission();
     }
   }, []);
@@ -249,54 +250,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     };
   }, [data]);
 
-  const showTrails = () => {
-    // https://github.com/react-native-maps/react-native-maps/blob/master/docs/polyline.md
-
-    // console.log("showTrails:");
-    // console.log(
-    //   "\ttrailID === null && locationArr.length:",
-    //   trailID === null && locationArr.length
-    // );
-    // console.log(`\ttrailID && data: ${trailID && Boolean(data)}`);
-    // console.log(`\tdata: ${Boolean(data)}`);
-    // if (data?.length === undefined) {
-    //   console.log(data);
-    // } else console.log(`\tdata.length: ${data.length}`);
-
-    if (trailId === null && locationArr.length > 0) {
-      return (
-        <Polyline
-          coordinates={locationArr}
-          strokeColor={getColor()}
-          strokeWidth={6}
-        />
-      );
-    } else if (trailId && data) {
-      const trailInfo = data.filter(
-        (el: TrailData) => el.trailId === trailId
-      )[0];
-
-      return (
-        <Polyline
-          coordinates={getCoords(trailInfo)}
-          strokeColor={getColor(trailInfo.difficulty)}
-          strokeWidth={6}
-        />
-      );
-    } else if (data) {
-      return data.map((trailInfo) => (
-        <Polyline
-          key={trailInfo.trailId}
-          coordinates={getCoords(trailInfo)}
-          strokeColor={getColor(trailInfo.difficulty)}
-          strokeWidth={6}
-          tappable={true}
-          onPress={() => setTrailID(trailInfo.trailId)}
-        />
-      ));
-    }
-  };
-
   useEffect(() => {
     getTrails();
   }, []);
@@ -317,7 +270,14 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         initialRegion={region}
         showsUserLocation={true}
       >
-        {data && showTrails()}
+        {data && (
+          <ShowTrails
+            data={data}
+            locationArr={locationArr}
+            trailId={trailId}
+            setTrailId={setTrailID}
+          />
+        )}
       </MapView>
 
       {/* login button is relative to map */}
