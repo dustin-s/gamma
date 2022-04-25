@@ -11,6 +11,6 @@ export interface POIObj {
   altitudeAccuracy?: number;
   heading?: number;
   speed?: number;
-  createdAt: string | Date;
-  updatedAt: string | Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
