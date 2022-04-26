@@ -10,8 +10,9 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "dev": "expo start --dev-client",
-    "build-android": "eas build --platform=android --profile=dev",
-    "build-ios": "eas build --platform=ios --profile=dev"
+    "build-android": "eas build --platform=android --profile=preview",
+    "build-ios": "eas build --platform=ios --profile=preview",
+    "build-all": "eas build --platform=all --profile=preview"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.0.9",
