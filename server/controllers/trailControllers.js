@@ -204,3 +204,9 @@ exports.updateTrail = async (req, res, next) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.deleteTrail = async (req, res, next) => {
+  // do something
+  console.log(req.params);
+  next();
+};

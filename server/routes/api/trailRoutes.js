@@ -7,6 +7,7 @@ const {
   listTrails,
   saveTrail,
   updateTrail: updateTrail,
+  deleteTrail,
 } = require("../../controllers/trailControllers");
 const { addPOI, updatePOI } = require("../../controllers/poiControllers");
 const {
@@ -57,4 +58,5 @@ router.post(
 );
 // post "/:trailID/add_hazard"
 
+router.delete("/:trailId", verifyToken, deleteTrail, listTrails);
 module.exports = router;
