@@ -7,6 +7,7 @@ import { View } from "react-native";
 import TrailHeadMarker from "./TrailHeadMarker";
 import TrailStatusMarkers from "./TrailStatusMarkers";
 import { getColor, getCoords } from "../utils/mapFunctions";
+import POIMarker from "./POIMarker";
 
 interface ShowTrailsProps {
   data: TrailData[];
@@ -46,11 +47,17 @@ export default function ShowTrails({
       )[0];
 
       return (
-        <Polyline
-          coordinates={getCoords(trailInfo)}
-          strokeColor={getColor(trailInfo.difficulty)}
-          strokeWidth={6}
-        />
+        <View>
+          <Polyline
+            coordinates={getCoords(trailInfo)}
+            strokeColor={getColor(trailInfo.difficulty)}
+            strokeWidth={6}
+          />
+          {trailInfo.PointsOfInterests &&
+            trailInfo.PointsOfInterests.map((poi) => (
+              <POIMarker poi={poi} key={poi.pointsOfInterestId} />
+            ))}
+        </View>
       );
     } else if (data) {
       return data.map((trailInfo) => {
@@ -74,29 +81,6 @@ export default function ShowTrails({
 
             <TrailHeadMarker trailInfo={trailInfo} />
             <TrailStatusMarkers trailInfo={trailInfo} />
-            {/*
-            {activePOI.length > 0 && (
-              <FlowerMarker
-                coords={{
-                  latitude:
-                    (+trailInfo.TrailCoords[0].latitude +
-                      +trailInfo.TrailCoords[1].latitude) /
-                    2,
-                  longitude:
-                    (+trailInfo.TrailCoords[0].longitude +
-                      +trailInfo.TrailCoords[1].longitude) /
-                    2,
-                }}
-              />
-            )}
-            {trailInfo.isClosed && (
-              <ConeMarker
-                coords={{
-                  latitude: +trailInfo.TrailCoords[1].latitude,
-                  longitude: +trailInfo.TrailCoords[1].longitude,
-                }}
-              />
-            )} */}
           </View>
         );
       });

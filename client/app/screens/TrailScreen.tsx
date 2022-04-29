@@ -13,7 +13,6 @@ import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
-import { getColor, getCoords } from "../utils/mapFunctions";
 import { AuthContext } from "../utils/authContext";
 
 // Components
