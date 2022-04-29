@@ -1,6 +1,6 @@
 // arrow functionality of the custom marker came from: https://www.youtube.com/watch?v=4N-8RTeQ1fA&ab_channel=PradipDebnath
 
-import { Image, StyleSheet, Text, View } from "react-native";
+import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
 import { LatLng, Marker } from "react-native-maps";
 import { POIObj } from "../interfaces/POIObj";
 import { BASE_API } from "../utils/constants";
@@ -9,12 +9,22 @@ interface POIMarkerProps {
   poi: POIObj;
 }
 
+const handleOnPress = () => {
+  console.log("navigate to POI screen");
+};
+
 export default function POIMarker({ poi }: POIMarkerProps) {
   return (
-    <Marker coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}>
+    <Marker
+      coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}
+      onPress={handleOnPress}
+    >
       <View>
         <View style={styles.bubble}>
-          <Image source={{ uri: BASE_API + poi.image }} />
+          <ImageBackground
+            source={{ uri: BASE_API + poi.image?.slice(2 - poi.image.length) }}
+            style={styles.image}
+          />
         </View>
         <View style={styles.arrowBorder} />
         <View style={styles.arrow} />
