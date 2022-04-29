@@ -3,6 +3,7 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import { LatLng, Marker } from "react-native-maps";
 import { POIObj } from "../interfaces/POIObj";
+import { BASE_API } from "../utils/constants";
 
 interface POIMarkerProps {
   poi: POIObj;
@@ -13,7 +14,7 @@ export default function POIMarker({ poi }: POIMarkerProps) {
     <Marker coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}>
       <View>
         <View style={styles.bubble}>
-          <Text style={styles.label}>{poi.image}</Text>
+          <Image source={{ uri: BASE_API + poi.image }} />
         </View>
         <View style={styles.arrowBorder} />
         <View style={styles.arrow} />
