@@ -1,11 +1,13 @@
 const { validationResult } = require("express-validator");
 
 const { loggers } = require("winston");
+const { SAVE_DIRECTORY } = require("../config/imageUpload");
 const logger = loggers.get("logger");
 
 const { Trail, TrailCoords, PointsOfInterest } = require("../models");
 
 const { distance } = require("../utils/distance");
+const { deleteDir } = require("../utils/fileHelpers");
 const { validationErrors } = require("../utils/helpers");
 const { getImageLinks } = require("../utils/images");
 
@@ -20,7 +22,7 @@ exports.listTrails = async (req, res, next) => {
     });
     res.status(200).json(trails);
   } catch (err) {
-    logger.debug(err, {
+    logger.error(err, {
       controller,
       errorMsg: "listTrails Catch Error",
     });
@@ -61,8 +63,8 @@ exports.listTrails = async (req, res, next) => {
  *
  */
 exports.saveTrail = async (req, res, next) => {
-  console.log("************ Main Function ************"); //, req.files);
-  console.log("req.body:\n", req.body, "\n****");
+  // console.log("************ Main Function ************");
+  // console.log("req.body:\n", req.body, "\n****");
 
   const controller = "saveTrail";
 
@@ -129,11 +131,17 @@ exports.saveTrail = async (req, res, next) => {
       await trail.reload();
     }
 
+    logger.info(trail.toJSON(), {
+      controller,
+      msg: "Save trail success",
+      user: req.user.userId,
+    });
+
     next();
   } catch (err) {
     console.log("\ncatch error:");
     console.log(err);
-    logger.debug(err, {
+    logger.error(err, {
       controller,
       errorMsg: "catch error",
     });
@@ -189,15 +197,16 @@ exports.updateTrail = async (req, res, next) => {
     await trail.update(newTrailData);
 
     console.log("\nupdate trail success\n", trail.toJSON());
-    logger.debug(trail.toJSON(), {
+    logger.info(trail.toJSON(), {
       controller,
-      errorMsg: "update trail success",
+      msg: "Update trail success",
+      user: req.user.userId,
     });
     next();
   } catch (err) {
     console.log("\ncatch error:");
     console.log(err);
-    logger.debug(err, {
+    logger.error(err, {
       controller,
       errorMsg: "catch error",
     });
@@ -221,11 +230,44 @@ exports.deleteTrail = async (req, res, next) => {
   try {
     console.log(req.user);
 
+    const trail = await Trail.findByPk(trailId);
+    if (!trail) {
+      throw new Error(`Trail ID: ${trailId} could not be retrieved`);
+    }
+
+    const dirDeleted = await deleteDir(SAVE_DIRECTORY + trailId);
+    if (dirDeleted) {
+      logger.info(
+        SAVE_DIRECTORY +
+          trailId +
+          " successfully deleted by userID: " +
+          req.user.userId,
+        {
+          controller,
+          msg: "deleteDir",
+        }
+      );
+    } else {
+      logger.info(SAVE_DIRECTORY + trailId + " does not exist", {
+        controller,
+        msg: "deleteDir",
+      });
+    }
+
+    await trail.destroy();
+    logger.info(
+      trailId + " successfully deleted by userID: " + req.user.userId,
+      {
+        controller,
+        msg: "Delete trail success",
+      }
+    );
+
     next();
   } catch (err) {
     console.log("\ncatch error:");
     console.log(err);
-    logger.debug(err, {
+    logger.error(err, {
       controller,
       errorMsg: "catch error",
     });
