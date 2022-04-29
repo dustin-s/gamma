@@ -31,11 +31,11 @@ exports.getImageLinks = async (trailId, file, type) => {
 
     const { buffer, originalname } = file;
     const { fileName } = getFileName(originalname);
-    const link = `${path}${fileName}.webp`;
+    const link = `${path}${fileName}.jpg`;
 
     await sharp(buffer)
       .resize(RESIZE)
-      .webp({ quality })
+      .jpeg({ quality })
       .toFile(link)
       .catch((err) => {
         console.log(err);

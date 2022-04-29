@@ -205,8 +205,28 @@ exports.updateTrail = async (req, res, next) => {
   }
 };
 
+/**
+ * This deletes a trail identified by the trailId passed in the url.
+ *
+ * @param {number} trailId
+ */
+// no validation is done on this, the trail exists and is removed or it doesn't and errors out then.
 exports.deleteTrail = async (req, res, next) => {
-  // do something
-  console.log(req.params);
-  next();
+  const controller = "deleteTrail";
+  const { trailId } = req.params;
+  console.log(trailId);
+
+  try {
+    console.log(req.user);
+
+    next();
+  } catch (err) {
+    console.log("\ncatch error:");
+    console.log(err);
+    logger.debug(err, {
+      controller,
+      errorMsg: "catch error",
+    });
+    res.status(500).json({ error: err.message });
+  }
 };
