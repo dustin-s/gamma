@@ -2,90 +2,67 @@
 // https://www.youtube.com/watch?v=RmlekGDv8RU&ab_channel=AaronSaunders
 // https://docs.expo.dev/versions/latest/sdk/camera/
 
-import { LocationObjectCoords } from "expo-location";
-import { useState } from "react";
-import {
-  Image,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { useContext } from "react";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import MapButton from "../components/MapButton";
 
 // Types:
-import { POIObj } from "../interfaces/POIObj";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
+import { AuthContext } from "../utils/authContext";
+import { BASE_URL } from "../utils/constants";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
 
-// provide a trailID if available. if a trailID is provided, it will save the prop immediately, otherwise it will send it back to the POI array to be saved with the trail.
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const { poi } = route.params;
 
+  const { auth } = useContext(AuthContext);
+
+  const editPOI = () => {
+    console.log("Edit POI", poi.description);
+    navigation.navigate("Home");
+  };
   return (
-    <View style={styles.container}>
-      {console.log(poi)}
-      <Text>POI Screen</Text>
-      <Text>{poi.description}</Text>
-      {/* show image and capture buttons */}
-      {/* {image ? (
-        <>
-          <Image source={{ uri: image }} />
-          {userId && (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                // navigate to camera
-              }}
-            >
-              <Text style={styles.text}>Retake image</Text>
-            </TouchableOpacity>
-          )}
-        </>
-      ) : (
-        <>
-          {userId && (
-            <TouchableOpacity
-              style={styles.button}
-              onPress={() => {
-                // navigate to camera
-              }}
-            >
-              <Text style={styles.text}>Take image</Text>
-            </TouchableOpacity>
-          )}
-        </>
+    <SafeAreaView style={styles.container}>
+      <Image source={{ uri: BASE_URL + poi.image }} style={styles.image} />
+      <Text style={styles.text}>{poi.description}</Text>
+      {auth.isAuthenticated && (
+        <View style={styles.button}>
+          <MapButton
+            label="Edit"
+            backgroundColor="blue"
+            handlePress={editPOI}
+          />
+        </View>
       )}
-      {/* Show description */}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    width: 130,
-    borderRadius: 4,
-    backgroundColor: "#14274e",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    height: 40,
-  },
-  camera: {
-    flex: 1,
-    width: "100%",
-  },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: "#eee",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    height: "100%",
+  },
+  image: {
+    height: "50%",
+    width: "100%",
+    resizeMode: "center",
+    alignSelf: "flex-start",
   },
   text: {
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
+    paddingHorizontal: 10,
+    color: "black",
+    // fontSize: 20,
+    overflow: "scroll",
+  },
+  button: {
+    position: "absolute",
+    right: 5,
+    bottom: 5,
   },
 });
