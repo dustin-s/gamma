@@ -6,7 +6,8 @@ const { fieldsUpload } = require("../../config/imageUpload");
 const {
   listTrails,
   saveTrail,
-  updateTrail: updateTrail,
+  updateTrail,
+  deleteTrail,
 } = require("../../controllers/trailControllers");
 const { addPOI, updatePOI } = require("../../controllers/poiControllers");
 const {
@@ -56,5 +57,7 @@ router.post(
   listTrails
 );
 // post "/:trailID/add_hazard"
+
+router.delete("/:trailId", verifyToken, deleteTrail, listTrails);
 
 module.exports = router;
