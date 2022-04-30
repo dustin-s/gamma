@@ -3,7 +3,7 @@
 import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
 import { LatLng, Marker } from "react-native-maps";
 import { POIObj } from "../interfaces/POIObj";
-import { BASE_API } from "../utils/constants";
+import { BASE_URL } from "../utils/constants";
 
 interface POIMarkerProps {
   poi: POIObj;
@@ -19,10 +19,14 @@ export default function POIMarker({ poi }: POIMarkerProps) {
       coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}
       onPress={handleOnPress}
     >
+      {console.log(poi.image)}
       <View>
         <View style={styles.bubble}>
+          {/* <Text style={styles.label}>{poi.image}</Text> */}
           <ImageBackground
-            source={{ uri: BASE_API + poi.image?.slice(2 - poi.image.length) }}
+            source={{
+              uri: BASE_URL + poi.image,
+            }}
             style={styles.image}
           />
         </View>
@@ -45,7 +49,7 @@ const styles = StyleSheet.create({
   image: {
     height: 19,
     width: 19,
-    resizeMode: "contain",
+    resizeMode: "cover",
   },
 
   // the bubble around the distance label
