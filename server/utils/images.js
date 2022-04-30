@@ -26,20 +26,22 @@ exports.getImageLinks = async (trailId, file, type) => {
   try {
     // ensure filesystem exists for save
     const path = `${SAVE_DIRECTORY}${trailId}/${type}/`;
+    const fullPath = "public/" + path;
+
     // console.log("getImageLinks: path", path);
-    await ensureDirExists(path);
+    await ensureDirExists(fullPath);
 
     const { buffer, originalname } = file;
     const { fileName } = getFileName(originalname);
-    const link = `${path}${fileName}.jpg`;
+    const link = `${fileName}.jpg`;
 
     await sharp(buffer)
       .resize(RESIZE)
       .jpeg({ quality })
-      .toFile(link)
+      .toFile(fullPath + link)
       .catch((err) => {
         console.log(err);
-        logger.debug(err, {
+        logger.error(err, {
           controller: "getImageLinks",
           errorMsg: "getImageLinks Sharp Error writing file",
         });
@@ -47,7 +49,7 @@ exports.getImageLinks = async (trailId, file, type) => {
       });
 
     // console.log("getImageLinks: link", link);
-    return link;
+    return path + link;
   } catch (err) {
     console.log(err);
     logger.error(err, {
