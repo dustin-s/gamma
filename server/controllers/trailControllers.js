@@ -213,8 +213,6 @@ exports.updateTrail = async (req, res, next) => {
     res.status(500).json({ error: err.message });
   }
 };
-<<<<<<< HEAD
-=======
 
 /**
  * This deletes a trail identified by the trailId passed in the url.
@@ -274,4 +272,3 @@ exports.deleteTrail = async (req, res, next) => {
     res.status(500).json({ error: err.message });
   }
 };
->>>>>>> 11d149b (switch save image types to jpg & removed ./ from path name)
