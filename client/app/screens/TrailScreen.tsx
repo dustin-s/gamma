@@ -383,7 +383,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               />
             )}
 
-            {isStarted && (
+            {/* {isStarted && (
               <MapButton
                 label="Add Pt of Interest"
                 backgroundColor="purple"
@@ -397,7 +397,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                   });
                 }}
               />
-            )}
+            )} */}
           </View>
         ) : (
           <></>

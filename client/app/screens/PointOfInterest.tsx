@@ -18,36 +18,19 @@ import {
 import { POIObj } from "../interfaces/POIObj";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
-type ScreenProps = StackNativeScreenProps<"Trail Screen">;
-type POIScreenProps = ScreenProps & {
-  poi: POIObj | undefined;
-  handleSetPoI(newPoI: POIObj): void;
-  trailId: number | null;
-  userId: number | null;
-  currentLocation: LocationObjectCoords;
-};
-
-// type POIScreenProps = StackNativeScreenProps<"Point of Interest"
+type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
 
 // provide a trailID if available. if a trailID is provided, it will save the prop immediately, otherwise it will send it back to the POI array to be saved with the trail.
-export default function PointOfInterest({
-  poi,
-  handleSetPoI,
-  trailId,
-  userId,
-  currentLocation,
-}: POIScreenProps) {
-  const [image, setImage] = useState<string | null>(poi?.image || null);
-  const [description, setDescription] = useState<string>(
-    poi?.description || ""
-  );
-  const [isActive, setIsActive] = useState<boolean>(poi?.isActive || true);
+export default function PointOfInterest({ navigation, route }: POIScreenProps) {
+  const { poi } = route.params;
 
   return (
     <View style={styles.container}>
+      {console.log(poi)}
       <Text>POI Screen</Text>
+      <Text>{poi.description}</Text>
       {/* show image and capture buttons */}
-      {image ? (
+      {/* {image ? (
         <>
           <Image source={{ uri: image }} />
           {userId && (
@@ -76,27 +59,6 @@ export default function PointOfInterest({
         </>
       )}
       {/* Show description */}
-      {!userId ? (
-        <Text style={styles.text}>{description}</Text>
-      ) : (
-        <>
-          <TextInput
-            style={styles.text}
-            multiline
-            numberOfLines={4}
-            value={description}
-            onChangeText={(newDescription) => setDescription(newDescription)}
-          />
-
-          <Switch
-            trackColor={{ false: "#767577", true: "#81b0ff" }}
-            thumbColor={isActive ? "#f5dd4b" : "#f4f3f4"}
-            ios_backgroundColor="#3e3e3e"
-            onValueChange={() => setIsActive(!isActive)}
-            value={isActive}
-          />
-        </>
-      )}
     </View>
   );
 }

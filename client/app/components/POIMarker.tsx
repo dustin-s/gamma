@@ -1,36 +1,36 @@
 // arrow functionality of the custom marker came from: https://www.youtube.com/watch?v=4N-8RTeQ1fA&ab_channel=PradipDebnath
 
-import { Image, ImageBackground, StyleSheet, Text, View } from "react-native";
-import { LatLng, Marker } from "react-native-maps";
+import { ImageBackground, StyleSheet, View } from "react-native";
+import { Marker } from "react-native-maps";
+import { useNavigation } from "@react-navigation/native";
 import { POIObj } from "../interfaces/POIObj";
 import { BASE_URL } from "../utils/constants";
+import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 interface POIMarkerProps {
   poi: POIObj;
 }
 
-const handleOnPress = () => {
-  console.log("navigate to POI screen");
-};
-
 export default function POIMarker({ poi }: POIMarkerProps) {
+  const navigation =
+    useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
+
+  const handleOnPress = () => {
+    navigation.navigate("Point of Interest", { poi });
+  };
+
   return (
     <Marker
       coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}
       onPress={handleOnPress}
     >
-      {console.log(poi.image)}
       <View>
-        <View style={styles.bubble}>
-          {/* <Text style={styles.label}>{poi.image}</Text> */}
-          <ImageBackground
-            source={{
-              uri: BASE_URL + poi.image,
-            }}
-            style={styles.image}
-          />
-        </View>
-        <View style={styles.arrowBorder} />
+        <ImageBackground
+          source={{
+            uri: BASE_URL + poi.image,
+          }}
+          style={styles.image}
+        />
         <View style={styles.arrow} />
       </View>
     </Marker>
@@ -39,49 +39,23 @@ export default function POIMarker({ poi }: POIMarkerProps) {
 
 const TEXT_COLOR = "brown";
 const styles = StyleSheet.create({
-  // Stores the images
-  container: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    alignItems: "flex-start",
-    paddingBottom: 5,
-  },
   image: {
-    height: 19,
-    width: 19,
-    resizeMode: "cover",
+    height: 40,
+    width: 40,
+    resizeMode: "contain",
+    borderRadius: 26,
+    overflow: "hidden",
+    borderColor: TEXT_COLOR,
+    borderWidth: 2,
+    marginTop: 4,
+    marginBottom: -1,
   },
 
-  // the bubble around the distance label
-  bubble: {
-    flex: 1,
-    flexDirection: "column",
-    alignSelf: "flex-start",
-    backgroundColor: "#fff",
-    borderRadius: 26,
-    borderColor: TEXT_COLOR,
-    borderWidth: 1,
-    padding: 5,
-  },
   arrow: {
     backgroundColor: "transparent",
     borderColor: "transparent",
-    borderTopColor: "#fff",
+    borderTopColor: TEXT_COLOR,
     borderWidth: 8,
     alignSelf: "center",
-    marginTop: -18,
-  },
-  arrowBorder: {
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderTopColor: TEXT_COLOR, //"#007a87",
-    borderWidth: 8,
-    alignSelf: "center",
-    marginTop: -0.5,
-  },
-
-  label: {
-    color: TEXT_COLOR,
-    fontStyle: "italic",
   },
 });
