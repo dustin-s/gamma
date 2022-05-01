@@ -38,7 +38,7 @@
     "@babel/core": "^7.12.9",
     "@types/react": "~17.0.21",
     "@types/react-native": "~0.64.12",
-    "eas-cli": "^0.51.0",
+    "eas-cli": "^0.52.0",
     "expo-cli": "^5.4.3",
     "typescript": "~4.3.5"
   },
