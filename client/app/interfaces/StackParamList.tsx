@@ -1,6 +1,7 @@
 // https://reactnavigation.org/docs/typescript -- Organizing types
 // update per documentation if we need to do composite types (e.g. drawer or bottom navigation)
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { LocationObjectCoords } from "expo-location";
 import { POIObj } from "./POIObj";
 
 export type StackParamList = {
@@ -8,7 +9,13 @@ export type StackParamList = {
   Admin: undefined;
   "Trail Screen": { trailID: number | null } | undefined;
   "Point of Interest": {
-    poi: POIObj;
+    // view/edit trail
+    poi?: POIObj;
+    //   }
+    // | {
+    // add trail
+    handleSetPoI?(value: POIObj): void;
+    currentLocation?: LocationObjectCoords;
   };
   "Get Photo": undefined;
 };
