@@ -122,18 +122,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         },
       });
       // For test:
-      if (locationArr.length === 0) {
-        const campAllenCoords = {
-          accuracy: 6.0980000495910645,
-          altitude: 1700,
-          altitudeAccuracy: 1.3625929355621338,
-          heading: 327.75262451171875,
-          latitude: 30.24166,
-          longitude: -95.95935,
-          speed: 0.3030627369880676,
-        };
-        setLocationArr([...locationArr, campAllenCoords]);
-      }
+      // if (locationArr.length === 0) {
+      //   const campAllenCoords = {
+      //     accuracy: 6.0980000495910645,
+      //     altitude: 1700,
+      //     altitudeAccuracy: 1.3625929355621338,
+      //     heading: 327.75262451171875,
+      //     latitude: 30.24166,
+      //     longitude: -95.95935,
+      //     speed: 0.3030627369880676,
+      //   };
+      //   setLocationArr([...locationArr, campAllenCoords]);
+      // }
 
       setTrailID(null); // ensure trailId is not set
       setIsStarted(true);
@@ -383,7 +383,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               />
             )}
 
-            {/* {isStarted && (
+            {isStarted && (
               <MapButton
                 label="Add Pt of Interest"
                 backgroundColor="purple"
@@ -392,12 +392,11 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                   let poi;
                   navigation.navigate("Point of Interest", {
                     handleSetPoI,
-                    trailID: trailId,
                     currentLocation: curLoc,
                   });
                 }}
               />
-            )} */}
+            )}
           </View>
         ) : (
           <></>
