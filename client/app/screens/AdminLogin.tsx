@@ -46,13 +46,43 @@ export default function AdminLogin({ navigation }: Props) {
     };
     const url = "users/login";
     fetchData({ url, options });
-  }
+  };
 
+  //Confirm and update password
   async function handleUpdatePassword() {
-    //Do somthing
-  }
+
+      const updatePassword = {
+        userId : data?.user.userId,
+        oldPassword : password,
+        newPassword,
+        confirmPassword,
+      }
+    if (newPassword === confirmPassword ){  
+      const options = {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Cache-control": "no-cache",
+        },
+      body: JSON.stringify(updatePassword),
+      };
+      const url = "users/update";
+      fetchData({ url, options });  
+    } else {alert("Passwords do not match, please try again.")};
+  };
+
+//Change Password Button
+  function changeBtn() {
+    setGetNewPassword(true);
+  }; 
+
+//Do we need this? 
+//I had to add a function to show getNewPassword with a button
+//Seems to override useEffect 
   // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
-  useEffect(() => {
+ useEffect (() => {
+
     let unmounted = false;
     if (!data) return;
 
@@ -64,7 +94,7 @@ export default function AdminLogin({ navigation }: Props) {
     if (data.user.requestPwdReset) {
       // show reset password
       setGetNewPassword (true);
-      return;
+      return;    
     }
 
     // returns to calling screen
@@ -85,6 +115,7 @@ export default function AdminLogin({ navigation }: Props) {
           style={styles.txInput}
           keyboardType="email-address"
           placeholder="Email"
+          placeholderTextColor="#ff7670"
           value={email}
           onChangeText={(value) => setEmail(value)}
         />
@@ -107,6 +138,12 @@ export default function AdminLogin({ navigation }: Props) {
         handlePress={handleSignIn}
         label={"Sign in"}
       />
+
+<MapButton
+        backgroundColor={"#ff8c00"}
+        handlePress={changeBtn}
+        label={"Change Password"}
+      />
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
@@ -116,23 +153,24 @@ export default function AdminLogin({ navigation }: Props) {
       )}
 
       {getNewPassword &&  (<View>
-        <View style={styles.controlGroup}>
-        <Text style={styles.unPw}>Password</Text>
+      <View style={styles.controlGroup}>
+        <Text style={styles.unPw}>New Password</Text>
         <TextInput
           style={styles.txInput}
           maxLength={18}
-          placeholder="Password"
+          placeholder=" New Password"
           placeholderTextColor="#ff7670"
           value={newPassword}
           onChangeText={(value) => setNewPassword(value)}
           secureTextEntry
         />
-      </View> <View style={styles.controlGroup}>
-        <Text style={styles.unPw}>Password</Text>
+      </View> 
+      <View style={styles.controlGroup}>
+        <Text style={styles.unPw}>Confirm Password</Text>
         <TextInput
           style={styles.txInput}
           maxLength={18}
-          placeholder="Password"
+          placeholder="Confirm Password"
           placeholderTextColor="#ff7670"
           value={confirmPassword}
           onChangeText={(value) => setConfirmPassword(value)}
