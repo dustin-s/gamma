@@ -58,7 +58,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
 
-  const [trailId, setTrailID] = useState(route.params?.trailID || null);
+  const [trailId, setTrailID] = useState<number | null>(null);
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
 
@@ -232,6 +232,16 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     // do stuff
   };
 
+  useEffect(() => {
+    console.log("********** Trail Screen **********");
+    console.log("Route Params:", route.params);
+    if (route.params?.newPOI) {
+      // Post updated, do something with `route.params.post`
+      // For example, send the post to the server
+      console.log("newPOI:", route.params.newPOI);
+    }
+  }, [route.params?.newPOI]);
+
   const getTrails = async () => {
     fetchData({ url: "trails" });
   };
@@ -391,7 +401,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                   let curLoc = currentLocation();
                   let poi;
                   navigation.navigate("Point of Interest", {
-                    handleSetPoI,
+                    // handleSetPoI,
                     currentLocation: curLoc,
                   });
                 }}

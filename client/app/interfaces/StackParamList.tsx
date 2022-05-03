@@ -7,17 +7,11 @@ import { POIObj } from "./POIObj";
 export type StackParamList = {
   Home: undefined;
   Admin: undefined;
-  "Trail Screen": { trailID: number | null } | undefined;
+  "Trail Screen": { newPOI?: POIObj } | undefined;
   "Point of Interest": {
-    // view/edit trail
     poi?: POIObj;
-    //   }
-    // | {
-    // add trail
-    handleSetPoI?(value: POIObj): void;
     currentLocation?: LocationObjectCoords;
   };
-  "Get Photo": undefined;
 };
 
 export type StackNativeScreenProps<T extends keyof StackParamList> =
