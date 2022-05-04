@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import CameraView from "../components/CameraView";
 import MapButton from "../components/MapButton";
 import { POIObj } from "../interfaces/POIObj";
 
@@ -132,12 +133,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       {console.log("showCamera:", showCamera)}
       {showCamera ? (
         <>
-          <Text>Camera</Text>
-          <MapButton
-            label="Close Camera"
-            backgroundColor="orange"
-            handlePress={() => setShowCamera(false)}
-          />
+          <CameraView />
         </>
       ) : (
         <>
