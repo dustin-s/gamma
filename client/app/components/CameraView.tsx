@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Camera } from "expo-camera";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface CameraViewProps {
   handleImage(photo: string): void;
@@ -8,6 +14,7 @@ interface CameraViewProps {
 
 export default function CameraView({ handleImage }: CameraViewProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const cameraRef = useRef<Camera>(null);
 
@@ -18,12 +25,15 @@ export default function CameraView({ handleImage }: CameraViewProps) {
 
   const __takePicture = async () => {
     try {
+      setIsLoading(true);
       if (cameraRef.current) {
         const photo = await cameraRef.current.takePictureAsync();
+        setIsLoading(false);
         handleImage(photo.uri);
       }
     } catch (err) {
       console.log(err);
+      setIsLoading(false);
     }
   };
 
@@ -46,15 +56,23 @@ export default function CameraView({ handleImage }: CameraViewProps) {
         ref={cameraRef}
       >
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.photoButton}
-            onPress={async () => {
-              await __takePicture();
-            }}
-          >
-            <Text style={styles.photoButtonText}>{`Take`}</Text>
-            <Text style={styles.photoButtonText}>{`Photo`}</Text>
-          </TouchableOpacity>
+          {isLoading ? (
+            <ActivityIndicator
+              size="large"
+              color="#ffffff"
+              style={{ alignSelf: "flex-end" }}
+            />
+          ) : (
+            <TouchableOpacity
+              style={styles.photoButton}
+              onPress={async () => {
+                await __takePicture();
+              }}
+            >
+              <Text style={styles.photoButtonText}>{`Take`}</Text>
+              <Text style={styles.photoButtonText}>{`Photo`}</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Camera>
     </View>
@@ -67,6 +85,7 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+    justifyContent: "flex-end",
   },
   buttonContainer: {
     flex: 1,
