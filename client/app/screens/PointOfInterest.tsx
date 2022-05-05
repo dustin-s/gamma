@@ -42,21 +42,23 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     ...curLoc,
   };
 
+  // add the base URL to the image - don't change/use the poiObj.image after this.
   const originalImage = poiObj.image ? BASE_URL + poiObj.image : null;
 
   const { auth } = useContext(AuthContext);
   const [showCamera, setShowCamera] = useState(false);
-  const [editImage, setEditImage] = useState(poiObj.image === null);
+  const [editImage, setEditImage] = useState(originalImage === null);
   const [image, setImage] = useState(originalImage); // stores the URI for the image
   const [editDesc, setEditDesc] = useState(poiObj.description === null);
   const [description, setDescription] = useState(poiObj.description);
   const [isActive, setIsActive] = useState(true);
   const [isDirty, setIsDirty] = useState({
-    photoChanged: poiObj.description === null,
+    photoChanged: originalImage === null,
     descChanged: poiObj.description === null,
     isActiveChanged: false,
   });
 
+  // image
   const handleUpdateImage = (image: string) => {
     setImage(image);
     setEditImage(originalImage !== image);
@@ -67,10 +69,11 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const handleCancelImage = () => {
     console.log(poiObj);
     setImage(originalImage);
-    setEditImage(false);
+    setEditImage(originalImage === null);
     setIsDirty({ ...isDirty, photoChanged: false });
   };
 
+  // Description
   const handleUpdateDesc = () => {
     setEditDesc(false);
     setIsDirty({ ...isDirty, descChanged: poiObj.description !== description });
@@ -78,15 +81,17 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
 
   const handleCancelDesc = () => {
     setDescription(poiObj.description);
-    setEditDesc(false);
+    setEditDesc(poiObj.description === null);
     setIsDirty({ ...isDirty, descChanged: false });
   };
 
+  // Is Active
   const handleSetIsActive = () => {
     setIsActive(!isActive);
     setIsDirty({ ...isDirty, isActiveChanged: !isDirty.isActiveChanged });
   };
 
+  // Check Dirty
   const checkIsDirty = () => {
     return (
       isDirty.photoChanged || isDirty.descChanged || isDirty.isActiveChanged
@@ -147,7 +152,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       ) : (
         <>
           {/* do the editDesc here so it is at the top of the page... It will be easier for the user to enter data. If they want to see the image, they will just need to close the keyboard. */}
-          {editDesc && !editImage && (
+          {editDesc && (
             <View style={[styles.textContainer]}>
               <TextInput
                 style={styles.textInput}
@@ -201,7 +206,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
             )}
           </ImageBackground>
 
-          {(!editDesc || (editDesc && editImage)) && (
+          {!editDesc && (
             <View style={styles.textContainer}>
               <Text style={styles.text}>{description}</Text>
               {auth.isAuthenticated && (
