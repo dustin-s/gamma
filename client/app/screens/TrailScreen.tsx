@@ -65,6 +65,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [modalVisible, setModalVisible] = useState(false);
   const [addingTrail, setAddingTrail] = useState(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [pauseRecording, setPauseRecording] = useState(false);
   useEffect(() => {
     if (isRecording) {
       console.log("Trail Recording started");
@@ -106,8 +107,9 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
     // const [location] = locations;
     const [location] = curData.locations;
-
-    setLocationArr([...locationArr, location.coords]);
+    if (!pauseRecording) {
+      setLocationArr([...locationArr, location.coords]);
+    }
 
     console.log("\nlocation length=", locationArr.length);
     console.log(`time:  ${new Date(location.timestamp).toLocaleString()}`);
@@ -238,7 +240,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const handleAddPOI = () => {
     const curLoc = currentLocation();
     if (addingTrail) {
-      handleStopRecoding();
+      setPauseRecording(true);
     }
 
     navigation.navigate("Point of Interest", {
@@ -255,10 +257,15 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       console.log("Add POI to array");
       setPOIArr([...poiArr, newPOI]);
     } else {
-      console.log("Update POI");
+      if (newPOI.pointsOfInterestId) {
+        console.log("Update POI");
+      } else {
+        console.log("add POI");
+      }
     }
+
     if (addingTrail) {
-      handleStartRecording();
+      setPauseRecording(false);
     }
   };
 
@@ -266,7 +273,13 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     console.log("********** Trail Screen **********");
     console.log("Route Params:", route.params);
     if (route.params?.newPOI) {
-      savePOI(route.params.newPOI);
+      if (route.params.newPOI === "Cancel") {
+        if (addingTrail) {
+          setPauseRecording(false);
+        }
+      } else {
+        savePOI(route.params.newPOI);
+      }
     }
   }, [route.params?.newPOI]);
 
@@ -384,8 +397,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         {/* Show these buttons for a logged in user */}
         {userId ? (
-          <View style={styles.btnContainer}>
-            <>
+          <View>
+            <View style={styles.btnContainer}>
               {!addingTrail ? (
                 <MapButton
                   label="Add Trail"
@@ -402,7 +415,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                     />
                   )}
 
-                  {!trailId && isRecording && (
+                  {isRecording && (
                     <MapButton
                       label="Stop"
                       backgroundColor="red"
@@ -410,7 +423,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                     />
                   )}
 
-                  {!trailId && !isRecording && locationArr.length > 0 && (
+                  {!isRecording && locationArr.length > 0 && (
                     <MapButton
                       label="Save"
                       backgroundColor="blue"
@@ -419,7 +432,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                   )}
                 </>
               )}
-
               {(addingTrail || trailId) && (
                 <MapButton
                   label="Add Pt of Interest"
@@ -427,7 +439,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                   handlePress={handleAddPOI}
                 />
               )}
-            </>
+            </View>
           </View>
         ) : (
           <></>
@@ -475,6 +487,7 @@ const styles = StyleSheet.create({
   btnContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
+    flexWrap: "wrap",
     width: "100%",
     margin: 10,
   },

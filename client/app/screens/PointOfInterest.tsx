@@ -244,7 +244,11 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
                 label="Cancel"
                 backgroundColor="red"
                 handlePress={() => {
-                  navigation.goBack();
+                  navigation.navigate({
+                    name: "Trail Screen",
+                    params: { newPOI: "Cancel" },
+                    merge: true,
+                  });
                 }}
               />
               <MapButton
