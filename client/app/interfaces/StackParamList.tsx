@@ -10,6 +10,7 @@ export type StackParamList = {
   "Trail Screen": { newPOI?: POIObj } | undefined;
   "Point of Interest": {
     poi?: POIObj;
+    trailId?: number | null;
     currentLocation?: LocationObjectCoords;
   };
 };

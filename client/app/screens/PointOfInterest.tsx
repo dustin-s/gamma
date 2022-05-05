@@ -1,7 +1,3 @@
-// this is based on https://www.freecodecamp.org/news/how-to-create-a-camera-app-with-expo-and-react-native/
-// https://www.youtube.com/watch?v=RmlekGDv8RU&ab_channel=AaronSaunders
-// https://docs.expo.dev/versions/latest/sdk/camera/
-
 import { useContext, useState } from "react";
 import {
   Alert,
@@ -34,7 +30,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     speed: null,
   };
   const poiObj: POIObj = route.params?.poi ?? {
-    trailId: null,
+    trailId: route.params?.trailId ? route.params.trailId : null,
     pointsOfInterestId: null,
     description: null,
     image: null,

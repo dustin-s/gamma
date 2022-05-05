@@ -58,19 +58,20 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
 
-  const [trailId, setTrailID] = useState<number | null>(null);
+  const [trailId, setTrailId] = useState<number | null>(null);
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [poiArr, setPOIArr] = useState<POIObj[]>([]);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [isStarted, setIsStarted] = useState<boolean>(false);
+  const [addingTrail, setAddingTrail] = useState(false);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
   useEffect(() => {
-    if (isStarted) {
+    if (isRecording) {
       console.log("Trail Recording started");
       console.log("locationArr.length: ", locationArr.length);
       console.log("modalVisible: ", modalVisible);
     }
-  }, [isStarted]);
+  }, [isRecording]);
 
   const { fetchData, data, error, loading } = useFetch<TrailData[]>();
 
@@ -88,6 +89,11 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   // removing BGPermissions based on comment made by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
   // const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
+
+  const handleAddTrail = () => {
+    setAddingTrail(true);
+    handleStartRecording();
+  };
 
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -135,8 +141,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       //   setLocationArr([...locationArr, campAllenCoords]);
       // }
 
-      setTrailID(null); // ensure trailId is not set
-      setIsStarted(true);
+      setTrailId(null); // ensure trailId is not set
+      setIsRecording(true);
     } else {
       console.log("handleStartRecording: statusFG:", statusFG?.status || null);
       await requestFGPermission();
@@ -158,7 +164,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       console.log(`There were ${poiArr.length} entries in the POI array.`);
       console.log("\n************************************");
 
-      setIsStarted(false);
+      setIsRecording(false);
     }
   };
 
@@ -172,6 +178,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     setModalVisible(false);
     setLocationArr([]);
     setPOIArr([]);
+    setAddingTrail(false);
   };
 
   const doSaveTrail = async ({
@@ -215,7 +222,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     };
     fetchData({ url: "trails/", options });
     setLocationArr([]);
-    // setPOIArr([]);
+    setPOIArr([]);
+    setAddingTrail(false);
     // alert("Trail saved");
   };
 
@@ -229,9 +237,13 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   const handleAddPOI = () => {
     const curLoc = currentLocation();
-    handleStopRecoding();
+    if (addingTrail) {
+      handleStopRecoding();
+    }
+
     navigation.navigate("Point of Interest", {
       currentLocation: curLoc,
+      trailId,
     });
   };
 
@@ -242,12 +254,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     if (!newPOI.trailId) {
       console.log("Add POI to array");
       setPOIArr([...poiArr, newPOI]);
-      console.log(poiArr);
     } else {
       console.log("Update POI");
     }
-
-    handleStartRecording();
+    if (addingTrail) {
+      handleStartRecording();
+    }
   };
 
   useEffect(() => {
@@ -300,7 +312,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             data={data}
             locationArr={locationArr}
             trailId={trailId}
-            setTrailId={setTrailID}
+            setTrailId={setTrailId}
           />
         )}
       </MapView>
@@ -358,7 +370,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             <MapButton
               label="Back"
               backgroundColor="green"
-              handlePress={() => setTrailID(null)}
+              handlePress={() => setTrailId(null)}
             />
           )}
           {trailId && (
@@ -373,38 +385,49 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         {/* Show these buttons for a logged in user */}
         {userId ? (
           <View style={styles.btnContainer}>
-            {/* Only show the record buttons if there is no trailID */}
-            {!isStarted && (
-              <MapButton
-                label={locationArr.length > 0 ? "Start" : "Add Trail"}
-                backgroundColor={locationArr.length > 0 ? "green" : "blue"}
-                handlePress={handleStartRecording}
-              />
-            )}
+            <>
+              {!addingTrail ? (
+                <MapButton
+                  label="Add Trail"
+                  handlePress={handleAddTrail}
+                  backgroundColor="blue"
+                />
+              ) : (
+                <>
+                  {!isRecording && (
+                    <MapButton
+                      label="Start"
+                      backgroundColor="green"
+                      handlePress={handleStartRecording}
+                    />
+                  )}
 
-            {!trailId && isStarted && (
-              <MapButton
-                label="Stop"
-                backgroundColor="red"
-                handlePress={handleStopRecoding}
-              />
-            )}
+                  {!trailId && isRecording && (
+                    <MapButton
+                      label="Stop"
+                      backgroundColor="red"
+                      handlePress={handleStopRecoding}
+                    />
+                  )}
 
-            {!trailId && !isStarted && locationArr.length > 0 && (
-              <MapButton
-                label="Save"
-                backgroundColor="blue"
-                handlePress={handleSave}
-              />
-            )}
+                  {!trailId && !isRecording && locationArr.length > 0 && (
+                    <MapButton
+                      label="Save"
+                      backgroundColor="blue"
+                      handlePress={handleSave}
+                    />
+                  )}
+                </>
+              )}
 
-            {isStarted && (
-              <MapButton
-                label="Add Pt of Interest"
-                backgroundColor="purple"
-                handlePress={handleAddPOI}
-              />
-            )}
+              {(addingTrail || trailId) && (
+                <MapButton
+                  label="Add Pt of Interest"
+                  backgroundColor="purple"
+                  handlePress={handleAddPOI}
+                />
+              )}
+            </>
           </View>
         ) : (
           <></>
