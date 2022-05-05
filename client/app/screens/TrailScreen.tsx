@@ -60,7 +60,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   const [trailId, setTrailID] = useState<number | null>(null);
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
-  const [pOIArr, setPOIArr] = useState<POIObj[]>([]);
+  const [poiArr, setPOIArr] = useState<POIObj[]>([]);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [isStarted, setIsStarted] = useState<boolean>(false);
@@ -152,7 +152,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
       console.log("************************************\n");
       console.log("stopped");
-      console.log(`There were ${locationArr.length} entries in the array.`);
+      console.log(
+        `There were ${locationArr.length} entries in the location array.`
+      );
+      console.log(`There were ${poiArr.length} entries in the POI array.`);
       console.log("\n************************************");
 
       setIsStarted(false);
@@ -165,11 +168,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   const doCancel = () => {
     console.log("cancel was pressed on the modal");
-    // show warning dialog (modal that is on the SaveTrailModal with continue ( does the cancel) and cancel (stops the cancel))
 
     setModalVisible(false);
     setLocationArr([]);
-    // setPOIArr([]);
+    setPOIArr([]);
   };
 
   const doSaveTrail = async ({
@@ -225,20 +227,34 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     // }
   };
 
-  const handleSetPoI = (newPoI: POIObj) => {
-    if (auth.isAuthenticated) {
-      setPOIArr([...pOIArr, newPoI]);
+  const handleAddPOI = () => {
+    const curLoc = currentLocation();
+    handleStopRecoding();
+    navigation.navigate("Point of Interest", {
+      currentLocation: curLoc,
+    });
+  };
+
+  const savePOI = async (newPOI: POIObj) => {
+    console.log("***** Handle Set POI");
+    console.log(newPOI);
+
+    if (!newPOI.trailId) {
+      console.log("Add POI to array");
+      setPOIArr([...poiArr, newPOI]);
+      console.log(poiArr);
+    } else {
+      console.log("Update POI");
     }
-    // do stuff
+
+    handleStartRecording();
   };
 
   useEffect(() => {
     console.log("********** Trail Screen **********");
     console.log("Route Params:", route.params);
     if (route.params?.newPOI) {
-      // Post updated, do something with `route.params.post`
-      // For example, send the post to the server
-      console.log("newPOI:", route.params.newPOI);
+      savePOI(route.params.newPOI);
     }
   }, [route.params?.newPOI]);
 
@@ -352,17 +368,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               handlePress={() => Alert.alert("button press", "Start Trail")}
             />
           )}
-
-          {/* ToDo: Figure out logic for when to display */}
-          {isStarted && (
-            <MapButton
-              label="Show Point of Interest"
-              backgroundColor="blue"
-              handlePress={() =>
-                Alert.alert("button press", "Show Point of Interest")
-              }
-            />
-          )}
         </View>
 
         {/* Show these buttons for a logged in user */}
@@ -397,14 +402,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               <MapButton
                 label="Add Pt of Interest"
                 backgroundColor="purple"
-                handlePress={() => {
-                  let curLoc = currentLocation();
-                  let poi;
-                  navigation.navigate("Point of Interest", {
-                    // handleSetPoI,
-                    currentLocation: curLoc,
-                  });
-                }}
+                handlePress={handleAddPOI}
               />
             )}
           </View>
