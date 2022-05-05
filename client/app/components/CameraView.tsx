@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Camera } from "expo-camera";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function CameraView() {
+interface CameraViewProps {
+  handleImage(photo: string): void;
+}
+
+export default function CameraView({ handleImage }: CameraViewProps) {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
 
   const cameraRef = useRef<Camera>(null);
@@ -13,9 +17,13 @@ export default function CameraView() {
   };
 
   const __takePicture = async () => {
-    if (cameraRef.current) {
-      const photo = await cameraRef.current.takePictureAsync();
-      console.log(photo);
+    try {
+      if (cameraRef.current) {
+        const photo = await cameraRef.current.takePictureAsync();
+        handleImage(photo.uri);
+      }
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -39,9 +47,14 @@ export default function CameraView() {
       >
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={[styles.photoButton, styles.button]}
-            onPress={__takePicture}
-          />
+            style={styles.photoButton}
+            onPress={async () => {
+              await __takePicture();
+            }}
+          >
+            <Text style={styles.photoButtonText}>{`Take`}</Text>
+            <Text style={styles.photoButtonText}>{`Photo`}</Text>
+          </TouchableOpacity>
         </View>
       </Camera>
     </View>
@@ -62,20 +75,21 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     margin: 20,
   },
-  button: {
-    flex: 0.1,
-    alignSelf: "flex-end",
-    alignItems: "center",
-  },
-  text: {
-    fontSize: 18,
-    color: "white",
-  },
   photoButton: {
     width: 70,
     height: 70,
     bottom: 0,
     borderRadius: 50,
     backgroundColor: "#fff",
+
+    // button alignment
+    alignSelf: "flex-end",
+    alignItems: "center",
+    // button text alignment
+    justifyContent: "center",
+    alignContent: "center",
+  },
+  photoButtonText: {
+    color: "black",
   },
 });
