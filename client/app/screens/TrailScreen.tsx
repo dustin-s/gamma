@@ -42,6 +42,7 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
+import { fetchImageFromUri } from "../utils/fetchHelpers";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
@@ -253,19 +254,47 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     console.log("***** Handle Set POI");
     console.log(newPOI);
 
+    // resume recording (if needed)
+    if (addingTrail) {
+      setPauseRecording(false);
+    }
+
+    // if new trail...
     if (!newPOI.trailId) {
       console.log("Add POI to array");
       setPOIArr([...poiArr, newPOI]);
-    } else {
-      if (newPOI.pointsOfInterestId) {
-        console.log("Update POI");
-      } else {
-        console.log("add POI");
-      }
+      return;
     }
 
-    if (addingTrail) {
-      setPauseRecording(false);
+    // if POI already exists
+    if (newPOI.pointsOfInterestId) {
+      console.log("Update POI");
+      console.log(newPOI);
+
+      const oldPOI = data
+        ?.filter((el: TrailData) => el.trailId === trailId)[0]
+        .PointsOfInterests?.filter(
+          (el: POIObj) => el.pointsOfInterestId === newPOI.pointsOfInterestId
+        )[0];
+      console.log("Old POI:\n", oldPOI);
+
+      const formData = new FormData();
+      formData.append(
+        "pointsOfInterestId",
+        newPOI.pointsOfInterestId.toString()
+      );
+
+      if (oldPOI?.image !== newPOI.image) {
+        if (typeof newPOI.image === "string") {
+          const fileToUpload = await fetchImageFromUri(newPOI.image);
+          const fileName = newPOI.image.split("/").pop();
+          console.log(" fileName:", fileName);
+
+          formData.append("image", fileToUpload);
+        }
+      }
+    } else {
+      console.log("add POI");
     }
   };
 

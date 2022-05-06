@@ -28,6 +28,7 @@ export default function CameraView({ handleImage }: CameraViewProps) {
       setIsLoading(true);
       if (cameraRef.current) {
         const photo = await cameraRef.current.takePictureAsync();
+        console.log("photo:", photo);
         setIsLoading(false);
         handleImage(photo.uri);
       }

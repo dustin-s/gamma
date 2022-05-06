@@ -15,6 +15,7 @@
   "author": "Sarah Spicer",
   "license": "MIT",
   "dependencies": {
-    "concurrently": "^7.0.0"
+    "concurrently": "^7.0.0",
+    "expo": "^45.0.1"
   }
 }
