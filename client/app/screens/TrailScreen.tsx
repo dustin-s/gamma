@@ -269,7 +269,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     // if POI already exists
     if (newPOI.pointsOfInterestId) {
       console.log("Update POI");
-      console.log(newPOI);
 
       const oldPOI = data
         ?.filter((el: TrailData) => el.trailId === trailId)[0]
@@ -285,14 +284,46 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       );
 
       if (oldPOI?.image !== newPOI.image) {
+        console.log("update image...");
+
         if (typeof newPOI.image === "string") {
           const fileToUpload = await fetchImageFromUri(newPOI.image);
           const fileName = newPOI.image.split("/").pop();
           console.log(" fileName:", fileName);
 
           formData.append("image", fileToUpload);
+          console.log("\tdone");
         }
       }
+      if (oldPOI?.description !== newPOI.description) {
+        console.log("update description...");
+        if (newPOI.description) {
+          formData.append("description", newPOI.description);
+          console.log("\tdone");
+        }
+      }
+      if (oldPOI?.isActive !== newPOI.isActive) {
+        console.log("update isActive...");
+        formData.append("isActive", newPOI.isActive.toString());
+        console.log("\tdone");
+      }
+
+      console.log("*** Update POI Data ***");
+      console.log(formData);
+      console.log("\n************************************");
+
+      const token = auth.userData?.token;
+
+      const options: RequestInit = {
+        method: "POST",
+        headers: {
+          Accept: "multipart/form-data",
+          "Cache-control": "no-cache",
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      };
+      fetchData({ url: "trails/updatePOI/", options });
     } else {
       console.log("add POI");
     }
