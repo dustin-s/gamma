@@ -10,7 +10,6 @@ import { AuthProvider } from "./app/utils/authContext";
 import HomeScreen from "./app/screens/HomeScreen";
 import AdminLogin from "./app/screens/AdminLogin";
 import PointOfInterest from "./app/screens/PointOfInterest";
-import GetPhoto from "./app/screens/GetPhoto";
 import TrailScreen from "./app/screens/TrailScreen";
 
 // Screen Navigation
@@ -44,7 +43,6 @@ function App() {
               name="Point of Interest"
               component={PointOfInterest}
             />
-            <Stack.Screen name="Get Photo" component={GetPhoto} />
           </Stack.Navigator>
         </NavigationContainer>
       </SafeAreaProvider>
