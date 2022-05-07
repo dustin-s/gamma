@@ -1,5 +1,4 @@
 import React, { SetStateAction } from "react";
-import { Button } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import MapButton from "./MapButton";
 
