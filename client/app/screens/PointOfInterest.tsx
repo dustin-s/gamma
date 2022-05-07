@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   Alert,
   ImageBackground,
@@ -8,8 +8,8 @@ import {
   TextInput,
   View,
 } from "react-native";
-import CameraView from "../components/CameraView";
 import MapButton from "../components/MapButton";
+import ShowCamera from "../components/ShowCamera";
 import { POIObj } from "../interfaces/POIObj";
 
 // Types:
@@ -43,7 +43,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
 
   const { auth } = useContext(AuthContext);
   const [showCamera, setShowCamera] = useState(false);
-  const [editImage, setEditImage] = useState(originalImage === null);
+  // const [editImage, setEditImage] = useState(originalImage === null);
   const [image, setImage] = useState(originalImage); // stores the URI for the image
   const [editDesc, setEditDesc] = useState(poiObj.description === null);
   const [description, setDescription] = useState(poiObj.description);
@@ -54,37 +54,14 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     isActiveChanged: false,
   });
 
-  // image
-  const handleUpdateImage = (image: string) => {
-    setImage(image);
-    setEditImage(originalImage !== image);
-    setIsDirty({ ...isDirty, photoChanged: originalImage !== image });
-    setShowCamera(false);
-  };
-
   const handleCancelImage = () => {
     console.log(poiObj);
     setImage(originalImage);
-    setEditImage(originalImage === null);
-    setIsDirty({ ...isDirty, photoChanged: false });
-  };
-
-  // Description
-  const handleUpdateDesc = () => {
-    setEditDesc(false);
-    setIsDirty({ ...isDirty, descChanged: poiObj.description !== description });
   };
 
   const handleCancelDesc = () => {
     setDescription(poiObj.description);
     setEditDesc(poiObj.description === null);
-    setIsDirty({ ...isDirty, descChanged: false });
-  };
-
-  // Is Active
-  const handleSetIsActive = () => {
-    setIsActive(!isActive);
-    setIsDirty({ ...isDirty, isActiveChanged: !isDirty.isActiveChanged });
   };
 
   // Check Dirty
@@ -139,126 +116,133 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     }
   };
 
+  useEffect(() => {
+    console.log("Use Effect: isDirty");
+    const newIsDirty = {
+      photoChanged: originalImage !== image || image === null,
+      descChanged: poiObj.description !== description,
+      isActiveChanged: poiObj.isActive !== isActive,
+    };
+
+    console.log(`** newIsDirty:`);
+    console.log(newIsDirty);
+
+    setIsDirty(newIsDirty);
+  }, [image, description, isActive]);
+
   return (
     <View style={[styles.textContainer]}>
-      {showCamera ? (
-        <>
-          <CameraView handleImage={handleUpdateImage} />
-        </>
-      ) : (
-        <>
-          {/* do the editDesc here so it is at the top of the page... It will be easier for the user to enter data. If they want to see the image, they will just need to close the keyboard. */}
-          {editDesc && (
-            <View style={[styles.textContainer]}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Add a description"
-                value={description ? description : undefined}
-                onChangeText={(value) => setDescription(value)}
-                multiline
-                autoCapitalize="sentences"
-              />
-              <View style={styles.buttonContainer}>
-                <MapButton
-                  label="Cancel"
-                  backgroundColor="red"
-                  handlePress={handleCancelDesc}
-                />
-                <MapButton
-                  label="Commit"
-                  backgroundColor="green"
-                  handlePress={handleUpdateDesc}
-                />
-              </View>
-            </View>
-          )}
+      {/* do the editDesc here so it is at the top of the page... It will be easier for the user to enter data. If they want to see the image, they will just need to close the keyboard. */}
+      {editDesc && (
+        <View style={[styles.textContainer]}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Add a description"
+            value={description ? description : undefined}
+            onChangeText={(value) => setDescription(value)}
+            multiline
+            autoCapitalize="sentences"
+          />
+          <View style={styles.buttonContainer}>
+            <MapButton
+              label="Cancel"
+              backgroundColor="red"
+              handlePress={handleCancelDesc}
+            />
+            <MapButton
+              label="Commit"
+              backgroundColor="green"
+              handlePress={() => setEditDesc(false)}
+            />
+          </View>
+        </View>
+      )}
 
-          <ImageBackground
-            source={{ uri: image ? image : "https://" }}
-            style={styles.image}
-          >
-            {auth.isAuthenticated && (
-              <View style={styles.imageButtonContainer}>
-                {editImage && image && (
-                  <MapButton
-                    label="Cancel Photo"
-                    backgroundColor="blue"
-                    handlePress={handleCancelImage}
-                  />
-                )}
-
-                <MapButton
-                  label={
-                    image
-                      ? editImage
-                        ? "Retake Photo"
-                        : "Update Photo"
-                      : "Add Photo"
-                  }
-                  backgroundColor="blue"
-                  handlePress={() => setShowCamera(true)}
-                />
-              </View>
-            )}
-          </ImageBackground>
-
-          {!editDesc && (
-            <View style={styles.textContainer}>
-              <Text style={styles.text}>{description}</Text>
-              {auth.isAuthenticated && (
-                <View style={styles.button}>
-                  <MapButton
-                    label="Edit"
-                    backgroundColor="blue"
-                    handlePress={() => setEditDesc(true)}
-                  />
-                </View>
-              )}
-            </View>
-          )}
-
-          {auth.isAuthenticated && (
-            <View style={styles.controlGroup}>
-              <Text style={styles.label}>Active?</Text>
-              <Switch
-                trackColor={{ false: "#767577", true: "#81b0ff" }}
-                thumbColor={isActive ? "#5fd455" : "#f4f3f4"}
-                ios_backgroundColor="#3e3e3e"
-                onValueChange={handleSetIsActive}
-                value={isActive}
-              />
-            </View>
-          )}
-
-          {!checkIsDirty() ? (
-            <View style={styles.buttonContainer}>
+      <ImageBackground
+        source={{ uri: image ? image : "https://" }}
+        style={styles.image}
+      >
+        {auth.isAuthenticated && (
+          <View style={styles.imageButtonContainer}>
+            {console.log(isDirty)}
+            {console.log("POI image:", image)}
+            {isDirty.photoChanged && image && (
               <MapButton
-                label="Close"
+                label="Cancel Photo"
                 backgroundColor="blue"
-                handlePress={handleSave}
+                handlePress={handleCancelImage}
               />
-            </View>
-          ) : (
-            <View style={styles.buttonContainer}>
+            )}
+
+            <ShowCamera
+              label={
+                image
+                  ? isDirty.photoChanged
+                    ? "Retake Photo"
+                    : "Update Photo"
+                  : "Add Photo"
+              }
+              setTakenImagePath={setImage}
+            />
+          </View>
+        )}
+      </ImageBackground>
+
+      {!editDesc && (
+        <View style={styles.textContainer}>
+          <Text style={styles.text}>{description}</Text>
+          {auth.isAuthenticated && (
+            <View style={styles.button}>
               <MapButton
-                label="Cancel"
-                backgroundColor="red"
-                handlePress={() => {
-                  navigation.navigate({
-                    name: "Trail Screen",
-                    params: { newPOI: "Cancel" },
-                    merge: true,
-                  });
-                }}
-              />
-              <MapButton
-                label="Save and Close"
-                backgroundColor="red"
-                handlePress={handleSave}
+                label="Edit"
+                backgroundColor="blue"
+                handlePress={() => setEditDesc(true)}
               />
             </View>
           )}
-        </>
+        </View>
+      )}
+
+      {auth.isAuthenticated && (
+        <View style={styles.controlGroup}>
+          <Text style={styles.label}>Active?</Text>
+          <Switch
+            trackColor={{ false: "#767577", true: "#81b0ff" }}
+            thumbColor={isActive ? "#5fd455" : "#f4f3f4"}
+            ios_backgroundColor="#3e3e3e"
+            onValueChange={() => setIsActive(!isActive)}
+            value={isActive}
+          />
+        </View>
+      )}
+
+      {!checkIsDirty() ? (
+        <View style={styles.buttonContainer}>
+          <MapButton
+            label="Close"
+            backgroundColor="blue"
+            handlePress={handleSave}
+          />
+        </View>
+      ) : (
+        <View style={styles.buttonContainer}>
+          <MapButton
+            label="Cancel"
+            backgroundColor="red"
+            handlePress={() => {
+              navigation.navigate({
+                name: "Trail Screen",
+                params: { newPOI: "Cancel" },
+                merge: true,
+              });
+            }}
+          />
+          <MapButton
+            label="Save and Close"
+            backgroundColor="red"
+            handlePress={handleSave}
+          />
+        </View>
       )}
     </View>
   );
