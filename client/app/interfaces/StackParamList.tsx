@@ -6,6 +6,7 @@ import { POIObj } from "./POIObj";
 export type StackParamList = {
   Home: undefined;
   Admin: undefined;
+  "Update Password": undefined;
   "Trail Screen": { trailID: number | null } | undefined;
   "Point of Interest": {
     poi: POIObj;

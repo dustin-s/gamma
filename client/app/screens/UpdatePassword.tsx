@@ -18,12 +18,14 @@ import { AuthContext } from "../utils/authContext";
 
 // Types
 import { User } from "../interfaces/User";
-type Props = StackNativeScreenProps<"Admin">;
+type Props = StackNativeScreenProps<"Update Password">;
 
-export default function AdminLogin({ navigation }: Props) {
+export default function UpdatePassword({ navigation }: Props) {
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   // Auth stuff...
   const { auth, setAuth } = useContext(AuthContext);
@@ -31,22 +33,31 @@ export default function AdminLogin({ navigation }: Props) {
   // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
 
-  async function handleSignIn() {
-    const options = {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "Cache-control": "no-cache",
-      },
-      body: JSON.stringify({ email, password }),
-    };
-    const url = "users/login";
-    fetchData({ url, options });
+  //Confirm and update password
+  async function handleUpdatePassword() {
+      const updatePassword = {
+        userId : auth.userData?.user.userId,
+        oldPassword : password,
+        newPassword,
+        confirmPassword,
+      }
+    if (newPassword === confirmPassword ){  
+      const options = {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "Cache-control": "no-cache",
+        },
+      body: JSON.stringify(updatePassword),
+      };
+      const url = "users/update";
+      fetchData({ url, options }); 
+    } else {alert("Passwords do not match, please try again.")};
   };
 
   // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
- useEffect (() => {
+  useEffect (() => {
 
     let unmounted = false;
     if (!data) return;
@@ -63,7 +74,6 @@ export default function AdminLogin({ navigation }: Props) {
       unmounted = true;
     };
   }, [data]);
-  
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
@@ -92,14 +102,38 @@ export default function AdminLogin({ navigation }: Props) {
           secureTextEntry
         />
       </View>
+
+      <View style={styles.controlGroup}>
+        <Text style={styles.unPw}>New Password</Text>
+        <TextInput
+          style={styles.txInput}
+          maxLength={18}
+          placeholder=" New Password"
+          placeholderTextColor="#f1b265"
+          value={newPassword}
+          onChangeText={(value) => setNewPassword(value)}
+          secureTextEntry
+        />
+      </View> 
+      <View style={styles.controlGroup}>
+        <Text style={styles.unPw}>Confirm Password</Text>
+        <TextInput
+          style={styles.txInput}
+          maxLength={18}
+          placeholder="Confirm Password"
+          placeholderTextColor="#f1b265"
+          value={confirmPassword}
+          onChangeText={(value) => setConfirmPassword(value)}
+          secureTextEntry
+        />
+      </View>
       <View style = {styles.btnContainer}>
         <MapButton
-          label={"Sign in"}
-          backgroundColor={"#f1b265"}
-          handlePress={handleSignIn}
-         />
+          label ={"Summit"}
+          backgroundColor = {"#f1b265"}
+          handlePress = {() => handleUpdatePassword ()}
+        />
       </View>
-
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
@@ -116,6 +150,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     backgroundColor: "#98002D",
   },
+
   btnContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -126,7 +161,7 @@ const styles = StyleSheet.create({
   controlGroup: {
     flexDirection: "row",
   },
-
+  
   errText: {
     color: "#f1b265",
     fontWeight: "bold",
@@ -143,13 +178,13 @@ const styles = StyleSheet.create({
   },
 
   txInput: {
+    direction: "rtl",
     borderColor: "#f1b265",
     backgroundColor: "#750023",
-    color:"#f9e4c7",
+    color: "#f9e4c7",
     borderWidth: 2,
     borderRadius: 20,
     margin: 5,
-    marginEnd: 125,
     paddingHorizontal: 18,
     paddingVertical: 6,
     fontSize: 20,
@@ -157,7 +192,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     flex: 3,
   },
-  
+
   unPw: {
     bottom: -14,
     margin: 5,
