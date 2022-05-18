@@ -9,6 +9,7 @@ import { AuthProvider } from "./app/utils/authContext";
 // Screens
 import HomeScreen from "./app/screens/HomeScreen";
 import AdminLogin from "./app/screens/AdminLogin";
+import UpdatePassword from "./app/screens/UpdatePassword";
 import PointOfInterest from "./app/screens/PointOfInterest";
 import TrailScreen from "./app/screens/TrailScreen";
 
@@ -25,7 +26,7 @@ function App() {
               headerStyle: {
                 backgroundColor: "#98002D",
               },
-              headerTintColor: "#fff",
+              headerTintColor: "#f1b265",
             }}
           >
             <Stack.Screen
@@ -38,7 +39,23 @@ function App() {
               component={HomeScreen}
               options={{ headerShown: false }}
             />
-            <Stack.Screen name="Admin" component={AdminLogin} />
+            <Stack.Screen 
+              name="Admin" 
+              component={AdminLogin} 
+              options={{
+                title: 'Admin Login',
+                headerTitleStyle: {
+                  fontSize: 30,
+                  fontWeight: "700",
+                },}}/>
+            <Stack.Screen 
+              name="Update Password" 
+              component={UpdatePassword} 
+              options={{
+              headerTitleStyle: {
+                fontSize: 30,
+                fontWeight: "700",
+              }}}/>
             <Stack.Screen
               name="Point of Interest"
               component={PointOfInterest}

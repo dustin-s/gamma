@@ -8,6 +8,7 @@ export type StackParamList = {
   Home: undefined;
   Admin: undefined;
   "Trail Screen": { newPOI?: POIObj | "Cancel" } | undefined;
+  "Update Password": undefined;
   "Point of Interest": {
     poi?: POIObj;
     trailId?: number | null;

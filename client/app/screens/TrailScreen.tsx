@@ -24,6 +24,7 @@ import {
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import MapButton from "../components/MapButton";
@@ -454,6 +455,17 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             />
           )}
         </View>
+
+        {/*Change Password*/}
+        {userId ? (
+          <View style={[styles.loginBtnContainer]}>
+            <LoginButton
+              onPress={() => navigation.navigate("Update Password")}
+            />
+          </View>
+        ) : (
+          <></>
+        )}
 
         {/* Show these buttons for a logged in user */}
         {userId ? (
