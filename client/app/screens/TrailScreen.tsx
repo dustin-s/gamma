@@ -252,7 +252,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   const savePOI = async (newPOI: POIObj) => {
-    console.log("***** Handle Set POI");
+    console.log("***** Handle Set POI\nnewPOI:");
     console.log(newPOI);
 
     // resume recording (if needed)
@@ -285,15 +285,15 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       );
 
       if (oldPOI?.image !== newPOI.image) {
-        console.log("update image...");
+        console.log("start update image...");
 
         if (typeof newPOI.image === "string") {
           const fileToUpload = await fetchImageFromUri(newPOI.image);
           const fileName = newPOI.image.split("/").pop();
           console.log(" fileName:", fileName);
 
-          formData.append("image", fileToUpload);
-          console.log("\tdone");
+          formData.append("image", fileToUpload, fileName);
+          console.log("\tend update image");
         }
       }
       if (oldPOI?.description !== newPOI.description) {
@@ -310,6 +310,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       }
 
       console.log("*** Update POI Data ***");
+      console.log("formData:");
       console.log(formData);
       console.log("\n************************************");
 
@@ -324,7 +325,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         },
         body: formData,
       };
-      fetchData({ url: "trails/updatePOI/", options });
+      // fetchData({ url: "trails/updatePOI/", options });
     } else {
       console.log("add POI");
     }
