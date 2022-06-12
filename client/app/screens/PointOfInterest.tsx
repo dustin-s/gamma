@@ -55,7 +55,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   });
 
   const handleCancelImage = () => {
-    console.log(poiObj);
+    // console.log(poiObj);
     setImage(originalImage);
   };
 
@@ -117,15 +117,15 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   };
 
   useEffect(() => {
-    console.log("Use Effect: isDirty");
+    // console.log("Use Effect: isDirty");
     const newIsDirty = {
       photoChanged: originalImage !== image || image === null,
       descChanged: poiObj.description !== description,
       isActiveChanged: poiObj.isActive !== isActive,
     };
 
-    console.log(`** newIsDirty:`);
-    console.log(newIsDirty);
+    // console.log(`** newIsDirty:`);
+    // console.log(newIsDirty);
 
     setIsDirty(newIsDirty);
   }, [image, description, isActive]);
@@ -164,8 +164,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       >
         {auth.isAuthenticated && (
           <View style={styles.imageButtonContainer}>
-            {console.log(isDirty)}
-            {console.log("POI image:", image)}
             {isDirty.photoChanged && image && (
               <MapButton
                 label="Cancel Photo"
