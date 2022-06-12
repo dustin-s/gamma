@@ -1,11 +1,18 @@
 const { body } = require("express-validator");
 
+const { loggers } = require("winston");
+const logger = loggers.get("logger");
+
 const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
 const { PointsOfInterest, Trail } = require("../models");
 
 exports.addPOIValidator = [
   // Points of Interest validation
   body().custom((value, { req }) => {
+    logger.debug("raw body: " + JSON.stringify(req.body, null, 2), {
+      controller: "addPOIValidator",
+      errorMsg: "body.custom",
+    });
     // Add the files back in to the req.body so that they can be treated normally in validation
     const files = req.files.image;
     if (files) {
@@ -62,6 +69,10 @@ exports.addPOIValidator = [
 exports.updatePOIValidator = [
   // Points of Interest validation
   body().custom((value, { req }) => {
+    logger.debug("raw body: " + JSON.stringify(req.body, null, 2), {
+      controller: "updatePOIValidator",
+      errorMsg: "body.custom",
+    });
     // Add the files back in to the req.body so that they can be treated normally in validation
     const files = req.files.image;
     if (files) {
