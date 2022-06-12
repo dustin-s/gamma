@@ -6,6 +6,13 @@ import {
 import { BASE_API } from "./constants";
 import { POIObj } from "../interfaces/POIObj";
 
+/**
+ * Compares 2 objects and returns any values that have changed between the objects as strings.
+ *
+ * @param newObj object to be compared, data from this object will be returned
+ * @param oldObj object to be compared, checks to see if this data has changed
+ * @returns an object where all values have been converted in to strings
+ */
 const difference = (
   newObj: Record<string, any>,
   oldObj: Record<string, any>
@@ -22,6 +29,13 @@ const difference = (
   return changedObjects;
 };
 
+/**
+ * Transforms an object in to a FromData object. This is called recursively to deal with child objects/arrays.
+ *
+ * @param data object that will be transformed to form data
+ * @param parentKey (optional) a key that represents the name of the parent in an imbedded object
+ * @returns a FromData object
+ */
 export const changeToFormData = async (
   data: Record<string, any>,
   parentKey?: string
@@ -39,6 +53,16 @@ export const changeToFormData = async (
 
   return formData;
 };
+
+/**
+ * Adds a point of interest to the database. This does not return new trail data.
+ *
+ * *This does not return updated trail data.*
+ *
+ * @param newPOI data on the POI to be added. It must contain a *trailId* and *pointsOfInterestId* must be null or missing.
+ * @param token the token from the authentication.
+ * @returns the success/failure of the database submission.
+ */
 export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
   console.log("*** Add POI to Trail function ***");
 
@@ -54,6 +78,15 @@ export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
   return imageUpload(newData, token, "trails/addPOI/");
 };
 
+/**
+ * Updates a point of interest to the database. This does not return new trail data.
+ *
+ * *This does not return updated trail data.*
+ * @param newPOI data on the POI to be added. It must contain a *pointsOfInterestId*.
+ * @param oldPOI the original POI that is being updated
+ * @param token the token from the authentication.
+ * @returns the success/failure of the database submission.
+ */
 export const updatePOI = async (
   newPOI: POIObj,
   oldPOI: POIObj,
@@ -83,15 +116,22 @@ export const updatePOI = async (
   }
 };
 
+/**
+ * Does the actual upload to the database if there is no image as part of the data.
+ *
+ * @param data this is an object that contains the data that is going to be submitted to the database.
+ * @param token authorization token of a signed in user.
+ * @param url API url of the database to be submitted (the BASE_API will be added to this).
+ */
 const noImageUpload = async (
-  changedData: Record<string, string>,
+  data: Record<string, string>,
   token: string,
   url: string
 ) => {
-  console.log("*** noImageUpload ***");
+  // console.log("*** noImageUpload ***");
 
   try {
-    const formData = await changeToFormData(changedData);
+    const formData = await changeToFormData(data);
 
     const options: RequestInit = {
       method: "POST",
@@ -102,40 +142,43 @@ const noImageUpload = async (
       },
       body: formData,
     };
-    console.log(JSON.stringify(options, null, 2));
 
     const response = await fetch(BASE_API + url, options);
 
-    const data = await response.json();
-    if (data.error) {
-      throw Error(data.error);
+    const responseData = await response.json();
+    if (responseData.error) {
+      throw Error(responseData.error);
     }
-    console.log(data);
     // we only need to check if there is an error - we will refetch data in main object.
+    return;
   } catch (error: any) {
     throw Error(error);
   }
 };
 
+/**
+ * Does the actual upload to the database if there *is* an image as part of the data.
+ *
+ * *Only 1 image can be uploaded at a time:!*
+ *
+ * @param data this is an object that contains the data that is going to be submitted to the database.
+ * @param token authorization token of a signed in user.
+ * @param url API url of the database to be submitted (the BASE_API will be added to this).
+ */
 const imageUpload = async (
   data: Record<string, string>,
   token: string,
   url: string
 ) => {
-  console.log("initial changedData:", JSON.stringify(data, null, 2));
+  // console.log("*** imageUpload ***");
 
-  console.log("***** get other fields section *****");
   const { image } = data;
 
   if (!image) {
     throw Error("missing image to upload");
   }
-  console.log("image:", image);
   delete data.image;
 
-  console.log("changedData:", JSON.stringify(data, null, 2));
-
-  console.log("***** Options section *****");
   const options: FileSystemUploadOptions = {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -147,8 +190,7 @@ const imageUpload = async (
     fieldName: "image",
     parameters: data,
   };
-  console.log("***** 'Fetch' section *****");
-  console.log(JSON.stringify({ URL: BASE_API + url, image, options }, null, 2));
+
   try {
     const response = await FileSystem.uploadAsync(
       BASE_API + url,
@@ -156,13 +198,13 @@ const imageUpload = async (
       options
     );
 
-    console.log(
-      `status: ${response.status}\nheader:\n${JSON.stringify(
-        response.headers,
-        null,
-        2
-      )}\nbody:\n${response.body}`
-    );
+    // console.log(
+    //   `status: ${response.status}\nheader:\n${JSON.stringify(
+    //     response.headers,
+    //     null,
+    //     2
+    //   )}\nbody:\n${response.body}`
+    // );
 
     if (response.status >= 200 && response.status < 300) {
       return;
