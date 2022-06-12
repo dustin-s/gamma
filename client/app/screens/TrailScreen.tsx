@@ -3,6 +3,7 @@ import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 import { AuthContext } from "../utils/authContext";
+import { checkStatus } from "../utils/permissionHelpers";
 
 // Components
 import MapView from "react-native-maps";
@@ -66,29 +67,15 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   // Get Permissions.
   // everyone needs foreground permissions
-  // background permission is only needed for authenticated users and if
-  //   !trailID. This is only necessary if the user is recording a trail.
+  // background permission are not request based on based on comment made
+  //  by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
   const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
-  // const [locationPermissionsGranted, setLocationPermissionsGranted] =
-  //   useState(false);
   useEffect(() => {
-    if (!statusFG?.granted) {
+    if (!checkStatus(statusFG)) {
       // console.log("requestFGPermission");
       requestFGPermission();
     }
   }, []);
-
-  // useEffect(() => {
-  //   const device = Platform.OS;
-  //   if (device === "ios") {
-  //     setLocationPermissionsGranted(statusFG?.ios?.scope !== "none");
-  //   } else {
-  //     setLocationPermissionsGranted(statusFG?.android?.accuracy != "none");
-  //   }
-  // }, [statusFG]);
-
-  // removing BGPermissions based on comment made by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
-  // const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
 
   const handleAddTrail = () => {
     setAddingTrail(true);
@@ -116,7 +103,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   });
 
   const handleStartRecording = async () => {
-    if (statusFG?.granted) {
+    if (checkStatus(statusFG)) {
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Highest,
         distanceInterval: 1, // minimum change (in meters) betweens updates
@@ -132,7 +119,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       setTrailId(null); // ensure trailId is not set
       setIsRecording(true);
     } else {
-      console.log("handleStartRecording: statusFG:", statusFG?.status || null);
+      console.log(
+        "handleStartRecording: statusFG:",
+        statusFG ? checkStatus(statusFG) : null
+      );
       await requestFGPermission();
     }
   };
