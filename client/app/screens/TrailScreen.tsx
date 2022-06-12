@@ -1,14 +1,3 @@
-/*
-upon entry 
-  1- check FG permission - if not granted display message no map access 
-  2- get all trails (fgStatus===granted & trailId === undefined) 
-  3- get data back display all trails
-
-user clicks on a trail, set the trailId to that trail and focus in on it. start showing points of interest and hazards (trailId === #) using data.trailId
-
-Authenticated user clicks on Add Trail (trailId === null), set trailId to null and start recording the trail. Show all trail data. (if trailId === null us locationArr, pOIArr)
-*/
-
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import * as TaskManager from "expo-task-manager";
@@ -16,7 +5,7 @@ import * as Location from "expo-location";
 import { AuthContext } from "../utils/authContext";
 
 // Components
-import MapView, { Polyline } from "react-native-maps";
+import MapView from "react-native-maps";
 import {
   ActivityIndicator,
   Alert,
@@ -24,7 +13,6 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import MapButton from "../components/MapButton";
@@ -45,12 +33,6 @@ import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
 import { updatePOI } from "../utils/fetchHelpers";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
-
-// https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
-type SubmitTrailData = Omit<
-  TrailData,
-  "trailId" | "distance" | "hasNatureGuide" | "hasHazard"
->;
 
 // Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
@@ -135,19 +117,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             "To turn off, go back to the app and click stop recording.",
         },
       });
-      // For test:
-      // if (locationArr.length === 0) {
-      //   const campAllenCoords = {
-      //     accuracy: 6.0980000495910645,
-      //     altitude: 1700,
-      //     altitudeAccuracy: 1.3625929355621338,
-      //     heading: 327.75262451171875,
-      //     latitude: 30.24166,
-      //     longitude: -95.95935,
-      //     speed: 0.3030627369880676,
-      //   };
-      //   setLocationArr([...locationArr, campAllenCoords]);
-      // }
 
       setTrailId(null); // ensure trailId is not set
       setIsRecording(true);
