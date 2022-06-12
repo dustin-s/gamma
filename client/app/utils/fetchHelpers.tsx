@@ -1,12 +1,9 @@
-import { POIObj } from "../interfaces/POIObj";
-import { BASE_API } from "./constants";
-import * as FileSystem from "expo-file-system";
-import {
+import FileSystem, {
   FileSystemUploadOptions,
   FileSystemUploadType,
 } from "expo-file-system";
-
-const stringify = async (obj: object) => JSON.stringify(obj, null, 2);
+import { BASE_API } from "./constants";
+import { POIObj } from "../interfaces/POIObj";
 
 const difference = (
   newObj: Record<string, any>,
@@ -40,6 +37,19 @@ export const changeToFormData = async (
   });
 
   return formData;
+};
+export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
+  console.log("*** Add POI to Trail function ***");
+  const newData: Record<string, string> = {};
+  Object.entries(newPOI).forEach(([key, value]) => {
+    if (value) {
+      newData[key] = value.toString();
+    }
+  });
+
+  console.log("newData:", newData);
+
+  return;
 };
 
 export const updatePOI = async (
@@ -90,7 +100,7 @@ const noImageUpload = async (
       },
       body: formData,
     };
-    console.log(stringify(options));
+    console.log(JSON.stringify(options, null, 2));
 
     const response = await fetch(BASE_API + url, options);
 

@@ -31,7 +31,7 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
-import { updatePOI } from "../utils/fetchHelpers";
+import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
@@ -69,12 +69,23 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // background permission is only needed for authenticated users and if
   //   !trailID. This is only necessary if the user is recording a trail.
   const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
+  const [locationPermissionsGranted, setLocationPermissionsGranted] =
+    useState(false);
   useEffect(() => {
     if (!statusFG?.granted) {
       // console.log("requestFGPermission");
       requestFGPermission();
     }
   }, []);
+
+  // useEffect(() => {
+  //   const device = Platform.OS;
+  //   if (device === "ios") {
+  //     setLocationPermissionsGranted(statusFG?.ios?.scope !== "none");
+  //   } else {
+  //     setLocationPermissionsGranted(statusFG?.android?.accuracy != "none");
+  //   }
+  // }, [statusFG]);
 
   // removing BGPermissions based on comment made by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
   // const [statusBG, requestBGPermission] = Location.useBackgroundPermissions();
@@ -204,16 +215,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     // alert("Trail saved");
   };
 
-  const currentLocation = () => {
-    // if (trailID) {
-    //   // return the current location on the trail
-    // } else {
-    return locationArr[locationArr.length - 1];
-    // }
+  const currentLocation = async () => {
+    if (addingTrail) {
+      // return the current location on the trail
+      return locationArr[locationArr.length - 1];
+    } else {
+      const curLoc = await Location.getCurrentPositionAsync();
+      return curLoc.coords;
+    }
   };
 
-  const handleAddPOI = () => {
-    const curLoc = currentLocation();
+  const handleAddPOI = async () => {
+    const curLoc = await currentLocation();
     if (addingTrail) {
       setPauseRecording(true);
     }
@@ -245,8 +258,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       return;
     }
 
-    // if POI already exists
     try {
+      // if POI already exists
       if (newPOI.pointsOfInterestId && data) {
         console.log("***** Update POI *****");
 
@@ -260,8 +273,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         if (oldPOI) {
           await updatePOI(newPOI, oldPOI, token);
         }
-      } else {
-        console.log("add POI");
+      } else if (newPOI.trailId && data) {
+        console.log("***** Add New POI to Trail *****");
+        console.log("Trail Id:", newPOI.trailId);
+        await addPOIToTrail(newPOI, token);
       }
       getTrails();
     } catch (err: any) {
