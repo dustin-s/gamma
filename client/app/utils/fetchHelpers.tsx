@@ -103,7 +103,10 @@ export const changeToFormData = async (
   data: Record<string, any>,
   parentKey?: string
 ) => {
+  // console.log("changeToFormData: Entry data:", JSON.stringify(data, null, 2));
   const formData = new FormData();
+  parentKey = parentKey || "";
+
   Object.keys(data).forEach((key: string) => {
     if (typeof data[key] === "object") {
       changeToFormData(data[key], parentKey + key + "_");
