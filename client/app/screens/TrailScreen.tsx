@@ -69,8 +69,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // background permission is only needed for authenticated users and if
   //   !trailID. This is only necessary if the user is recording a trail.
   const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
-  const [locationPermissionsGranted, setLocationPermissionsGranted] =
-    useState(false);
+  // const [locationPermissionsGranted, setLocationPermissionsGranted] =
+  //   useState(false);
   useEffect(() => {
     if (!statusFG?.granted) {
       // console.log("requestFGPermission");
@@ -227,6 +227,9 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   const handleAddPOI = async () => {
     const curLoc = await currentLocation();
+    console.log("***** Handle Add POI *****");
+    console.log("curLoc:", curLoc);
+
     if (addingTrail) {
       setPauseRecording(true);
     }
@@ -238,7 +241,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   const savePOI = async (newPOI: POIObj) => {
-    console.log("***** Handle Set POI *****\nnewPOI:");
+    console.log("***** Save POI *****\nnewPOI:");
     console.log(newPOI);
 
     // resume recording (if needed)

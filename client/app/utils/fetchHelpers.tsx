@@ -1,4 +1,5 @@
-import FileSystem, {
+import * as FileSystem from "expo-file-system";
+import {
   FileSystemUploadOptions,
   FileSystemUploadType,
 } from "expo-file-system";
@@ -40,6 +41,7 @@ export const changeToFormData = async (
 };
 export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
   console.log("*** Add POI to Trail function ***");
+
   const newData: Record<string, string> = {};
   Object.entries(newPOI).forEach(([key, value]) => {
     if (value) {
@@ -49,7 +51,7 @@ export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
 
   console.log("newData:", newData);
 
-  return;
+  return imageUpload(newData, token, "trails/addPOI/");
 };
 
 export const updatePOI = async (
@@ -116,22 +118,22 @@ const noImageUpload = async (
 };
 
 const imageUpload = async (
-  changedData: Record<string, string>,
+  data: Record<string, string>,
   token: string,
   url: string
 ) => {
-  console.log("initial changedData:", JSON.stringify(changedData, null, 2));
+  console.log("initial changedData:", JSON.stringify(data, null, 2));
 
   console.log("***** get other fields section *****");
-  const { image } = changedData;
+  const { image } = data;
 
   if (!image) {
     throw Error("missing image to upload");
   }
   console.log("image:", image);
-  delete changedData.image;
+  delete data.image;
 
-  console.log("changedData:", JSON.stringify(changedData, null, 2));
+  console.log("changedData:", JSON.stringify(data, null, 2));
 
   console.log("***** Options section *****");
   const options: FileSystemUploadOptions = {
@@ -143,10 +145,10 @@ const imageUpload = async (
     httpMethod: "POST",
     uploadType: FileSystemUploadType.MULTIPART,
     fieldName: "image",
-    parameters: changedData,
+    parameters: data,
   };
   console.log("***** 'Fetch' section *****");
-  console.log("URL:", BASE_API + url);
+  console.log(JSON.stringify({ URL: BASE_API + url, image, options }, null, 2));
   try {
     const response = await FileSystem.uploadAsync(
       BASE_API + url,
