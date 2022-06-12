@@ -43,7 +43,7 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
-import { fetchImageFromUri } from "../utils/fetchHelpers";
+import { fetchImageFromUri, updatePOI } from "../utils/fetchHelpers";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
@@ -57,17 +57,21 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
   const [region, setRegion] = useState(CAMP_ALLEN_COORDS);
 
+  // Authorization
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
 
+  // Information about the trail
   const [trailId, setTrailId] = useState<number | null>(null);
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [poiArr, setPOIArr] = useState<POIObj[]>([]);
 
+  // Display options and Recording options
   const [modalVisible, setModalVisible] = useState(false);
   const [addingTrail, setAddingTrail] = useState(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [pauseRecording, setPauseRecording] = useState(false);
+  // forTest:
   useEffect(() => {
     if (isRecording) {
       console.log("Trail Recording started");
@@ -252,12 +256,17 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   const savePOI = async (newPOI: POIObj) => {
-    console.log("***** Handle Set POI\nnewPOI:");
+    console.log("***** Handle Set POI *****\nnewPOI:");
     console.log(newPOI);
 
     // resume recording (if needed)
     if (addingTrail) {
       setPauseRecording(false);
+    }
+
+    const token = auth.userData?.token;
+    if (!token) {
+      throw Error("User not authorized");
     }
 
     // if new trail...
@@ -268,66 +277,25 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
 
     // if POI already exists
-    if (newPOI.pointsOfInterestId) {
-      console.log("Update POI");
+    try {
+      if (newPOI.pointsOfInterestId && data) {
+        console.log("***** Update POI *****");
 
-      const oldPOI = data
-        ?.filter((el: TrailData) => el.trailId === trailId)[0]
-        .PointsOfInterests?.filter(
-          (el: POIObj) => el.pointsOfInterestId === newPOI.pointsOfInterestId
-        )[0];
-      console.log("Old POI:\n", oldPOI);
+        const oldPOI = data
+          .filter((el: TrailData) => el.trailId === trailId)[0]
+          .PointsOfInterests?.filter(
+            (el: POIObj) => el.pointsOfInterestId === newPOI.pointsOfInterestId
+          )[0];
+        console.log("Old POI:\n", oldPOI);
 
-      const formData = new FormData();
-      formData.append(
-        "pointsOfInterestId",
-        newPOI.pointsOfInterestId.toString()
-      );
-
-      if (oldPOI?.image !== newPOI.image) {
-        console.log("start update image...");
-
-        if (typeof newPOI.image === "string") {
-          const fileToUpload = await fetchImageFromUri(newPOI.image);
-          const fileName = newPOI.image.split("/").pop();
-          console.log(" fileName:", fileName);
-
-          formData.append("image", fileToUpload, fileName);
-          console.log("\tend update image");
+        if (oldPOI) {
+          await updatePOI(newPOI, oldPOI, token);
         }
+      } else {
+        console.log("add POI");
       }
-      if (oldPOI?.description !== newPOI.description) {
-        console.log("update description...");
-        if (newPOI.description) {
-          formData.append("description", newPOI.description);
-          console.log("\tdone");
-        }
-      }
-      if (oldPOI?.isActive !== newPOI.isActive) {
-        console.log("update isActive...");
-        formData.append("isActive", newPOI.isActive.toString());
-        console.log("\tdone");
-      }
-
-      console.log("*** Update POI Data ***");
-      console.log("formData:");
-      console.log(formData);
-      console.log("\n************************************");
-
-      const token = auth.userData?.token;
-
-      const options: RequestInit = {
-        method: "POST",
-        headers: {
-          Accept: "multipart/form-data",
-          "Cache-control": "no-cache",
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      };
-      // fetchData({ url: "trails/updatePOI/", options });
-    } else {
-      console.log("add POI");
+    } catch (err: any) {
+      console.log(err);
     }
   };
 
