@@ -1,26 +1,12 @@
 import { POIObj } from "../interfaces/POIObj";
 import { BASE_API } from "./constants";
+import * as FileSystem from "expo-file-system";
+import {
+  FileSystemUploadOptions,
+  FileSystemUploadType,
+} from "expo-file-system";
 
-// this little gem is from: https://github.com/expo/examples/blob/master/with-aws-storage-upload/App.js
-// export const fetchImageFromUri = async (uri: string) => {
-//   console.log("*** Start Fetch Image From Uri ***\n");
-
-//   // uri =
-//   //   "https://file-examples.com/storage/feb8f98f1d627c0dc94b8cf/2017/10/file_example_JPG_100kB.jpg";
-//   const response = await fetch(uri);
-//   // console.log("response:");
-//   // console.log(response);
-
-//   const blob = await response.blob();
-//   console.log("uri:", uri);
-//   console.log("blob (on next line):");
-//   console.log(JSON.stringify(blob));
-//   console.log("Blob.prototype.size:", blob.size, "(bytes)");
-//   console.log("Blob.prototype.type:", blob.type);
-
-//   console.log("\n*** End Fetch Image From Uri ***");
-//   return blob;
-// };
+const stringify = async (obj: object) => JSON.stringify(obj, null, 2);
 
 const difference = (
   newObj: Record<string, any>,
@@ -38,6 +24,24 @@ const difference = (
   return changedObjects;
 };
 
+export const changeToFormData = async (
+  data: Record<string, any>,
+  parentKey?: string
+) => {
+  // console.log("changeToFormData: Entry data:", stringify(data));
+  const formData = new FormData();
+  parentKey = parentKey || "";
+
+  Object.keys(data).forEach((key: string) => {
+    if (typeof data[key] === "object") {
+      changeToFormData(data[key], parentKey + key + "_");
+    }
+    formData.append(parentKey + key, data[key]);
+  });
+
+  return formData;
+};
+
 export const updatePOI = async (
   newPOI: POIObj,
   oldPOI: POIObj,
@@ -50,17 +54,17 @@ export const updatePOI = async (
 
   console.log("*** Get changedData ***");
   try {
-    const changedData = difference(newPOI, oldPOI);
+    const changedData = await difference(newPOI, oldPOI);
     changedData["pointsOfInterestId"] = newPOI.pointsOfInterestId.toString();
 
-    console.log("formData:");
-    console.log(JSON.stringify(changedData, null, 2));
+    console.log("changedData:", JSON.stringify(changedData, null, 2));
 
     if (changedData.image) {
       console.log("do image upload");
+      return imageUpload(changedData, token, "trails/updatePOI/");
     } else {
       console.log("do regular upload");
-      return noImageUpload(changedData, token);
+      return noImageUpload(changedData, token, "trails/updatePOI/");
     }
   } catch (e: any) {
     throw Error(e);
@@ -69,12 +73,14 @@ export const updatePOI = async (
 
 const noImageUpload = async (
   changedData: Record<string, string>,
-  token: string
+  token: string,
+  url: string
 ) => {
   console.log("*** noImageUpload ***");
 
   try {
     const formData = await changeToFormData(changedData);
+
     const options: RequestInit = {
       method: "POST",
       headers: {
@@ -84,9 +90,9 @@ const noImageUpload = async (
       },
       body: formData,
     };
-    console.log(JSON.stringify(options, null, 2));
+    console.log(stringify(options));
 
-    const response = await fetch(BASE_API + "trails/updatePOI/", options);
+    const response = await fetch(BASE_API + url, options);
 
     const data = await response.json();
     if (data.error) {
@@ -99,20 +105,60 @@ const noImageUpload = async (
   }
 };
 
-export const changeToFormData = async (
-  data: Record<string, any>,
-  parentKey?: string
+const imageUpload = async (
+  changedData: Record<string, string>,
+  token: string,
+  url: string
 ) => {
-  // console.log("changeToFormData: Entry data:", JSON.stringify(data, null, 2));
-  const formData = new FormData();
-  parentKey = parentKey || "";
+  console.log("initial changedData:", JSON.stringify(changedData, null, 2));
 
-  Object.keys(data).forEach((key: string) => {
-    if (typeof data[key] === "object") {
-      changeToFormData(data[key], parentKey + key + "_");
+  console.log("***** get other fields section *****");
+  const { image } = changedData;
+
+  if (!image) {
+    throw Error("missing image to upload");
+  }
+  console.log("image:", image);
+  delete changedData.image;
+
+  console.log("changedData:", JSON.stringify(changedData, null, 2));
+
+  console.log("***** Options section *****");
+  const options: FileSystemUploadOptions = {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Accept: "image/jpeg, image/png",
+      Authorization: `Bearer ${token}`,
+    },
+    httpMethod: "POST",
+    uploadType: FileSystemUploadType.MULTIPART,
+    fieldName: "image",
+    parameters: changedData,
+  };
+  console.log("***** 'Fetch' section *****");
+  console.log("URL:", BASE_API + url);
+  try {
+    const response = await FileSystem.uploadAsync(
+      BASE_API + url,
+      image,
+      options
+    );
+
+    console.log(
+      `status: ${response.status}\nheader:\n${JSON.stringify(
+        response.headers,
+        null,
+        2
+      )}\nbody:\n${response.body}`
+    );
+
+    if (response.status >= 200 && response.status < 300) {
+      return;
+    } else {
+      throw Error(response.body);
     }
-    formData.append(parentKey + key, data[key]);
-  });
-
-  return formData;
+  } catch (err: any) {
+    console.log(err);
+    throw Error(err.message);
+  }
 };
