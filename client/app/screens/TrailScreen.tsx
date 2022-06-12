@@ -43,7 +43,7 @@ import { SaveTrailData } from "../interfaces/SaveTrailData";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
-import { fetchImageFromUri, updatePOI } from "../utils/fetchHelpers";
+import { updatePOI } from "../utils/fetchHelpers";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // https://www.carlrippon.com/6-useful-typescript-3-features-you-need-to-know/ clarifies how omit works. This will grow with trail data, but those fields won't be required. In this instance they are all set by the server.
@@ -294,6 +294,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       } else {
         console.log("add POI");
       }
+      getTrails();
     } catch (err: any) {
       console.log(err);
     }
