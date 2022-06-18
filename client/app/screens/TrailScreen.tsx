@@ -243,7 +243,14 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     if (!data) return;
 
     // capture the error message
-    if (error) console.error(error);
+    if (error) {
+      console.error(error);
+    } else if (pOIArr.length > 0) {
+      const newTrailId = data[data.length - 1].trailId;
+
+      for (const point in pOIArr) {
+      }
+    }
 
     return () => {
       unmounted = true;
@@ -359,8 +366,11 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         {/*Change Password*/}
         {userId ? (
           <View style={[styles.loginBtnContainer]}>
-            <LoginButton onPress={() => navigation.navigate("Update Password")}/>
-          </View>): (
+            <LoginButton
+              onPress={() => navigation.navigate("Update Password")}
+            />
+          </View>
+        ) : (
           <></>
         )}
 
@@ -374,7 +384,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                 backgroundColor={locationArr.length > 0 ? "green" : "blue"}
                 handlePress={handleStartRecording}
               />
-            )} 
+            )}
 
             {!trailId && isStarted && (
               <MapButton
