@@ -2,7 +2,7 @@
 import React from "react";
 import { User } from "../interfaces/User";
 
-interface Authentication {
+export interface Authentication {
   isAuthenticated: boolean;
   userData: User | null;
 }
