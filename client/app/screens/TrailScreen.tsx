@@ -20,6 +20,7 @@ import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoginButton from "../components/LoginButton";
+import AdminButtons from "../components/AdminButtons";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
@@ -374,8 +375,13 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
       {/* login button is relative to map */}
       <View style={[styles.loginBtnContainer]}>
+        {/* Login */}
         {!auth.isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
+        )}
+        {/*Change Password*/}
+        {userId && (
+          <LoginButton onPress={() => navigation.navigate("Update Password")} />
         )}
       </View>
 
@@ -438,66 +444,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           )}
         </View>
 
-        {/*Change Password*/}
-        {userId ? (
-          <View style={[styles.loginBtnContainer]}>
-            <LoginButton
-              onPress={() => navigation.navigate("Update Password")}
-            />
-          </View>
-        ) : (
-          <></>
-        )}
-
         {/* Show these buttons for a logged in user */}
-        {userId ? (
-          <View>
-            <View style={styles.btnContainer}>
-              {!addingTrail ? (
-                <MapButton
-                  label="Add Trail"
-                  handlePress={handleAddTrail}
-                  backgroundColor="blue"
-                />
-              ) : (
-                <>
-                  {!isRecording && (
-                    <MapButton
-                      label="Start"
-                      backgroundColor="green"
-                      handlePress={handleStartRecording}
-                    />
-                  )}
-
-                  {isRecording && (
-                    <MapButton
-                      label="Stop"
-                      backgroundColor="red"
-                      handlePress={handleStopRecoding}
-                    />
-                  )}
-
-                  {!isRecording && locationArr.length > 0 && (
-                    <MapButton
-                      label="Save"
-                      backgroundColor="blue"
-                      handlePress={handleSave}
-                    />
-                  )}
-                </>
-              )}
-              {(addingTrail || trailId) && (
-                <MapButton
-                  label="Add Pt of Interest"
-                  backgroundColor="purple"
-                  handlePress={handleAddPOI}
-                />
-              )}
-            </View>
-          </View>
-        ) : (
-          <></>
-        )}
+        {/* {userId ? <AdminButtons /> : <></>} */}
       </View>
     </SafeAreaView>
   );
