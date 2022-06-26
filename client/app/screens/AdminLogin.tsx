@@ -1,15 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import * as Location from "expo-location";
 
 // Components
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
+import { StyleSheet, Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
 
@@ -29,7 +22,7 @@ export default function AdminLogin({ navigation }: Props) {
   const [password, setPassword] = useState("");
 
   // Auth stuff...
-  const { auth, setAuth } = useContext(AuthContext);
+  const { setAuth } = useContext(AuthContext);
 
   // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
@@ -50,7 +43,7 @@ export default function AdminLogin({ navigation }: Props) {
 
   const dealWithData = async () => {
     if (data) {
-      let fgStatus = await checkFGStatus();
+      let fgStatus = await checkFGStatus(); // use as model for bgStatus
 
       setAuth({
         isAuthenticated: true,

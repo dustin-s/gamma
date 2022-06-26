@@ -2,13 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 // Components
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  TextInput,
-} from "react-native";
+import { StyleSheet, Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
 
@@ -24,8 +18,8 @@ export default function UpdatePassword({ navigation }: Props) {
   // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Auth stuff...
   const { auth, setAuth } = useContext(AuthContext);
@@ -35,13 +29,13 @@ export default function UpdatePassword({ navigation }: Props) {
 
   //Confirm and update password
   async function handleUpdatePassword() {
-      const updatePassword = {
-        userId : auth.userData?.user.userId,
-        oldPassword : password,
-        newPassword,
-        confirmPassword,
-      }
-    if (newPassword === confirmPassword ){  
+    const updatePassword = {
+      userId: auth.userData?.user.userId,
+      oldPassword: password,
+      newPassword,
+      confirmPassword,
+    };
+    if (newPassword === confirmPassword) {
       const options = {
         method: "POST",
         headers: {
@@ -49,20 +43,22 @@ export default function UpdatePassword({ navigation }: Props) {
           "Content-Type": "application/json",
           "Cache-control": "no-cache",
         },
-      body: JSON.stringify(updatePassword),
+        body: JSON.stringify(updatePassword),
       };
       const url = "users/update";
-      fetchData({ url, options }); 
-    } else {alert("Passwords do not match, please try again.")};
-  };
+      fetchData({ url, options });
+    } else {
+      alert("Passwords do not match, please try again.");
+    }
+  }
 
   // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
-  useEffect (() => {
-
+  useEffect(() => {
     let unmounted = false;
     if (!data) return;
 
     setAuth({
+      ...auth,
       isAuthenticated: true,
       userData: data,
     });
@@ -74,6 +70,7 @@ export default function UpdatePassword({ navigation }: Props) {
       unmounted = true;
     };
   }, [data]);
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
@@ -114,7 +111,7 @@ export default function UpdatePassword({ navigation }: Props) {
           onChangeText={(value) => setNewPassword(value)}
           secureTextEntry
         />
-      </View> 
+      </View>
       <View style={styles.controlGroup}>
         <Text style={styles.unPw}>Confirm Password</Text>
         <TextInput
@@ -127,11 +124,11 @@ export default function UpdatePassword({ navigation }: Props) {
           secureTextEntry
         />
       </View>
-      <View style = {styles.btnContainer}>
+      <View style={styles.btnContainer}>
         <MapButton
-          label ={"Summit"}
-          backgroundColor = {"#f1b265"}
-          handlePress = {() => handleUpdatePassword ()}
+          label={"Submit"}
+          backgroundColor={"#f1b265"}
+          handlePress={() => handleUpdatePassword()}
         />
       </View>
       {loading && <Text>Loading...</Text>}
@@ -144,6 +141,7 @@ export default function UpdatePassword({ navigation }: Props) {
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -161,7 +159,7 @@ const styles = StyleSheet.create({
   controlGroup: {
     flexDirection: "row",
   },
-  
+
   errText: {
     color: "#f1b265",
     fontWeight: "bold",
