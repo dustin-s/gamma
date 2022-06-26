@@ -144,7 +144,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
   };
 
-  const handleStopRecoding = async () => {
+  const handleStopRecording = async () => {
     let value = await Location.hasStartedLocationUpdatesAsync(
       LOCATION_TASK_NAME
     );
@@ -445,7 +445,19 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         </View>
 
         {/* Show these buttons for a logged in user */}
-        {/* {userId ? <AdminButtons /> : <></>} */}
+        <AdminButtons
+          {...{
+            addingTrail,
+            isRecording,
+            hasLocations: locationArr.length > 1,
+            trailId,
+            handleAddTrail,
+            handleStartRecording,
+            handleStopRecording,
+            handleSave,
+            handleAddPOI,
+          }}
+        />
       </View>
     </SafeAreaView>
   );
