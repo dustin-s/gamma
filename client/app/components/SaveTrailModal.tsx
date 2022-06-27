@@ -15,15 +15,13 @@ import SlideSelector from "./SlideSelector";
 interface SaveTrailModalProps {
   modalVisible: boolean;
   setModalVisible(value: SetStateAction<boolean>): void;
-  saveTrail({}: SaveTrailData): void;
-  doCancel(): void;
+  submitTrail(value: SaveTrailData | "Cancel"): void;
 }
 
 const SaveTrailModal = ({
   modalVisible,
   setModalVisible,
-  saveTrail,
-  doCancel,
+  submitTrail,
 }: SaveTrailModalProps) => {
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -64,7 +62,7 @@ const SaveTrailModal = ({
             setDescription("");
             setDifficulty("easy");
 
-            doCancel();
+            submitTrail("Cancel");
           },
         },
       ]
@@ -81,7 +79,7 @@ const SaveTrailModal = ({
     };
     console.log(saveData);
 
-    saveTrail(saveData);
+    submitTrail(saveData);
     setModalVisible(!modalVisible);
   };
 

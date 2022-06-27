@@ -26,6 +26,10 @@ interface AdminButtonsProps {
   setPOIArr(value: SetStateAction<POIObj[]>): void;
   gotPOI: GotPOIObj;
   setGotPOI(value: SetStateAction<GotPOIObj>): void;
+  gotTrailData: SaveTrailData | "Cancel" | undefined;
+  setGotTrailData(
+    value: SetStateAction<SaveTrailData | "Cancel" | undefined>
+  ): void;
   setModalVisible(value: SetStateAction<boolean>): void;
   fetchData: any;
 }
@@ -40,6 +44,8 @@ export default function AdminButtons({
   gotPOI,
   setGotPOI,
   setModalVisible,
+  gotTrailData,
+  setGotTrailData,
   fetchData,
 }: AdminButtonsProps) {
   // Authorization
@@ -257,6 +263,17 @@ export default function AdminButtons({
   useEffect(() => {
     savePOI();
   }, [gotPOI]);
+
+  useEffect(() => {
+    if (!gotTrailData) return;
+
+    if (gotTrailData === "Cancel") {
+      doCancel();
+    } else {
+      doSaveTrail(gotTrailData);
+    }
+    setGotTrailData(undefined);
+  }, [gotTrailData]);
 
   //
   //
