@@ -12,7 +12,7 @@ import { LocationObject, LocationObjectCoords } from "expo-location";
 import { POIObj, GotPOIObj } from "../../interfaces/POIObj";
 import { useNavigation } from "@react-navigation/native";
 import { StackNativeScreenProps } from "../../interfaces/StackParamList";
-import { SaveTrailData } from "../../interfaces/SaveTrailData";
+import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
 import { TrailData } from "../../interfaces/TrailData";
 
 const LOCATION_TASK_NAME = "background-location-task";
@@ -26,10 +26,8 @@ interface AdminButtonsProps {
   setPOIArr(value: SetStateAction<POIObj[]>): void;
   gotPOI: GotPOIObj;
   setGotPOI(value: SetStateAction<GotPOIObj>): void;
-  gotTrailData: SaveTrailData | "Cancel" | undefined;
-  setGotTrailData(
-    value: SetStateAction<SaveTrailData | "Cancel" | undefined>
-  ): void;
+  gotTrailData: SubmitTrailData;
+  setGotTrailData(value: SetStateAction<SubmitTrailData>): void;
   setModalVisible(value: SetStateAction<boolean>): void;
   fetchData: any;
 }
@@ -267,11 +265,14 @@ export default function AdminButtons({
   useEffect(() => {
     if (!gotTrailData) return;
 
-    if (gotTrailData === "Cancel") {
-      doCancel();
-    } else {
-      doSaveTrail(gotTrailData);
+    if (gotTrailData !== "Closed") {
+      if (gotTrailData === "Cancel") {
+        doCancel();
+      } else {
+        doSaveTrail(gotTrailData);
+      }
     }
+    setModalVisible(false);
     setGotTrailData(undefined);
   }, [gotTrailData]);
 

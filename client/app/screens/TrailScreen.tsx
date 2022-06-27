@@ -32,7 +32,7 @@ import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
 import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
 import { updateId } from "expo-updates";
-import { SaveTrailData } from "../interfaces/SaveTrailData";
+import { SaveTrailData, SubmitTrailData } from "../interfaces/SaveTrailData";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
@@ -60,9 +60,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     newPOI: undefined,
     oldPOI: undefined,
   });
-  const [gotTrailData, setGotTrailData] = useState<
-    SaveTrailData | "Cancel" | undefined
-  >(undefined);
+  const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>();
   // Display options and Recording options
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -79,7 +77,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   // submitTrail
-  const submitTrail = (value: SaveTrailData | "Cancel") => {
+  const submitTrail = (value: SubmitTrailData) => {
+    setModalVisible(false);
     setGotTrailData(value);
   };
 
@@ -156,11 +155,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
-      <SaveTrailModal
-        modalVisible={modalVisible}
-        setModalVisible={setModalVisible}
-        submitTrail={submitTrail}
-      />
+      <SaveTrailModal modalVisible={modalVisible} submitTrail={submitTrail} />
 
       {loading && <ActivityIndicator size="large" />}
 
