@@ -43,6 +43,13 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // Authorization
   const { auth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
+  const getToken = () => {
+    const token = auth.userData?.token;
+    if (!token) {
+      throw Error("User not authorized");
+    }
+    return token;
+  };
 
   // Information about the trail
   const [trailId, setTrailId] = useState<number | null>(null);
@@ -56,12 +63,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [pauseRecording, setPauseRecording] = useState(false);
   // forTest:
   useEffect(() => {
-    if (isRecording) {
+    if (isRecording || !pauseRecording) {
+      console.log("isRecording:", isRecording);
+      console.log("pauseRecoding:", pauseRecording);
       console.log("Trail Recording started");
       console.log("locationArr.length: ", locationArr.length);
       console.log("modalVisible: ", modalVisible);
+    } else {
+      console.log("Recording Stopped");
+      console.log("isRecording:", isRecording);
+      console.log("pauseRecoding:", pauseRecording);
     }
-  }, [isRecording]);
+  }, [isRecording, pauseRecording]);
 
   const { fetchData, data, error, loading } = useFetch<TrailData[]>();
 
@@ -97,12 +110,14 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       setLocationArr([...locationArr, location.coords]);
     }
 
+    console.log("pauseRecording:", pauseRecording);
     console.log("\nlocation length=", locationArr.length);
     console.log(`time:  ${new Date(location.timestamp).toLocaleString()}`);
     console.log("last location:\n", location);
   });
 
   const handleStartRecording = async () => {
+    console.log("handleStartRecording");
     if (checkStatus(statusFG)) {
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Highest,
@@ -118,6 +133,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
       setTrailId(null); // ensure trailId is not set
       setIsRecording(true);
+      console.log("started recording");
     } else {
       console.log(
         "handleStartRecording: statusFG:",
@@ -200,7 +216,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     };
     fetchData({ url: "trails/", options });
     setLocationArr([]);
-    setPOIArr([]);
+    // setPOIArr([]);
     setAddingTrail(false);
     // alert("Trail saved");
   };
@@ -239,10 +255,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       setPauseRecording(false);
     }
 
-    const token = auth.userData?.token;
-    if (!token) {
-      throw Error("User not authorized");
-    }
+    const token = getToken();
 
     // if new trail...
     if (!newPOI.trailId) {
@@ -292,7 +305,19 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, [route.params?.newPOI]);
 
   const getTrails = async () => {
-    fetchData({ url: "trails" });
+    await fetchData({ url: "trails" });
+  };
+
+  const addNewPOIs = async (newTrailId: number) => {
+    const token = getToken();
+
+    for (let i = 0; i < poiArr.length; i++) {
+      const point = poiArr[i];
+      point.trailId = newTrailId;
+      await addPOIToTrail(point, token);
+    }
+    setPOIArr([]);
+    getTrails();
   };
 
   // fired when data changes (post fetchData)
@@ -301,7 +326,16 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     if (!data) return;
 
     // capture the error message
-    if (error) console.error(error);
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (poiArr.length > 0) {
+      const newTrailId = data[data.length - 1].trailId;
+
+      addNewPOIs(newTrailId!);
+    }
 
     return () => {
       unmounted = true;
@@ -364,6 +398,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               console.log("trailId:", trailId);
               console.log("data.length:", data?.length || "null");
               console.log("locationArr.length: ", locationArr.length);
+              console.log("poiArr.length", poiArr.length);
               console.log("trails");
               data?.forEach((trail) =>
                 console.log(
