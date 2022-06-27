@@ -7,7 +7,6 @@ import { StackParamList } from "./app/interfaces/StackParamList";
 import { AuthProvider } from "./app/utils/authContext";
 
 // Screens
-import HomeScreen from "./app/screens/HomeScreen";
 import AdminLogin from "./app/screens/AdminLogin";
 import UpdatePassword from "./app/screens/UpdatePassword";
 import PointOfInterest from "./app/screens/PointOfInterest";
@@ -32,11 +31,6 @@ function App() {
             <Stack.Screen
               name="Trail Screen"
               component={TrailScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
               options={{ headerShown: false }}
             />
             <Stack.Screen 

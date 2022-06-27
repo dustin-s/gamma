@@ -409,11 +409,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             }}
           />
           <MapButton
-            label="Home"
-            backgroundColor="orange"
-            handlePress={() => navigation.navigate("Home")}
-          />
-          <MapButton
             label="refresh"
             backgroundColor="orange"
             handlePress={getTrails}

@@ -74,6 +74,16 @@ export default function UpdatePassword({ navigation }: Props) {
       unmounted = true;
     };
   }, [data]);
+
+ function logout() {
+    setAuth({
+      isAuthenticated: false,
+      userData: null,
+    });
+
+    // returns to calling screen
+    navigation.goBack();
+  };
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
@@ -134,6 +144,12 @@ export default function UpdatePassword({ navigation }: Props) {
           handlePress = {() => handleUpdatePassword ()}
         />
       </View>
+      <View style={styles.btnContainer}>
+        <TouchableOpacity onPress={() => logout ()}>
+          <Text style ={styles.msg}>Logout</Text>
+        </TouchableOpacity>      
+      </View>
+      
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
