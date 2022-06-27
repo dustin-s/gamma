@@ -1,6 +1,5 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import * as TaskManager from "expo-task-manager";
 import * as Location from "expo-location";
 import { AuthContext } from "../utils/authContext";
 import { checkFGStatus } from "../utils/permissionHelpers";
@@ -24,16 +23,15 @@ import AdminButtons from "../components/AdminButtons";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
-const LOCATION_TASK_NAME = "background-location-task";
 
 // Types
 import { LocationObjectCoords } from "expo-location";
-import { POIObj } from "../interfaces/POIObj";
-import { SaveTrailData } from "../interfaces/SaveTrailData";
+import { POIObj, GotPOIObj } from "../interfaces/POIObj";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
 import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
+import { updateId } from "expo-updates";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
@@ -43,7 +41,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   // Authorization
   const { auth, setAuth } = useContext(AuthContext);
-  const statusFG = auth.fgPermissions;
   const userId = auth.userData?.user.userId || null;
   const getToken = () => {
     const token = auth.userData?.token;
@@ -58,25 +55,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
   const [poiArr, setPOIArr] = useState<POIObj[]>([]);
 
+  const [gotPOI, setGotPOI] = useState<GotPOIObj>({
+    newPOI: undefined,
+    oldPOI: undefined,
+  });
   // Display options and Recording options
   const [modalVisible, setModalVisible] = useState(false);
-  const [addingTrail, setAddingTrail] = useState(false);
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [pauseRecording, setPauseRecording] = useState(false);
-  // forTest:
-  useEffect(() => {
-    if (isRecording || !pauseRecording) {
-      console.log("isRecording:", isRecording);
-      console.log("pauseRecoding:", pauseRecording);
-      console.log("Trail Recording started");
-      console.log("locationArr.length: ", locationArr.length);
-      console.log("modalVisible: ", modalVisible);
-    } else {
-      console.log("Recording Stopped");
-      console.log("isRecording:", isRecording);
-      console.log("pauseRecoding:", pauseRecording);
-    }
-  }, [isRecording, pauseRecording]);
 
   const { fetchData, data, error, loading } = useFetch<TrailData[]>();
 
@@ -90,214 +74,30 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     await setAuth({ ...auth, fgPermissions: status });
   };
 
-  const handleAddTrail = () => {
-    setAddingTrail(true);
-    handleStartRecording();
-  };
-
-  // Define the task passing its name and a callback that will be called whenever the location changes
-  TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
-    if (error) {
-      console.error("TaskManager.defineTask error:");
-      console.error(error);
-      return;
-    }
-    const curData = data as any;
-
-    // const [location] = locations;
-    const [location] = curData.locations;
-    if (!pauseRecording) {
-      setLocationArr([...locationArr, location.coords]);
-    }
-
-    console.log("pauseRecording:", pauseRecording);
-    console.log("\nlocation length=", locationArr.length);
-    console.log(`time:  ${new Date(location.timestamp).toLocaleString()}`);
-    console.log("last location:\n", location);
-  });
-
-  const handleStartRecording = async () => {
-    console.log("handleStartRecording");
-    if (statusFG) {
-      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-        accuracy: Location.Accuracy.Highest,
-        distanceInterval: 1, // minimum change (in meters) betweens updates
-        deferredUpdatesInterval: 1000, // minimum interval (in milliseconds) between updates
-        // foregroundService is how you get the task to be updated as often as would be if the app was open
-        foregroundService: {
-          notificationTitle: "Using your location",
-          notificationBody:
-            "To turn off, go back to the app and click stop recording.",
-        },
-      });
-
-      setTrailId(null); // ensure trailId is not set
-      setIsRecording(true);
-      console.log("started recording");
-    } else {
-      console.log("handleStartRecording: statusFG:", statusFG);
-      await checkFGStatus();
-    }
-  };
-
-  const handleStopRecording = async () => {
-    let value = await Location.hasStartedLocationUpdatesAsync(
-      LOCATION_TASK_NAME
-    );
-
-    if (value) {
-      Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-      console.log("************************************\n");
-      console.log("stopped");
-      console.log(
-        `There were ${locationArr.length} entries in the location array.`
-      );
-      console.log(`There were ${poiArr.length} entries in the POI array.`);
-      console.log("\n************************************");
-
-      setIsRecording(false);
-    }
-  };
-
-  const handleSave = () => {
-    setModalVisible(true);
-  };
-
-  const doCancel = () => {
-    console.log("cancel was pressed on the modal");
-
-    setModalVisible(false);
-    setLocationArr([]);
-    setPOIArr([]);
-    setAddingTrail(false);
-  };
-
-  const doSaveTrail = async ({
-    name,
-    description,
-    difficulty,
-    isClosed,
-  }: SaveTrailData) => {
-    if (userId === null) {
-      throw new Error("userId is null when saving trail");
-    }
-
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("difficulty", difficulty);
-    formData.append("isClosed", isClosed.toString());
-    formData.append("createdBy", userId.toString());
-    for (let location of locationArr) {
-      for (const [key, value] of Object.entries(location)) {
-        formData.append(`TrailCoords_${key}`, value?.toString() ?? "");
-      }
-    }
-    // ptsOfInterest: POIObj[];
-    // hazards: HazardObj[];
-
-    console.log("*** Save Data ***");
-    console.log(formData);
-    console.log("\n************************************");
-
-    const token = auth.userData?.token;
-
-    const options: RequestInit = {
-      method: "POST",
-      headers: {
-        Accept: "multipart/form-data",
-        "Cache-control": "no-cache",
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    };
-    fetchData({ url: "trails/", options });
-    setLocationArr([]);
-    // setPOIArr([]);
-    setAddingTrail(false);
-    // alert("Trail saved");
-  };
-
-  const currentLocation = async () => {
-    if (addingTrail) {
-      // return the current location on the trail
-      return locationArr[locationArr.length - 1];
-    } else {
-      const curLoc = await Location.getCurrentPositionAsync();
-      return curLoc.coords;
-    }
-  };
-
-  const handleAddPOI = async () => {
-    const curLoc = await currentLocation();
-    console.log("***** Handle Add POI *****");
-    console.log("curLoc:", curLoc);
-
-    if (addingTrail) {
-      setPauseRecording(true);
-    }
-
-    navigation.navigate("Point of Interest", {
-      currentLocation: curLoc,
-      trailId,
-    });
-  };
-
-  const savePOI = async (newPOI: POIObj) => {
-    console.log("***** Save POI *****\nnewPOI:");
-    console.log(newPOI);
-
-    // resume recording (if needed)
-    if (addingTrail) {
-      setPauseRecording(false);
-    }
-
-    const token = getToken();
-
-    // if new trail...
-    if (!newPOI.trailId) {
-      console.log("Add POI to array");
-      setPOIArr([...poiArr, newPOI]);
-      return;
-    }
-
-    try {
-      // if POI already exists
-      if (newPOI.pointsOfInterestId && data) {
-        console.log("***** Update POI *****");
-
-        const oldPOI = data
-          .filter((el: TrailData) => el.trailId === trailId)[0]
-          .PointsOfInterests?.filter(
-            (el: POIObj) => el.pointsOfInterestId === newPOI.pointsOfInterestId
-          )[0];
-        console.log("Old POI:\n", oldPOI);
-
-        if (oldPOI) {
-          await updatePOI(newPOI, oldPOI, token);
-        }
-      } else if (newPOI.trailId && data) {
-        console.log("***** Add New POI to Trail *****");
-        console.log("Trail Id:", newPOI.trailId);
-        await addPOIToTrail(newPOI, token);
-      }
-      getTrails();
-    } catch (err: any) {
-      console.log(err);
-    }
-  };
-
   useEffect(() => {
     console.log("********** Trail Screen **********");
     console.log("Route Params:", route.params);
-    if (route.params?.newPOI) {
-      if (route.params.newPOI === "Cancel") {
-        if (addingTrail) {
-          setPauseRecording(false);
+
+    if (route.params?.newPOI && data) {
+      let newPOI: POIObj | undefined = undefined;
+      let oldPOI: POIObj | undefined = undefined;
+
+      if (route.params.newPOI !== "Cancel") {
+        newPOI = route.params.newPOI;
+
+        // only if a POI ID exists will there be an old POI
+        if (newPOI.pointsOfInterestId && newPOI.trailId) {
+          const curTrailId = newPOI.trailId;
+          const curPOIId = newPOI.pointsOfInterestId;
+
+          oldPOI = data
+            .filter((el: TrailData) => el.trailId === curTrailId)[0]
+            .PointsOfInterests?.filter(
+              (el: POIObj) => el.pointsOfInterestId === curPOIId
+            )[0];
         }
-      } else {
-        savePOI(route.params.newPOI);
       }
+      setGotPOI({ newPOI, oldPOI });
     }
   }, [route.params?.newPOI]);
 
@@ -397,7 +197,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               // const temp = data ? [...data] : [];
               // console.log(temp.reverse());
               // console.log(locationArr);
-              console.log("userId: ", userId);
               console.log("trailId:", trailId);
               console.log("data.length:", data?.length || "null");
               console.log("locationArr.length: ", locationArr.length);
@@ -443,17 +242,16 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         {/* Show these buttons for a logged in user */}
         <AdminButtons
-          {...{
-            addingTrail,
-            isRecording,
-            hasLocations: locationArr.length > 1,
-            trailId,
-            handleAddTrail,
-            handleStartRecording,
-            handleStopRecording,
-            handleSave,
-            handleAddPOI,
-          }}
+          trailId={trailId}
+          setTrailId={setTrailId}
+          locationArr={locationArr}
+          setLocationArr={setLocationArr}
+          poiArr={poiArr}
+          setPOIArr={setPOIArr}
+          gotPOI={gotPOI}
+          setGotPOI={setGotPOI}
+          setModalVisible={setModalVisible}
+          fetchData={fetchData}
         />
       </View>
     </SafeAreaView>

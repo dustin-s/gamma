@@ -9,3 +9,8 @@ export interface POIObj extends LocationObjectCoords {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface GotPOIObj {
+  newPOI?: POIObj;
+  oldPOI?: POIObj;
+}
