@@ -10,9 +10,6 @@ import MapView from "react-native-maps";
 import {
   ActivityIndicator,
   Alert,
-  Dimensions,
-  Platform,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -20,6 +17,7 @@ import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoginButton from "../components/LoginButton";
+import styles from  "../components/Styles";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
@@ -372,12 +370,14 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         )}
       </MapView>
 
-      {/* login button is relative to map */}
+      {/* Login button is relative to map */}
       <View style={[styles.loginBtnContainer]}>
         {!auth.isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
         )}
       </View>
+
+     
 
       {/* Other button containers are at the bottom of the screen */}
       <View style={[styles.fgContainer]}>
@@ -443,6 +443,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         ) : (
           <></>
         )}
+
 
         {/* Show these buttons for a logged in user */}
         {userId ? (
