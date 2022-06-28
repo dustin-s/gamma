@@ -1,0 +1,6 @@
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/gamma/server/
+    - /bin/cp -r server/* $DEPLOYPATH
+    - /bin/cd $DEPLOYPATH
+    - npm -i
