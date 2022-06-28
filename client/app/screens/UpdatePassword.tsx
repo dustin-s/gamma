@@ -6,6 +6,7 @@ import {
   Text,
   View,
   TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
