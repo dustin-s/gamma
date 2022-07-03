@@ -3,14 +3,14 @@ import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 // Components
 import {
-  StyleSheet,
   Text,
   View,
-  TouchableOpacity,
   TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
+import styles from "../components/Styles";
 
 // Hooks
 import useFetch from "../hooks/useFetch";
@@ -22,7 +22,6 @@ type Props = StackNativeScreenProps<"Update Password">;
 
 export default function UpdatePassword({ navigation }: Props) {
   // form controls
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -74,20 +73,23 @@ export default function UpdatePassword({ navigation }: Props) {
       unmounted = true;
     };
   }, [data]);
+
+ function logout() {
+    setAuth({
+      isAuthenticated: false,
+      userData: null,
+    });
+
+    // returns to calling screen
+    navigation.goBack();
+  };
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
 
       <View style={styles.controlGroup}>
         <Text style={styles.unPw}>Email</Text>
-        <TextInput
-          style={styles.txInput}
-          keyboardType="email-address"
-          placeholder="Email"
-          placeholderTextColor="#f1b265"
-          value={email}
-          onChangeText={(value) => setEmail(value)}
-        />
+        <Text style={styles.txInput}>{auth.userData?.user.email}</Text>
       </View>
 
       <View style={styles.controlGroup}>
@@ -134,6 +136,12 @@ export default function UpdatePassword({ navigation }: Props) {
           handlePress = {() => handleUpdatePassword ()}
         />
       </View>
+      <View style={styles.btnContainer}>
+        <TouchableOpacity onPress={() => logout ()}>
+          <Text style ={styles.msg}>Logout</Text>
+        </TouchableOpacity>      
+      </View>
+      
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
@@ -144,60 +152,3 @@ export default function UpdatePassword({ navigation }: Props) {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: "column",
-    backgroundColor: "#98002D",
-  },
-
-  btnContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    margin: 10,
-  },
-
-  controlGroup: {
-    flexDirection: "row",
-  },
-  
-  errText: {
-    color: "#f1b265",
-    fontWeight: "bold",
-    padding: 10,
-  },
-
-  msg: {
-    textAlign: "center",
-    top: -20,
-    color: "#f1b265",
-    fontSize: 20,
-    fontWeight: "700",
-    lineHeight: 50,
-  },
-
-  txInput: {
-    direction: "rtl",
-    borderColor: "#f1b265",
-    backgroundColor: "#750023",
-    color: "#f9e4c7",
-    borderWidth: 2,
-    borderRadius: 20,
-    margin: 5,
-    paddingHorizontal: 18,
-    paddingVertical: 6,
-    fontSize: 20,
-    fontWeight: "500",
-    lineHeight: 30,
-    flex: 3,
-  },
-
-  unPw: {
-    bottom: -14,
-    margin: 5,
-    color: "#f1b265",
-    fontSize: 20,
-    fontWeight: "500",
-  },
-});
