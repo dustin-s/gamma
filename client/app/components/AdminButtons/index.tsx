@@ -14,6 +14,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNativeScreenProps } from "../../interfaces/StackParamList";
 import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
 import { TrailData } from "../../interfaces/TrailData";
+import useFetch from "../../hooks/useFetch";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
@@ -39,12 +40,12 @@ export default function AdminButtons({
   setLocationArr,
   poiArr,
   setPOIArr,
-  gotPOI,
+  gotPOI, // <-- can we get the route params directly? Move that whole use effect here?
   setGotPOI,
-  setModalVisible,
+  setModalVisible, // <-- Can we pull the modal in to this screen?
   gotTrailData,
+  // fetchData, Not sure this should go away <-- test data updates on main screen
   setGotTrailData,
-  fetchData,
 }: AdminButtonsProps) {
   // Authorization
   const { auth } = useContext(AuthContext);
@@ -60,6 +61,7 @@ export default function AdminButtons({
 
   const navigation =
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
+  const { fetchData } = useFetch();
 
   // recording status
   const [addingTrail, setAddingTrail] = useState(false);
@@ -168,7 +170,6 @@ export default function AdminButtons({
   const doCancel = () => {
     console.log("cancel was pressed on the modal");
 
-    setModalVisible(false);
     setLocationArr([]);
     setPOIArr([]);
     setAddingTrail(false);
@@ -195,7 +196,6 @@ export default function AdminButtons({
         formData.append(`TrailCoords_${key}`, value?.toString() ?? "");
       }
     }
-    // ptsOfInterest: POIObj[];
     // hazards: HazardObj[];
 
     console.log("*** Save Data ***");
@@ -272,7 +272,6 @@ export default function AdminButtons({
         doSaveTrail(gotTrailData);
       }
     }
-    setModalVisible(false);
     setGotTrailData(undefined);
   }, [gotTrailData]);
 

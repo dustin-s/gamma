@@ -2,9 +2,10 @@ import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 // Components
-import { StyleSheet, Text, View, TextInput } from "react-native";
+import { Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
+import styles from "../components/Styles";
 
 // Hooks
 import useFetch from "../hooks/useFetch";
@@ -114,59 +115,3 @@ export default function AdminLogin({ navigation }: Props) {
     </SafeAreaView>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: "column",
-    backgroundColor: "#98002D",
-  },
-  btnContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    margin: 10,
-  },
-
-  controlGroup: {
-    flexDirection: "row",
-  },
-
-  errText: {
-    color: "#f1b265",
-    fontWeight: "bold",
-    padding: 10,
-  },
-
-  msg: {
-    textAlign: "center",
-    top: -20,
-    color: "#f1b265",
-    fontSize: 20,
-    fontWeight: "700",
-    lineHeight: 50,
-  },
-
-  txInput: {
-    borderColor: "#f1b265",
-    backgroundColor: "#750023",
-    color: "#f9e4c7",
-    borderWidth: 2,
-    borderRadius: 20,
-    margin: 5,
-    marginEnd: 125,
-    paddingHorizontal: 18,
-    paddingVertical: 6,
-    fontSize: 20,
-    fontWeight: "500",
-    lineHeight: 30,
-    flex: 3,
-  },
-
-  unPw: {
-    bottom: -14,
-    margin: 5,
-    color: "#f1b265",
-    fontSize: 20,
-    fontWeight: "500",
-  },
-});

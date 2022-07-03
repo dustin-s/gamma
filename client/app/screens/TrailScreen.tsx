@@ -6,20 +6,13 @@ import { checkFGStatus } from "../utils/permissionHelpers";
 
 // Components
 import MapView from "react-native-maps";
-import {
-  ActivityIndicator,
-  Alert,
-  Dimensions,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Text, View } from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoginButton from "../components/LoginButton";
 import AdminButtons from "../components/AdminButtons";
+import styles from "../components/Styles";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
@@ -174,7 +167,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         )}
       </MapView>
 
-      {/* login button is relative to map */}
+      {/* Login button is relative to map */}
       <View style={[styles.loginBtnContainer]}>
         {/* Login */}
         {!auth.isAuthenticated && (
@@ -215,11 +208,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             }}
           />
           <MapButton
-            label="Home"
-            backgroundColor="orange"
-            handlePress={() => navigation.navigate("Home")}
-          />
-          <MapButton
             label="refresh"
             backgroundColor="orange"
             handlePress={getTrails}
@@ -244,6 +232,17 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           )}
         </View>
 
+        {/*Change Password*/}
+        {userId ? (
+          <View style={[styles.loginBtnContainer]}>
+            <LoginButton
+              onPress={() => navigation.navigate("Update Password")}
+            />
+          </View>
+        ) : (
+          <></>
+        )}
+
         {/* Show these buttons for a logged in user */}
         <AdminButtons
           trailId={trailId}
@@ -263,54 +262,3 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeAreaView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  fgContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    // todo: figure out the proper way to account for header
-    height: "100%",
-    width: "100%",
-
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "flex-end",
-  },
-
-  map: {
-    width: Dimensions.get("window").width,
-    height: Dimensions.get("window").height,
-  },
-
-  loginBtnContainer: {
-    position: "absolute",
-
-    right: 10,
-    top: Platform.OS === "ios" ? 35 : 110,
-
-    zIndex: 3, // for iOS
-    elevation: 3, // for Android
-  },
-
-  btnContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    flexWrap: "wrap",
-    width: "100%",
-    margin: 10,
-  },
-
-  permissionsText: {
-    padding: 10,
-    color: "red",
-    fontSize: 24,
-    textAlign: "center",
-  },
-});
