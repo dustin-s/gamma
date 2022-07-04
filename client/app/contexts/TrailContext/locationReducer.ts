@@ -1,9 +1,9 @@
 import { LocationObjectCoords } from "expo-location";
-import { ActionMap, Actions } from "./actions";
+import { ActionMap, TrailActions } from "./actions";
 
 type locationPayload = {
-  [Actions.SetAllLocations]: LocationObjectCoords[];
-  [Actions.AddLocation]: LocationObjectCoords;
+  [TrailActions.ClearLocations]: undefined;
+  [TrailActions.AddLocation]: LocationObjectCoords;
 };
 
 export type LocationActions =
@@ -14,9 +14,11 @@ export const locationReducer = (
   action: LocationActions
 ) => {
   switch (action.type) {
-    case Actions.SetAllLocations:
-      return (state = action.payload);
-    case Actions.AddLocation:
+    case TrailActions.ClearLocations:
+      // console.log("Clear Locations");
+      return (state = []);
+    case TrailActions.AddLocation:
+      // console.log("Add Locations");
       return [...state, action.payload];
     default:
       return state;

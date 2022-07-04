@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import * as Location from "expo-location";
-import { AuthContext } from "../utils/authContext";
+// import * as Location from "expo-location";
+import { AuthContext } from "../contexts/authContext";
 import { checkFGStatus } from "../utils/permissionHelpers";
 
 // Components
@@ -26,6 +26,8 @@ import ShowTrails from "../components/ShowTrails";
 import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
 import { updateId } from "expo-updates";
 import { SaveTrailData, SubmitTrailData } from "../interfaces/SaveTrailData";
+import { TrailContext } from "../contexts/TrailContext";
+import { TrailActions } from "../contexts/TrailContext/actions";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
@@ -45,9 +47,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   // Information about the trail
-  const [trailId, setTrailId] = useState<number | null>(null);
-  const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
-  const [poiArr, setPOIArr] = useState<POIObj[]>([]);
+  const { trailState, trailDispatch } = useContext(TrailContext);
+  const { trailId, trailData, locationArr, poiArr } = trailState;
+
+  // const [trailId, setTrailId] = useState<number | null>(null);
+  // const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
+  // const [poiArr, setPOIArr] = useState<POIObj[]>([]);
 
   const [gotPOI, setGotPOI] = useState<GotPOIObj>({
     newPOI: undefined,
@@ -115,7 +120,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       point.trailId = newTrailId;
       await addPOIToTrail(point, token);
     }
-    setPOIArr([]);
+    trailDispatch({ type: TrailActions.ClearPOIArr });
+    // setPOIArr([]);
     getTrails();
   };
 
@@ -162,7 +168,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             data={data}
             locationArr={locationArr}
             trailId={trailId}
-            setTrailId={setTrailId}
+            setTrailId={(chosenTrailId) =>
+              trailDispatch({
+                type: TrailActions.SetTrailId,
+                payload: chosenTrailId,
+              })
+            }
           />
         )}
       </MapView>
@@ -220,7 +231,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             <MapButton
               label="Back"
               backgroundColor="green"
-              handlePress={() => setTrailId(null)}
+              handlePress={() =>
+                trailDispatch({
+                  type: TrailActions.SetTrailId,
+                  payload: null,
+                })
+              }
             />
           )}
           {trailId && (
@@ -245,12 +261,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         {/* Show these buttons for a logged in user */}
         <AdminButtons
-          trailId={trailId}
-          setTrailId={setTrailId}
-          locationArr={locationArr}
-          setLocationArr={setLocationArr}
-          poiArr={poiArr}
-          setPOIArr={setPOIArr}
+          // trailId={trailId}
+          // setTrailId={setTrailId}
+          // locationArr={locationArr}
+          // setLocationArr={setLocationArr}
+          // poiArr={poiArr}
+          // setPOIArr={setPOIArr}
           gotPOI={gotPOI}
           setGotPOI={setGotPOI}
           setModalVisible={setModalVisible}

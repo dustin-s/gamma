@@ -1,9 +1,9 @@
 import { TrailData } from "../../interfaces/TrailData";
-import { ActionMap, Actions } from "./actions";
+import { ActionMap, TrailActions } from "./actions";
 
 type trailDataPayload = {
-  [Actions.SetAllTrails]: TrailData[];
-  [Actions.AddTrail]: TrailData;
+  [TrailActions.SetAllTrails]: TrailData[];
+  [TrailActions.AddTrail]: TrailData;
 };
 
 export type TrailDataActions =
@@ -14,9 +14,9 @@ export const trailDataReducer = (
   action: TrailDataActions
 ) => {
   switch (action.type) {
-    case Actions.SetAllTrails:
+    case TrailActions.SetAllTrails:
       return (state = action.payload);
-    case Actions.AddTrail:
+    case TrailActions.AddTrail:
       return [...state, action.payload];
     default:
       return state;

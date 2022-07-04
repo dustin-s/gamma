@@ -3,28 +3,33 @@ import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { checkFGStatus } from "../../utils/permissionHelpers";
 
-import { AuthContext } from "../../utils/authContext";
+import { AuthContext } from "../../contexts/authContext";
 import { StyleSheet, View } from "react-native";
 import MapButton from "../MapButton";
 import { addPOIToTrail, updatePOI } from "../../utils/fetchHelpers";
 
 import { LocationObject, LocationObjectCoords } from "expo-location";
 import { POIObj, GotPOIObj } from "../../interfaces/POIObj";
-import { useNavigation } from "@react-navigation/native";
-import { StackNativeScreenProps } from "../../interfaces/StackParamList";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  StackNativeScreenProps,
+  StackParamList,
+} from "../../interfaces/StackParamList";
 import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
 import { TrailData } from "../../interfaces/TrailData";
 import useFetch from "../../hooks/useFetch";
+import { TrailContext } from "../../contexts/TrailContext";
+import { TrailActions } from "../../contexts/TrailContext/actions";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
 interface AdminButtonsProps {
-  trailId: number | null;
-  setTrailId(value: SetStateAction<number | null>): void;
-  locationArr: LocationObjectCoords[];
-  setLocationArr(value: SetStateAction<LocationObjectCoords[]>): void;
-  poiArr: POIObj[];
-  setPOIArr(value: SetStateAction<POIObj[]>): void;
+  // trailId: number | null;
+  // setTrailId(value: SetStateAction<number | null>): void;
+  // locationArr: LocationObjectCoords[];
+  // setLocationArr(value: SetStateAction<LocationObjectCoords[]>): void;
+  // poiArr: POIObj[];
+  // setPOIArr(value: SetStateAction<POIObj[]>): void;
   gotPOI: GotPOIObj;
   setGotPOI(value: SetStateAction<GotPOIObj>): void;
   gotTrailData: SubmitTrailData;
@@ -34,12 +39,12 @@ interface AdminButtonsProps {
 }
 
 export default function AdminButtons({
-  trailId,
-  setTrailId,
-  locationArr,
-  setLocationArr,
-  poiArr,
-  setPOIArr,
+  // trailId,
+  // setTrailId,
+  // locationArr,
+  // setLocationArr,
+  // poiArr,
+  // setPOIArr,
   gotPOI, // <-- can we get the route params directly? Move that whole use effect here?
   setGotPOI,
   setModalVisible, // <-- Can we pull the modal in to this screen?
@@ -59,8 +64,13 @@ export default function AdminButtons({
     return token;
   };
 
+  const { trailState, trailDispatch } = useContext(TrailContext);
+  const { trailId, trailData, locationArr, poiArr } = trailState;
+
   const navigation =
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
+  const routes = useRoute<StackNativeScreenProps<"Trail Screen">["route"]>();
+
   const { fetchData } = useFetch();
 
   // recording status
@@ -86,7 +96,8 @@ export default function AdminButtons({
     const location: LocationObject[] = curData.locations as LocationObject[];
     const curLoc = location[location.length - 1];
     if (!pauseRecording) {
-      setLocationArr([...locationArr, curLoc.coords]);
+      // setLocationArr([...locationArr, curLoc.coords]);
+      trailDispatch({ type: TrailActions.AddLocation, payload: curLoc.coords });
     }
 
     console.log("pauseRecording:", pauseRecording);
@@ -110,7 +121,8 @@ export default function AdminButtons({
         },
       });
 
-      setTrailId(null); // ensure trailId is not set
+      // setTrailId(null); // ensure trailId is not set
+      trailDispatch({ type: TrailActions.SetTrailId, payload: null });
       setIsRecording(true);
       console.log("started recording");
     } else {
@@ -170,8 +182,10 @@ export default function AdminButtons({
   const doCancel = () => {
     console.log("cancel was pressed on the modal");
 
-    setLocationArr([]);
-    setPOIArr([]);
+    trailDispatch({ type: TrailActions.ClearLocations });
+    // setLocationArr([]);
+    trailDispatch({ type: TrailActions.ClearPOIArr });
+    // setPOIArr([]);
     setAddingTrail(false);
   };
 
@@ -214,7 +228,9 @@ export default function AdminButtons({
       body: formData,
     };
     fetchData({ url: "trails/", options });
-    setLocationArr([]);
+
+    trailDispatch({ type: TrailActions.ClearLocations });
+    // setLocationArr([]);
     setAddingTrail(false);
     // alert("Trail saved");
   };
@@ -248,7 +264,8 @@ export default function AdminButtons({
       } else {
         // if new trail...
         console.log("Add POI to array");
-        setPOIArr([...poiArr, newPOI]);
+        trailDispatch({ type: TrailActions.AddPOI, payload: newPOI });
+        // setPOIArr([...poiArr, newPOI]);
         return;
       }
       setGotPOI({ newPOI: undefined, oldPOI: undefined });
@@ -259,6 +276,12 @@ export default function AdminButtons({
   };
 
   useEffect(() => {
+    console.log("*********************************************");
+    console.log(
+      "Admin Buttons: routes.params?.newPOI",
+      routes.params?.newPOI || "null"
+    );
+    console.log("*********************************************");
     savePOI();
   }, [gotPOI]);
 

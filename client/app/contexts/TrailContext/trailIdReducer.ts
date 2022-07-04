@@ -1,7 +1,7 @@
-import { ActionMap, Actions } from "./actions";
+import { ActionMap, TrailActions } from "./actions";
 
 type TrailIdPayload = {
-  [Actions.SetTrailId]: number | null;
+  [TrailActions.SetTrailId]: number | null;
 };
 
 export type TrailIdActions =
@@ -12,7 +12,8 @@ export const trailIdReducer = (
   action: TrailIdActions
 ) => {
   switch (action.type) {
-    case Actions.SetTrailId:
+    case TrailActions.SetTrailId:
+      // console.log("Set Trail Id:", action.payload);
       return (state = action.payload);
     default:
       return state;

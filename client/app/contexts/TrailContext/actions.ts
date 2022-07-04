@@ -9,15 +9,16 @@ export type ActionMap<M extends { [index: string]: any }> = {
       };
 };
 
-export enum Actions {
+export enum TrailActions {
   SetTrailId = "SET_TRAIL_ID",
 
   SetAllTrails = "SET_ALL_TRAILS",
   AddTrail = "ADD_TRAIL",
 
-  SetAllLocations = "SET_ALL_LOCATION",
+  ClearLocations = "SET_ALL_LOCATION",
   AddLocation = "ADD_LOCATION",
 
   // editing POI or adding new to trail, will actually update TrailData[], not POI[]
   AddPOI = "ADD_POI",
+  ClearPOIArr = "CLEAR_POI_ARR",
 }
