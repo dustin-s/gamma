@@ -2,34 +2,25 @@ import { SetStateAction, useContext, useEffect, useState } from "react";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { checkFGStatus } from "../../utils/permissionHelpers";
-
-import { AuthContext } from "../../contexts/authContext";
 import { StyleSheet, View } from "react-native";
 import MapButton from "../MapButton";
 import { addPOIToTrail, updatePOI } from "../../utils/fetchHelpers";
 
-import { LocationObject, LocationObjectCoords } from "expo-location";
-import { POIObj, GotPOIObj } from "../../interfaces/POIObj";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import {
-  StackNativeScreenProps,
-  StackParamList,
-} from "../../interfaces/StackParamList";
-import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
-import { TrailData } from "../../interfaces/TrailData";
-import useFetch from "../../hooks/useFetch";
+import { AuthContext } from "../../contexts/authContext";
 import { TrailContext } from "../../contexts/TrailContext";
 import { TrailActions } from "../../contexts/TrailContext/actions";
+
+import { LocationObject } from "expo-location";
+import { GotPOIObj } from "../../interfaces/POIObj";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { StackNativeScreenProps } from "../../interfaces/StackParamList";
+import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
+
+import useFetch from "../../hooks/useFetch";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
 interface AdminButtonsProps {
-  // trailId: number | null;
-  // setTrailId(value: SetStateAction<number | null>): void;
-  // locationArr: LocationObjectCoords[];
-  // setLocationArr(value: SetStateAction<LocationObjectCoords[]>): void;
-  // poiArr: POIObj[];
-  // setPOIArr(value: SetStateAction<POIObj[]>): void;
   gotPOI: GotPOIObj;
   setGotPOI(value: SetStateAction<GotPOIObj>): void;
   gotTrailData: SubmitTrailData;
@@ -39,17 +30,11 @@ interface AdminButtonsProps {
 }
 
 export default function AdminButtons({
-  // trailId,
-  // setTrailId,
-  // locationArr,
-  // setLocationArr,
-  // poiArr,
-  // setPOIArr,
   gotPOI, // <-- can we get the route params directly? Move that whole use effect here?
   setGotPOI,
   setModalVisible, // <-- Can we pull the modal in to this screen?
+  // fetchData, <-- change this to use trailContext
   gotTrailData,
-  // fetchData, Not sure this should go away <-- test data updates on main screen
   setGotTrailData,
 }: AdminButtonsProps) {
   // Authorization
@@ -96,7 +81,6 @@ export default function AdminButtons({
     const location: LocationObject[] = curData.locations as LocationObject[];
     const curLoc = location[location.length - 1];
     if (!pauseRecording) {
-      // setLocationArr([...locationArr, curLoc.coords]);
       trailDispatch({ type: TrailActions.AddLocation, payload: curLoc.coords });
     }
 
@@ -121,7 +105,7 @@ export default function AdminButtons({
         },
       });
 
-      // setTrailId(null); // ensure trailId is not set
+      // ensure trailId is not set
       trailDispatch({ type: TrailActions.SetTrailId, payload: null });
       setIsRecording(true);
       console.log("started recording");
@@ -183,9 +167,7 @@ export default function AdminButtons({
     console.log("cancel was pressed on the modal");
 
     trailDispatch({ type: TrailActions.ClearLocations });
-    // setLocationArr([]);
     trailDispatch({ type: TrailActions.ClearPOIArr });
-    // setPOIArr([]);
     setAddingTrail(false);
   };
 
@@ -230,7 +212,6 @@ export default function AdminButtons({
     fetchData({ url: "trails/", options });
 
     trailDispatch({ type: TrailActions.ClearLocations });
-    // setLocationArr([]);
     setAddingTrail(false);
     // alert("Trail saved");
   };
@@ -265,7 +246,6 @@ export default function AdminButtons({
         // if new trail...
         console.log("Add POI to array");
         trailDispatch({ type: TrailActions.AddPOI, payload: newPOI });
-        // setPOIArr([...poiArr, newPOI]);
         return;
       }
       setGotPOI({ newPOI: undefined, oldPOI: undefined });

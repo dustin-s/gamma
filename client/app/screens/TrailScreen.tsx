@@ -1,7 +1,8 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-// import * as Location from "expo-location";
 import { AuthContext } from "../contexts/authContext";
+import { TrailContext } from "../contexts/TrailContext";
+import { TrailActions } from "../contexts/TrailContext/actions";
 import { checkFGStatus } from "../utils/permissionHelpers";
 
 // Components
@@ -18,16 +19,12 @@ import styles from "../components/Styles";
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
 
 // Types
-import { LocationObjectCoords } from "expo-location";
 import { POIObj, GotPOIObj } from "../interfaces/POIObj";
 import useFetch from "../hooks/useFetch";
 import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
-import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
-import { updateId } from "expo-updates";
-import { SaveTrailData, SubmitTrailData } from "../interfaces/SaveTrailData";
-import { TrailContext } from "../contexts/TrailContext";
-import { TrailActions } from "../contexts/TrailContext/actions";
+import { addPOIToTrail } from "../utils/fetchHelpers";
+import { SubmitTrailData } from "../interfaces/SaveTrailData";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
@@ -50,15 +47,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const { trailState, trailDispatch } = useContext(TrailContext);
   const { trailId, trailData, locationArr, poiArr } = trailState;
 
-  // const [trailId, setTrailId] = useState<number | null>(null);
-  // const [locationArr, setLocationArr] = useState<LocationObjectCoords[]>([]);
-  // const [poiArr, setPOIArr] = useState<POIObj[]>([]);
-
   const [gotPOI, setGotPOI] = useState<GotPOIObj>({
     newPOI: undefined,
     oldPOI: undefined,
   });
   const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>();
+
   // Display options and Recording options
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -261,12 +255,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         {/* Show these buttons for a logged in user */}
         <AdminButtons
-          // trailId={trailId}
-          // setTrailId={setTrailId}
-          // locationArr={locationArr}
-          // setLocationArr={setLocationArr}
-          // poiArr={poiArr}
-          // setPOIArr={setPOIArr}
           gotPOI={gotPOI}
           setGotPOI={setGotPOI}
           setModalVisible={setModalVisible}
