@@ -13,7 +13,7 @@ import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoginButton from "../components/LoginButton";
 import AdminButtons from "../components/AdminButtons";
-import styles from "../components/Styles";
+import styles from "../styles/Styles";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
@@ -241,17 +241,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
             />
           )}
         </View>
-
-        {/*Change Password*/}
-        {userId ? (
-          <View style={[styles.loginBtnContainer]}>
-            <LoginButton
-              onPress={() => navigation.navigate("Update Password")}
-            />
-          </View>
-        ) : (
-          <></>
-        )}
 
         {/* Show these buttons for a logged in user */}
         <AdminButtons

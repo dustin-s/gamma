@@ -5,7 +5,7 @@ import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import { Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
-import styles from "../components/Styles";
+import styles from "../styles/Styles";
 
 // Hooks
 import useFetch from "../hooks/useFetch";
