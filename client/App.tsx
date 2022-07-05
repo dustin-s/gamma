@@ -19,17 +19,17 @@ const Stack = createNativeStackNavigator<StackParamList>();
 function App() {
   return (
     <AuthProvider>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <Stack.Navigator
-            screenOptions={{
-              headerStyle: {
-                backgroundColor: "#98002D",
-              },
-              headerTintColor: "#f1b265",
-            }}
-          >
-            <TrailContextProvider>
+      <TrailContextProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <Stack.Navigator
+              screenOptions={{
+                headerStyle: {
+                  backgroundColor: "#98002D",
+                },
+                headerTintColor: "#f1b265",
+              }}
+            >
               <Stack.Screen
                 name="Trail Screen"
                 component={TrailScreen}
@@ -39,31 +39,31 @@ function App() {
                 name="Point of Interest"
                 component={PointOfInterest}
               />
-            </TrailContextProvider>
-            <Stack.Screen
-              name="Admin"
-              component={AdminLogin}
-              options={{
-                title: "Admin Login",
-                headerTitleStyle: {
-                  fontSize: 30,
-                  fontWeight: "700",
-                },
-              }}
-            />
-            <Stack.Screen
-              name="Update Password"
-              component={UpdatePassword}
-              options={{
-                headerTitleStyle: {
-                  fontSize: 30,
-                  fontWeight: "700",
-                },
-              }}
-            />
-          </Stack.Navigator>
-        </NavigationContainer>
-      </SafeAreaProvider>
+              <Stack.Screen
+                name="Admin"
+                component={AdminLogin}
+                options={{
+                  title: "Admin Login",
+                  headerTitleStyle: {
+                    fontSize: 30,
+                    fontWeight: "700",
+                  },
+                }}
+              />
+              <Stack.Screen
+                name="Update Password"
+                component={UpdatePassword}
+                options={{
+                  headerTitleStyle: {
+                    fontSize: 30,
+                    fontWeight: "700",
+                  },
+                }}
+              />
+            </Stack.Navigator>
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </TrailContextProvider>
     </AuthProvider>
   );
 }
