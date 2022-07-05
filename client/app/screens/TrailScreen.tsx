@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import { AuthContext } from "../contexts/authContext";
-import { TrailContext } from "../contexts/TrailContext";
 import { TrailActions } from "../contexts/TrailContext/actions";
 import { checkFGStatus } from "../utils/permissionHelpers";
 
@@ -25,6 +24,7 @@ import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
 import { addPOIToTrail } from "../utils/fetchHelpers";
 import { SubmitTrailData } from "../interfaces/SaveTrailData";
+import { useTrailContext } from "../hooks/useTrailContext";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
@@ -44,8 +44,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   // Information about the trail
-  const { trailState, trailDispatch } = useContext(TrailContext);
-  const { trailId, trailData, locationArr, poiArr } = trailState;
+  const { trailId, trailData, locationArr, poiArr, trailDispatch } =
+    useTrailContext();
 
   const [gotPOI, setGotPOI] = useState<GotPOIObj>({
     newPOI: undefined,

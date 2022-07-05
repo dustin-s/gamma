@@ -17,6 +17,7 @@ import { StackNativeScreenProps } from "../../interfaces/StackParamList";
 import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
 
 import useFetch from "../../hooks/useFetch";
+import { useTrailContext } from "../../hooks/useTrailContext";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
@@ -49,8 +50,9 @@ export default function AdminButtons({
     return token;
   };
 
-  const { trailState, trailDispatch } = useContext(TrailContext);
-  const { trailId, trailData, locationArr, poiArr } = trailState;
+  // const { trailState, trailDispatch } = useContext(TrailContext);
+  const { trailId, trailData, locationArr, poiArr, trailDispatch } =
+    useTrailContext();
 
   const navigation =
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
