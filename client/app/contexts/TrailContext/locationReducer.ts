@@ -21,6 +21,6 @@ export const locationReducer = (
       // console.log("Add Locations");
       return [...state, action.payload];
     default:
-      return state;
+      throw Error(`Unknown action type: ${action}`);
   }
 };

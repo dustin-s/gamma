@@ -16,6 +16,6 @@ export const trailIdReducer = (
       // console.log("Set Trail Id:", action.payload);
       return (state = action.payload);
     default:
-      return state;
+      throw Error(`Unknown action type: ${action}`);
   }
 };

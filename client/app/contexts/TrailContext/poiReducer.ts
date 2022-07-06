@@ -15,6 +15,6 @@ export const poiReducer = (state: POIObj[], action: POIActions) => {
     case TrailActions.AddPOI:
       return [...state, action.payload];
     default:
-      return state;
+      throw Error(`Unknown action type: ${action}`);
   }
 };

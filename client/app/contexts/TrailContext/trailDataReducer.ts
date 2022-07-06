@@ -19,6 +19,6 @@ export const trailDataReducer = (
     case TrailActions.AddTrail:
       return [...state, action.payload];
     default:
-      return state;
+      throw Error(`Unknown action type: ${action}`);
   }
 };
