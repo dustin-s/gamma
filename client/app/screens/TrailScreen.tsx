@@ -143,8 +143,9 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   useEffect(() => {
     setFGStatus();
-    getTrails();
-  }, []);
+    // getTrails();
+    console.log(trailData.map((td) => `${td.trailId} ${td.name}`));
+  }, [trailData]);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>

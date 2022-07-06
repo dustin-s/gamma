@@ -2,12 +2,11 @@ import { SetStateAction, useContext, useEffect, useState } from "react";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { checkFGStatus } from "../../utils/permissionHelpers";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import MapButton from "../MapButton";
 import { addPOIToTrail, updatePOI } from "../../utils/fetchHelpers";
 
 import { AuthContext } from "../../contexts/authContext";
-import { TrailContext } from "../../contexts/TrailContext";
 import { TrailActions } from "../../contexts/TrailContext/actions";
 
 import { LocationObject } from "expo-location";
@@ -18,6 +17,7 @@ import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
 
 import useFetch from "../../hooks/useFetch";
 import { useTrailContext } from "../../hooks/useTrailContext";
+import styles from "../../styles/Styles";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
@@ -50,7 +50,6 @@ export default function AdminButtons({
     return token;
   };
 
-  // const { trailState, trailDispatch } = useContext(TrailContext);
   const { trailId, trailData, locationArr, poiArr, trailDispatch } =
     useTrailContext();
 
@@ -306,7 +305,7 @@ export default function AdminButtons({
     return null;
   }
   return (
-    <View style={styles.btnContainer}>
+    <View style={[styles.btnContainer, { flexWrap: "wrap" }]}>
       {!addingTrail ? (
         <MapButton
           label="Add Trail"
@@ -350,13 +349,3 @@ export default function AdminButtons({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  btnContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    flexWrap: "wrap",
-    width: "100%",
-    margin: 10,
-  },
-});
