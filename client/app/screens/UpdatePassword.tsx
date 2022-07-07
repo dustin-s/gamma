@@ -2,15 +2,10 @@ import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 // Components
-import {
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
+import { Text, View, TextInput, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
-import styles from "../components/Styles";
+import styles from "../styles/Styles";
 
 // Hooks
 import useFetch from "../hooks/useFetch";
@@ -23,8 +18,8 @@ type Props = StackNativeScreenProps<"Update Password">;
 export default function UpdatePassword({ navigation }: Props) {
   // form controls
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // Auth stuff...
   const { auth, setAuth } = useContext(AuthContext);
@@ -34,13 +29,13 @@ export default function UpdatePassword({ navigation }: Props) {
 
   //Confirm and update password
   async function handleUpdatePassword() {
-      const updatePassword = {
-        userId : auth.userData?.user.userId,
-        oldPassword : password,
-        newPassword,
-        confirmPassword,
-      }
-    if (newPassword === confirmPassword ){  
+    const updatePassword = {
+      userId: auth.userData?.user.userId,
+      oldPassword: password,
+      newPassword,
+      confirmPassword,
+    };
+    if (newPassword === confirmPassword) {
       const options = {
         method: "POST",
         headers: {
@@ -48,16 +43,17 @@ export default function UpdatePassword({ navigation }: Props) {
           "Content-Type": "application/json",
           "Cache-control": "no-cache",
         },
-      body: JSON.stringify(updatePassword),
+        body: JSON.stringify(updatePassword),
       };
       const url = "users/update";
-      fetchData({ url, options }); 
-    } else {alert("Passwords do not match, please try again.")};
-  };
+      fetchData({ url, options });
+    } else {
+      alert("Passwords do not match, please try again.");
+    }
+  }
 
   // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
-  useEffect (() => {
-
+  useEffect(() => {
     let unmounted = false;
     if (!data) return;
 
@@ -74,7 +70,7 @@ export default function UpdatePassword({ navigation }: Props) {
     };
   }, [data]);
 
- function logout() {
+  function logout() {
     setAuth({
       isAuthenticated: false,
       userData: null,
@@ -82,7 +78,7 @@ export default function UpdatePassword({ navigation }: Props) {
 
     // returns to calling screen
     navigation.goBack();
-  };
+  }
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
@@ -116,7 +112,7 @@ export default function UpdatePassword({ navigation }: Props) {
           onChangeText={(value) => setNewPassword(value)}
           secureTextEntry
         />
-      </View> 
+      </View>
       <View style={styles.controlGroup}>
         <Text style={styles.unPw}>Confirm Password</Text>
         <TextInput
@@ -129,19 +125,19 @@ export default function UpdatePassword({ navigation }: Props) {
           secureTextEntry
         />
       </View>
-      <View style = {styles.btnContainer}>
+      <View style={styles.btnContainer}>
         <MapButton
-          label ={"Summit"}
-          backgroundColor = {"#f1b265"}
-          handlePress = {() => handleUpdatePassword ()}
+          label={"Summit"}
+          backgroundColor={"#f1b265"}
+          handlePress={() => handleUpdatePassword()}
         />
       </View>
       <View style={styles.btnContainer}>
-        <TouchableOpacity onPress={() => logout ()}>
-          <Text style ={styles.msg}>Logout</Text>
-        </TouchableOpacity>      
+        <TouchableOpacity onPress={() => logout()}>
+          <Text style={styles.msg}>Logout</Text>
+        </TouchableOpacity>
       </View>
-      
+
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
