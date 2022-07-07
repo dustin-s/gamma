@@ -14,7 +14,7 @@ import { POIObj } from "../interfaces/POIObj";
 
 // Types:
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import { AuthContext } from "../utils/authContext";
+import { AuthContext } from "../context/authContext";
 import { BASE_URL } from "../utils/constants";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;

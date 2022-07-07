@@ -4,7 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StackParamList } from "./app/interfaces/StackParamList";
 
 // Authentication Context
-import { AuthProvider } from "./app/utils/authContext";
+import { AuthProvider } from "./app/context/authContext";
 
 // Screens
 import AdminLogin from "./app/screens/AdminLogin";
@@ -33,23 +33,27 @@ function App() {
               component={TrailScreen}
               options={{ headerShown: false }}
             />
-            <Stack.Screen 
-              name="Admin" 
-              component={AdminLogin} 
+            <Stack.Screen
+              name="Admin"
+              component={AdminLogin}
               options={{
-                title: 'Admin Login',
+                title: "Admin Login",
                 headerTitleStyle: {
                   fontSize: 30,
                   fontWeight: "700",
-                },}}/>
-            <Stack.Screen 
-              name="Update Password" 
-              component={UpdatePassword} 
+                },
+              }}
+            />
+            <Stack.Screen
+              name="Update Password"
+              component={UpdatePassword}
               options={{
-              headerTitleStyle: {
-                fontSize: 30,
-                fontWeight: "700",
-              }}}/>
+                headerTitleStyle: {
+                  fontSize: 30,
+                  fontWeight: "700",
+                },
+              }}
+            />
             <Stack.Screen
               name="Point of Interest"
               component={PointOfInterest}

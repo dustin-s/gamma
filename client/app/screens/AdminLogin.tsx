@@ -9,7 +9,7 @@ import styles from "../styles/Styles";
 
 // Hooks
 import useFetch from "../hooks/useFetch";
-import { AuthContext } from "../utils/authContext";
+import { AuthContext } from "../context/authContext";
 
 // Types
 import { User } from "../interfaces/User";
