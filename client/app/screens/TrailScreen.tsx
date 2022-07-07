@@ -7,21 +7,17 @@ import { checkStatus } from "../utils/permissionHelpers";
 
 // Components
 import MapView from "react-native-maps";
-import {
-  ActivityIndicator,
-  Alert,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Text, View } from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoginButton from "../components/LoginButton";
-import styles from  "../components/Styles";
+import styles from "../styles/Styles";
 
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
 const LOCATION_TASK_NAME = "background-location-task";
+const IS_TEST = false;
 
 // Types
 import { LocationObjectCoords } from "expo-location";
@@ -61,6 +57,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [pauseRecording, setPauseRecording] = useState(false);
   // forTest:
   useEffect(() => {
+    if (!IS_TEST) return;
     if (isRecording || !pauseRecording) {
       console.log("isRecording:", isRecording);
       console.log("pauseRecoding:", pauseRecording);
@@ -370,50 +367,60 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         )}
       </MapView>
 
-      {/* Login button is relative to map */}
       <View style={[styles.loginBtnContainer]}>
+        {/* Login */}
         {!auth.isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
         )}
+        {/*Change Password/Logout*/}
+        {userId && (
+          <LoginButton onPress={() => navigation.navigate("Update Password")} />
+        )}
       </View>
-
-     
 
       {/* Other button containers are at the bottom of the screen */}
       <View style={[styles.fgContainer]}>
-        <Text>Trail Screen</Text>
-        <Text>Trail ID: {trailId === null ? "null" : trailId}</Text>
+        <Text style={styles.permissionsText}>
+          {trailId
+            ? `Trail Name: ${
+                data?.filter((td: TrailData) => td.trailId === trailId)[0]
+                  .name || ""
+              }`
+            : `Select a trail to get started.`}
+        </Text>
 
         {/* Debug buttons */}
-        <View style={styles.btnContainer}>
-          <MapButton
-            label="console.log(data)"
-            backgroundColor="orange"
-            handlePress={() => {
-              console.log("\n*************");
-              // const temp = data ? [...data] : [];
-              // console.log(temp.reverse());
-              // console.log(locationArr);
-              console.log("userId: ", userId);
-              console.log("trailId:", trailId);
-              console.log("data.length:", data?.length || "null");
-              console.log("locationArr.length: ", locationArr.length);
-              console.log("poiArr.length", poiArr.length);
-              console.log("trails");
-              data?.forEach((trail) =>
-                console.log(
-                  `${trail.trailId}\t${trail.difficulty}\t${trail.name}`
-                )
-              );
-              // console.log("statusFG:", statusFG);
-            }}
-          />
-          <MapButton
-            label="refresh"
-            backgroundColor="orange"
-            handlePress={getTrails}
-          />
-        </View>
+        {IS_TEST && (
+          <View style={styles.btnContainer}>
+            <MapButton
+              label="console.log(data)"
+              backgroundColor="orange"
+              handlePress={() => {
+                console.log("\n*************");
+                // const temp = data ? [...data] : [];
+                // console.log(temp.reverse());
+                // console.log(locationArr);
+                console.log("userId: ", userId);
+                console.log("trailId:", trailId);
+                console.log("data.length:", data?.length || "null");
+                console.log("locationArr.length: ", locationArr.length);
+                console.log("poiArr.length", poiArr.length);
+                console.log("trails");
+                data?.forEach((trail) =>
+                  console.log(
+                    `${trail.trailId}\t${trail.difficulty}\t${trail.name}`
+                  )
+                );
+                // console.log("statusFG:", statusFG);
+              }}
+            />
+            <MapButton
+              label="refresh"
+              backgroundColor="orange"
+              handlePress={getTrails}
+            />
+          </View>
+        )}
 
         {/* All user's buttons */}
         <View style={styles.btnContainer}>
@@ -424,29 +431,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               handlePress={() => setTrailId(null)}
             />
           )}
-          {trailId && (
-            <MapButton
-              label="Start Trail"
-              backgroundColor="green"
-              handlePress={() => Alert.alert("button press", "Start Trail")}
-            />
-          )}
         </View>
 
-        {/*Change Password*/}
-        {userId ? (
-          <View style={[styles.loginBtnContainer]}>
-            <LoginButton
-              onPress={() => navigation.navigate("Update Password")}
-            />
-          </View>
-        ) : (
-          <></>
-        )}
-
-
         {/* Show these buttons for a logged in user */}
-        {userId ? (
+        {userId && (
           <View>
             <View style={styles.btnContainer}>
               {!addingTrail ? (
@@ -491,8 +479,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               )}
             </View>
           </View>
-        ) : (
-          <></>
         )}
       </View>
     </SafeAreaView>
