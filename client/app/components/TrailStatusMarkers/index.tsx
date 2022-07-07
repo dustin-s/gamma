@@ -50,7 +50,6 @@ export default function TrailStatusMarkers({
       }
     }
 
-    // console.log("middle of the trail lat/lng coords", trailInfo.trailId);
     return {
       latitude: trailInfo.TrailCoords[1].latitude,
       longitude: trailInfo.TrailCoords[1].longitude,

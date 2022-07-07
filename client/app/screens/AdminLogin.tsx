@@ -21,7 +21,7 @@ export default function AdminLogin({ navigation }: Props) {
   const [password, setPassword] = useState("");
 
   // Auth stuff...
-  const { auth, setAuth } = useContext(AuthContext);
+  const { setAuth } = useContext(AuthContext);
 
   // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();

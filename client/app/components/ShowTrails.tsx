@@ -23,16 +23,6 @@ export default function ShowTrails({
   setTrailId,
 }: ShowTrailsProps) {
   const renderTrails = () => {
-    // console.log("showTrails:");
-    // console.log(
-    //   "\ttrailID === null && locationArr.length:",
-    //   trailID === null && locationArr.length
-    // );
-    // console.log(`\ttrailID && data: ${trailID && Boolean(data)}`);
-    // console.log(`\tdata: ${Boolean(data)}`);
-    // if (data?.length === undefined) {
-    //   console.log(data);
-    // } else console.log(`\tdata.length: ${data.length}`);
     if (trailId === null && locationArr.length > 0) {
       return (
         <Polyline
