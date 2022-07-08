@@ -17,6 +17,9 @@ import styles from "../styles/Styles";
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
 
+const LOCATION_TASK_NAME = "background-location-task";
+const IS_TEST = false;
+
 // Types
 import { POIObj, GotPOIObj } from "../interfaces/POIObj";
 import useFetch from "../hooks/useFetch";
@@ -55,6 +58,24 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   // Display options and Recording options
   const [modalVisible, setModalVisible] = useState(false);
+  const [addingTrail, setAddingTrail] = useState(false);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [pauseRecording, setPauseRecording] = useState(false);
+  // forTest:
+  useEffect(() => {
+    if (!IS_TEST) return;
+    if (isRecording || !pauseRecording) {
+      console.log("isRecording:", isRecording);
+      console.log("pauseRecoding:", pauseRecording);
+      console.log("Trail Recording started");
+      console.log("locationArr.length: ", locationArr.length);
+      console.log("modalVisible: ", modalVisible);
+    } else {
+      console.log("Recording Stopped");
+      console.log("isRecording:", isRecording);
+      console.log("pauseRecoding:", pauseRecording);
+    }
+  }, [isRecording, pauseRecording]);
 
   const { fetchData, data, error, loading } = useFetch<TrailData[]>();
 
@@ -173,13 +194,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         )}
       </MapView>
 
-      {/* Login button is relative to map */}
       <View style={[styles.loginBtnContainer]}>
         {/* Login */}
         {!auth.isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
         )}
-        {/*Change Password*/}
+        {/*Change Password/Logout*/}
         {userId && (
           <LoginButton onPress={() => navigation.navigate("Update Password")} />
         )}
@@ -187,38 +207,47 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
       {/* Other button containers are at the bottom of the screen */}
       <View style={[styles.fgContainer]}>
-        <Text>Trail Screen</Text>
-        <Text>Trail ID: {trailId === null ? "null" : trailId}</Text>
+        <Text style={styles.permissionsText}>
+          {trailId
+            ? `Trail Name: ${
+                data?.filter((td: TrailData) => td.trailId === trailId)[0]
+                  .name || ""
+              }`
+            : `Select a trail to get started.`}
+        </Text>
 
         {/* Debug buttons */}
-        <View style={styles.btnContainer}>
-          <MapButton
-            label="console.log(data)"
-            backgroundColor="orange"
-            handlePress={() => {
-              console.log("\n*************");
-              // const temp = data ? [...data] : [];
-              // console.log(temp.reverse());
-              // console.log(locationArr);
-              console.log("trailId:", trailId);
-              console.log("data.length:", data?.length || "null");
-              console.log("locationArr.length: ", locationArr.length);
-              console.log("poiArr.length", poiArr.length);
-              console.log("trails");
-              data?.forEach((trail) =>
-                console.log(
-                  `${trail.trailId}\t${trail.difficulty}\t${trail.name}`
-                )
-              );
-              // console.log("statusFG:", statusFG);
-            }}
-          />
-          <MapButton
-            label="refresh"
-            backgroundColor="orange"
-            handlePress={getTrails}
-          />
-        </View>
+        {IS_TEST && (
+          <View style={styles.btnContainer}>
+            <MapButton
+              label="console.log(data)"
+              backgroundColor="orange"
+              handlePress={() => {
+                console.log("\n*************");
+                // const temp = data ? [...data] : [];
+                // console.log(temp.reverse());
+                // console.log(locationArr);
+                console.log("userId: ", userId);
+                console.log("trailId:", trailId);
+                console.log("data.length:", data?.length || "null");
+                console.log("locationArr.length: ", locationArr.length);
+                console.log("poiArr.length", poiArr.length);
+                console.log("trails");
+                data?.forEach((trail) =>
+                  console.log(
+                    `${trail.trailId}\t${trail.difficulty}\t${trail.name}`
+                  )
+                );
+                // console.log("statusFG:", statusFG);
+              }}
+            />
+            <MapButton
+              label="refresh"
+              backgroundColor="orange"
+              handlePress={getTrails}
+            />
+          </View>
+        )}
 
         {/* All user's buttons */}
         <View style={styles.btnContainer}>
@@ -232,13 +261,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
                   payload: null,
                 })
               }
-            />
-          )}
-          {trailId && (
-            <MapButton
-              label="Start Trail"
-              backgroundColor="green"
-              handlePress={() => Alert.alert("button press", "Start Trail")}
             />
           )}
         </View>

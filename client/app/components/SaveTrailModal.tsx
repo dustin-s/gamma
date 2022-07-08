@@ -25,17 +25,6 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
   );
   const [isClosed, setIsClosed] = useState(false);
 
-  // for test:
-  useEffect(() => {
-    if (modalVisible) {
-      console.log("\nModal visible");
-      //     console.log(`name: ${name}`);
-      //     console.log(`description: ${description}`);
-      //     console.log(`difficulty: ${difficulty}`);
-      //     console.log(`isClosed: ${isClosed}`);
-    }
-  }, [modalVisible]);
-
   const resetModal = () => {
     // reset modal's states
     setName("");
@@ -46,8 +35,6 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
 
   const handleCancel = () => {
     console.log("cancel was pressed on the modal");
-    // do warning modal
-    // doCancel();
 
     return Alert.alert(
       "Cancel",
@@ -81,7 +68,7 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
     console.log(saveData);
 
     submitTrail(saveData);
-    // setModalVisible(!modalVisible);
+
     // reset variables after successful save
     resetModal();
   };

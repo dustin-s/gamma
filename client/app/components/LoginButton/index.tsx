@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  Image,
-  Platform,
-  Pressable,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, Pressable, StyleSheet } from "react-native";
 
 interface LoginButtonProps {
   onPress(): void;
