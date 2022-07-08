@@ -13,12 +13,12 @@ export const useTrailContext = () => {
   }
 
   // destructure the context so we can use the values directly, TS doesn't let us just spread the state.
-  const { trailId, trailData, locationArr, poiArr }: initialStateType =
+  const { trailId, trailList, locationArr, poiArr }: initialStateType =
     context.trailState;
 
   return {
     trailId,
-    trailData,
+    trailList,
     locationArr,
     poiArr,
     trailDispatch: context.trailDispatch,

@@ -23,19 +23,19 @@ import { POIObj } from "../../interfaces/POIObj";
 
 import { locationReducer } from "./locationReducer";
 import { poiReducer } from "./poiReducer";
-import { trailDataReducer } from "./trailDataReducer";
+import { trailDataReducer } from "./trailListReducer";
 import { trailIdReducer } from "./trailIdReducer";
 
 type initialStateType = {
   trailId: number | null;
-  trailData: TrailData[];
+  trailList: TrailData[];
   locationArr: LocationObjectCoords[];
   poiArr: POIObj[];
 };
 
 const initialState = {
   trailId: null,
-  trailData: [],
+  trailList: [],
   locationArr: [],
   poiArr: [],
 };
@@ -46,11 +46,11 @@ const TrailContext = createContext<{
 }>({ trailState: initialState, trailDispatch: () => null });
 
 const mainReducer = (
-  { trailId, trailData, locationArr, poiArr }: initialStateType,
+  { trailId, trailList, locationArr, poiArr }: initialStateType,
   action: any
 ) => ({
   trailId: trailIdReducer(trailId, action),
-  trailData: trailDataReducer(trailData, action),
+  trailList: trailDataReducer(trailList, action),
   locationArr: locationReducer(locationArr, action),
   poiArr: poiReducer(poiArr, action),
 });

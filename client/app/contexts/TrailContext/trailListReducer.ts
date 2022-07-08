@@ -1,17 +1,20 @@
 import { TrailData } from "../../interfaces/TrailData";
 import { ActionMap, TrailActions } from "./actions";
+import { LocationActions } from "./locationReducer";
+import { POIActions } from "./poiReducer";
+import { TrailIdActions } from "./trailIdReducer";
 
-type trailDataPayload = {
+type trailListPayload = {
   [TrailActions.SetAllTrails]: TrailData[];
   [TrailActions.AddTrail]: TrailData;
 };
 
-export type TrailDataActions =
-  ActionMap<trailDataPayload>[keyof ActionMap<trailDataPayload>];
+export type TrailListActions =
+  ActionMap<trailListPayload>[keyof ActionMap<trailListPayload>];
 
 export const trailDataReducer = (
   state: TrailData[],
-  action: TrailDataActions
+  action: TrailListActions | TrailIdActions | LocationActions | POIActions
 ) => {
   switch (action.type) {
     case TrailActions.SetAllTrails:
@@ -19,6 +22,6 @@ export const trailDataReducer = (
     case TrailActions.AddTrail:
       return [...state, action.payload];
     default:
-      throw Error(`Unknown action type: ${action}`);
+      return state;
   }
 };

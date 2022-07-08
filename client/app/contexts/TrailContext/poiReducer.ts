@@ -1,5 +1,8 @@
 import { POIObj } from "../../interfaces/POIObj";
 import { ActionMap, TrailActions } from "./actions";
+import { LocationActions } from "./locationReducer";
+import { TrailListActions } from "./trailListReducer";
+import { TrailIdActions } from "./trailIdReducer";
 
 type poiPayload = {
   [TrailActions.ClearPOIArr]: undefined;
@@ -8,13 +11,16 @@ type poiPayload = {
 
 export type POIActions = ActionMap<poiPayload>[keyof ActionMap<poiPayload>];
 
-export const poiReducer = (state: POIObj[], action: POIActions) => {
+export const poiReducer = (
+  state: POIObj[],
+  action: POIActions | TrailIdActions | LocationActions | TrailListActions
+) => {
   switch (action.type) {
     case TrailActions.ClearPOIArr:
       return (state = []);
     case TrailActions.AddPOI:
       return [...state, action.payload];
     default:
-      throw Error(`Unknown action type: ${action}`);
+      return state;
   }
 };

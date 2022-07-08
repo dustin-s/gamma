@@ -1,5 +1,8 @@
 import { LocationObjectCoords } from "expo-location";
 import { ActionMap, TrailActions } from "./actions";
+import { POIActions } from "./poiReducer";
+import { TrailListActions } from "./trailListReducer";
+import { TrailIdActions } from "./trailIdReducer";
 
 type locationPayload = {
   [TrailActions.ClearLocations]: undefined;
@@ -11,7 +14,7 @@ export type LocationActions =
 
 export const locationReducer = (
   state: LocationObjectCoords[],
-  action: LocationActions
+  action: LocationActions | TrailIdActions | TrailListActions | POIActions
 ) => {
   switch (action.type) {
     case TrailActions.ClearLocations:
@@ -21,6 +24,6 @@ export const locationReducer = (
       // console.log("Add Locations");
       return [...state, action.payload];
     default:
-      throw Error(`Unknown action type: ${action}`);
+      return state;
   }
 };
