@@ -32,20 +32,8 @@ const SaveTrailModal = ({
   );
   const [isClosed, setIsClosed] = useState(false);
 
-  useEffect(() => {
-    if (modalVisible) {
-      console.log("\nModal visible");
-      console.log(`name: ${name}`);
-      console.log(`description: ${description}`);
-      console.log(`difficulty: ${difficulty}`);
-      console.log(`isClosed: ${isClosed}`);
-    }
-  }, [modalVisible]);
-
   const handleCancel = () => {
     console.log("cancel was pressed on the modal");
-    // do warning modal
-    // doCancel();
 
     return Alert.alert(
       "Cancel",
@@ -154,20 +142,6 @@ const SaveTrailModal = ({
                 onSelect={setDifficulty}
                 selected={difficulty}
               />
-              {/* <Text style={styles.label}>Difficulty</Text>
-              <TextInput
-                style={styles.txtInput}
-                placeholder={difficulty}
-                value={difficulty}
-                onChangeText={(value) => {
-                  if (
-                    value === "easy" ||
-                    value === "moderate" ||
-                    value === "hard"
-                  )
-                    setDifficulty(value);
-                }}
-              /> */}
             </View>
             <View style={styles.controlGroup}>
               <Text style={styles.label}>Closed?</Text>

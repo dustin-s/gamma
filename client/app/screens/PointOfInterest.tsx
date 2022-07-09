@@ -14,7 +14,7 @@ import { POIObj } from "../interfaces/POIObj";
 
 // Types:
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import { AuthContext } from "../utils/authContext";
+import { AuthContext } from "../context/authContext";
 import { BASE_URL } from "../utils/constants";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
@@ -42,8 +42,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const originalImage = poiObj.image ? BASE_URL + poiObj.image : null;
 
   const { auth } = useContext(AuthContext);
-  const [showCamera, setShowCamera] = useState(false);
-  // const [editImage, setEditImage] = useState(originalImage === null);
   const [image, setImage] = useState(originalImage); // stores the URI for the image
   const [editDesc, setEditDesc] = useState(poiObj.description === null);
   const [description, setDescription] = useState(poiObj.description);
@@ -55,7 +53,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   });
 
   const handleCancelImage = () => {
-    // console.log(poiObj);
     setImage(originalImage);
   };
 
@@ -105,9 +102,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     if (errMsg.length > 0) {
       Alert.alert(errMsg.join("\n"));
     } else {
-      // console.log(
-      //   `navigation.navigate({name: "Trail Screen", params: { newPOI }, merge: true, });`
-      // );
       navigation.navigate({
         name: "Trail Screen",
         params: { newPOI },
@@ -117,15 +111,11 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   };
 
   useEffect(() => {
-    // console.log("Use Effect: isDirty");
     const newIsDirty = {
       photoChanged: originalImage !== image || image === null,
       descChanged: poiObj.description !== description,
       isActiveChanged: poiObj.isActive !== isActive,
     };
-
-    // console.log(`** newIsDirty:`);
-    // console.log(newIsDirty);
 
     setIsDirty(newIsDirty);
   }, [image, description, isActive]);

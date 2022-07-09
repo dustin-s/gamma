@@ -2,18 +2,14 @@ import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 // Components
-import {
-  Text,
-  View,
-  TextInput,
-} from "react-native";
+import { Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
-import styles from "../components/Styles";
+import styles from "../styles/Styles";
 
 // Hooks
 import useFetch from "../hooks/useFetch";
-import { AuthContext } from "../utils/authContext";
+import { AuthContext } from "../context/authContext";
 
 // Types
 import { User } from "../interfaces/User";
@@ -25,7 +21,7 @@ export default function AdminLogin({ navigation }: Props) {
   const [password, setPassword] = useState("");
 
   // Auth stuff...
-  const { auth, setAuth } = useContext(AuthContext);
+  const { setAuth } = useContext(AuthContext);
 
   // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
@@ -42,11 +38,10 @@ export default function AdminLogin({ navigation }: Props) {
     };
     const url = "users/login";
     fetchData({ url, options });
-  };
+  }
 
   // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
- useEffect (() => {
-
+  useEffect(() => {
     let unmounted = false;
     if (!data) return;
 
@@ -62,7 +57,7 @@ export default function AdminLogin({ navigation }: Props) {
       unmounted = true;
     };
   }, [data]);
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
@@ -91,12 +86,12 @@ export default function AdminLogin({ navigation }: Props) {
           secureTextEntry
         />
       </View>
-      <View style = {styles.btnContainer}>
+      <View style={styles.btnContainer}>
         <MapButton
           label={"Sign in"}
           backgroundColor={"#f1b265"}
           handlePress={handleSignIn}
-         />
+        />
       </View>
 
       {loading && <Text>Loading...</Text>}
