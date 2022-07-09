@@ -50,8 +50,7 @@ export default function AdminButtons({
     return token;
   };
 
-  const { trailId, trailData, locationArr, poiArr, trailDispatch } =
-    useTrailContext();
+  const { trailId, locationArr, poiArr, trailDispatch } = useTrailContext();
 
   const navigation =
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();

@@ -1,4 +1,4 @@
-import { SetStateAction } from "react";
+import { SetStateAction, useEffect } from "react";
 import { LocationObjectCoords } from "expo-location";
 import { TrailData } from "../interfaces/TrailData";
 
@@ -8,20 +8,21 @@ import TrailHeadMarker from "./TrailHeadMarker";
 import TrailStatusMarkers from "./TrailStatusMarkers";
 import { getColor, getCoords } from "../utils/mapFunctions";
 import POIMarker from "./POIMarker";
+import { useTrailContext } from "../hooks/useTrailContext";
 
 interface ShowTrailsProps {
-  data: TrailData[];
   locationArr: LocationObjectCoords[];
   trailId: number | null;
   setTrailId(value: SetStateAction<number | null>): void;
 }
 
 export default function ShowTrails({
-  data,
   locationArr,
   trailId,
   setTrailId,
 }: ShowTrailsProps) {
+  const { trailList } = useTrailContext();
+
   const renderTrails = () => {
     if (trailId === null && locationArr.length > 0) {
       return (
@@ -31,8 +32,8 @@ export default function ShowTrails({
           strokeWidth={6}
         />
       );
-    } else if (trailId && data) {
-      const trailInfo = data.filter(
+    } else if (trailId && trailList) {
+      const trailInfo = trailList.filter(
         (el: TrailData) => el.trailId === trailId
       )[0];
 
@@ -49,8 +50,8 @@ export default function ShowTrails({
             ))}
         </View>
       );
-    } else if (data) {
-      return data.map((trailInfo) => {
+    } else if (trailList) {
+      return trailList.map((trailInfo) => {
         const activePOI = [];
         if (trailInfo.PointsOfInterests) {
           trailInfo.PointsOfInterests.map((poi) => {
@@ -76,6 +77,10 @@ export default function ShowTrails({
       });
     }
   };
+
+  useEffect(() => {
+    console.log("ShowTrails trailList length:", trailList.length);
+  }, []);
 
   return <>{renderTrails()}</>;
 }

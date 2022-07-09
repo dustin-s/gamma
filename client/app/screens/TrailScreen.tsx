@@ -1,8 +1,16 @@
 import { useState, useEffect, useContext } from "react";
-import { StackNativeScreenProps } from "../interfaces/StackParamList";
+import { useTrailContext } from "../hooks/useTrailContext";
+import useFetch from "../hooks/useFetch";
+
+// context
 import { AuthContext } from "../contexts/authContext";
+import { TrailContext } from "../contexts/TrailContext";
 import { TrailActions } from "../contexts/TrailContext/actions";
+
+// helpers
 import { checkFGStatus } from "../utils/permissionHelpers";
+import { guardDataType } from "../utils/typeGuard";
+import styles from "../styles/Styles";
 
 // Components
 import MapView from "react-native-maps";
@@ -12,23 +20,20 @@ import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoginButton from "../components/LoginButton";
 import AdminButtons from "../components/AdminButtons";
-import styles from "../styles/Styles";
-
-// Constants
-import { CAMP_ALLEN_COORDS } from "../utils/constants";
-
-const LOCATION_TASK_NAME = "background-location-task";
-const IS_TEST = false;
-
-// Types
-import { POIObj, GotPOIObj } from "../interfaces/POIObj";
-import useFetch from "../hooks/useFetch";
-import { TrailData } from "../interfaces/TrailData";
 import ShowTrails from "../components/ShowTrails";
+
+// Types/Interfaces
+import { StackNativeScreenProps } from "../interfaces/StackParamList";
+import { POIObj, GotPOIObj } from "../interfaces/POIObj";
+import { TrailData } from "../interfaces/TrailData";
 import { addPOIToTrail } from "../utils/fetchHelpers";
 import { SubmitTrailData } from "../interfaces/SaveTrailData";
-import { useTrailContext } from "../hooks/useTrailContext";
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
+
+// Constants
+import { BASE_API, CAMP_ALLEN_COORDS } from "../utils/constants";
+
+const IS_TEST = true;
 
 // Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
@@ -47,7 +52,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   // Information about the trail
-  const { trailId, trailData, locationArr, poiArr, trailDispatch } =
+  const { trailId, trailList, locationArr, poiArr, trailDispatch } =
     useTrailContext();
 
   const [gotPOI, setGotPOI] = useState<GotPOIObj>({
@@ -58,9 +63,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   // Display options and Recording options
   const [modalVisible, setModalVisible] = useState(false);
-  const [addingTrail, setAddingTrail] = useState(false);
+
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [pauseRecording, setPauseRecording] = useState(false);
+
   // forTest:
   useEffect(() => {
     if (!IS_TEST) return;
@@ -80,14 +86,18 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const { fetchData, data, error, loading } = useFetch<TrailData[]>();
 
   // Get Permissions.
-  // everyone needs foreground permissions
-  // background permission are not request based on based on comment made
-  //  by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
-  const setFGStatus = async () => {
-    const status = await checkFGStatus();
-    console.log("auth.fgPermissions:", status);
-    await setAuth({ ...auth, fgPermissions: status });
-  };
+  useEffect(() => {
+    // everyone needs foreground permissions
+    // background permission are not request based on based on comment made
+    //  by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
+    const setFGStatus = async () => {
+      console.log(`**** Get Auth ****`);
+      const status = await checkFGStatus();
+      console.log("auth.fgPermissions:", status);
+      await setAuth({ ...auth, fgPermissions: status });
+    };
+    setFGStatus();
+  }, []);
 
   // submitTrail
   const submitTrail = (value: SubmitTrailData) => {
@@ -98,9 +108,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // save POI
   useEffect(() => {
     console.log("********** Trail Screen **********");
+    console.log(`time:  ${new Date().toLocaleString()}`);
     console.log("Route Params:", route.params);
 
-    if (route.params?.newPOI && data) {
+    if (route.params?.newPOI && trailList) {
       let newPOI: POIObj | undefined = undefined;
       let oldPOI: POIObj | undefined = undefined;
 
@@ -112,7 +123,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           const curTrailId = newPOI.trailId;
           const curPOIId = newPOI.pointsOfInterestId;
 
-          oldPOI = data
+          oldPOI = trailList
             .filter((el: TrailData) => el.trailId === curTrailId)[0]
             .PointsOfInterests?.filter(
               (el: POIObj) => el.pointsOfInterestId === curPOIId
@@ -124,7 +135,12 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, [route.params?.newPOI]);
 
   const getTrails = async () => {
-    await fetchData({ url: "trails" });
+    fetch(BASE_API + "trails")
+      .then((res) => res.json())
+      .then((data) => {
+        const cleanData = guardDataType<TrailData>(data);
+        trailDispatch({ type: TrailActions.SetAllTrails, payload: cleanData });
+      });
   };
 
   const addNewPOIs = async (newTrailId: number) => {
@@ -141,32 +157,30 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   };
 
   // fired when data changes (post fetchData)
+  // useEffect(() => {
+  //   let unmounted = false;
+  //   if (!data) return;
+
+  //   // capture the error message
+  //   if (error) {
+  //     console.error(error);
+  //     return;
+  //   }
+
+  //   if (poiArr.length > 0) {
+  //     const newTrailId = data[data.length - 1].trailId;
+
+  //     addNewPOIs(newTrailId!);
+  //   }
+
+  //   return () => {
+  //     unmounted = true;
+  //   };
+  // }, [data]);
+
   useEffect(() => {
-    let unmounted = false;
-    if (!data) return;
-
-    // capture the error message
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    if (poiArr.length > 0) {
-      const newTrailId = data[data.length - 1].trailId;
-
-      addNewPOIs(newTrailId!);
-    }
-
-    return () => {
-      unmounted = true;
-    };
-  }, [data]);
-
-  useEffect(() => {
-    setFGStatus();
-    // getTrails();
-    console.log(trailData.map((td) => `${td.trailId} ${td.name}`));
-  }, [trailData]);
+    getTrails();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
@@ -179,9 +193,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         initialRegion={region}
         showsUserLocation={true}
       >
-        {data && (
+        {trailList && (
           <ShowTrails
-            data={data}
             locationArr={locationArr}
             trailId={trailId}
             setTrailId={(chosenTrailId) =>
@@ -210,7 +223,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
         <Text style={styles.permissionsText}>
           {trailId
             ? `Trail Name: ${
-                data?.filter((td: TrailData) => td.trailId === trailId)[0]
+                trailList?.filter((td: TrailData) => td.trailId === trailId)[0]
                   .name || ""
               }`
             : `Select a trail to get started.`}
@@ -224,18 +237,20 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               backgroundColor="orange"
               handlePress={() => {
                 console.log("\n*************");
-                // const temp = data ? [...data] : [];
+                // const temp = trailList ? [...trailList] : [];
                 // console.log(temp.reverse());
                 // console.log(locationArr);
                 console.log("userId: ", userId);
                 console.log("trailId:", trailId);
-                console.log("data.length:", data?.length || "null");
+                console.log("trailList.length:", trailList?.length || "null");
                 console.log("locationArr.length: ", locationArr.length);
                 console.log("poiArr.length", poiArr.length);
                 console.log("trails");
-                data?.forEach((trail) =>
+                trailList?.forEach((trail) =>
                   console.log(
-                    `${trail.trailId}\t${trail.difficulty}\t${trail.name}`
+                    `${trail.trailId}\t${trail.difficulty}\t${
+                      trail.difficulty !== "moderate" ? "\t" : ""
+                    }${trail.name}`
                   )
                 );
                 // console.log("statusFG:", statusFG);
