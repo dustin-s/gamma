@@ -1,13 +1,16 @@
-import * as FileSystem from "expo-file-system";
 import {
+  uploadAsync,
   FileSystemUploadOptions,
   FileSystemUploadType,
 } from "expo-file-system";
+import { guardDataType } from "./typeGuard";
 import { BASE_API } from "./constants";
 import { POIObj } from "../interfaces/POIObj";
+import { TrailData } from "../interfaces/TrailData";
 
 /**
- * Compares 2 objects and returns any values that have changed between the objects as strings.
+ * Compares 2 objects and returns any values that have changed between the
+ * objects as strings.
  *
  * @param newObj object to be compared, data from this object will be returned
  * @param oldObj object to be compared, checks to see if this data has changed
@@ -30,10 +33,12 @@ const difference = (
 };
 
 /**
- * Transforms an object in to a FromData object. This is called recursively to deal with child objects/arrays.
+ * Transforms an object in to a FromData object. This is called recursively to
+ * deal with child objects/arrays.
  *
  * @param data object that will be transformed to form data
- * @param parentKey (optional) a key that represents the name of the parent in an imbedded object
+ * @param parentKey (optional) a key that represents the name of the parent in
+ *              an imbedded object
  * @returns a FromData object
  */
 export const changeToFormData = async (
@@ -55,11 +60,13 @@ export const changeToFormData = async (
 };
 
 /**
- * Adds a point of interest to the database. This does not return new trail data.
+ * Adds a point of interest to the database. This does not return new trail
+ * data.
  *
  * *This does not return updated trail data.*
  *
- * @param newPOI data on the POI to be added. It must contain a *trailId* and *pointsOfInterestId* must be null or missing.
+ * @param newPOI data on the POI to be added. It must contain a *trailId* and
+ *              *pointsOfInterestId* must be null or missing.
  * @param token the token from the authentication.
  * @returns the success/failure of the database submission.
  */
@@ -79,10 +86,12 @@ export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
 };
 
 /**
- * Updates a point of interest to the database. This does not return new trail data.
+ * Updates a point of interest to the database. This does not return new trail
+ * data.
  *
  * *This does not return updated trail data.*
- * @param newPOI data on the POI to be added. It must contain a *pointsOfInterestId*.
+ * @param newPOI data on the POI to be added. It must contain a
+ *              *pointsOfInterestId*.
  * @param oldPOI the original POI that is being updated
  * @param token the token from the authentication.
  * @returns the success/failure of the database submission.
@@ -117,11 +126,14 @@ export const updatePOI = async (
 };
 
 /**
- * Does the actual upload to the database if there is no image as part of the data.
+ * Does the actual upload to the database if there is no image as part of the
+ * data.
  *
- * @param data this is an object that contains the data that is going to be submitted to the database.
+ * @param data this is an object that contains the data that is going to be
+ *              submitted to the database.
  * @param token authorization token of a signed in user.
- * @param url API url of the database to be submitted (the BASE_API will be added to this).
+ * @param url API url of the database to be submitted (the BASE_API will be
+ *              added to this).
  */
 const noImageUpload = async (
   data: Record<string, string>,
@@ -157,13 +169,16 @@ const noImageUpload = async (
 };
 
 /**
- * Does the actual upload to the database if there *is* an image as part of the data.
+ * Does the actual upload to the database if there *is* an image as part of the
+ * data.
  *
  * *Only 1 image can be uploaded at a time:!*
  *
- * @param data this is an object that contains the data that is going to be submitted to the database.
+ * @param data this is an object that contains the data that is going to be
+ *              submitted to the database.
  * @param token authorization token of a signed in user.
- * @param url API url of the database to be submitted (the BASE_API will be added to this).
+ * @param url API url of the database to be submitted (the BASE_API will be
+ *              added to this).
  */
 const imageUpload = async (
   data: Record<string, string>,
@@ -192,11 +207,7 @@ const imageUpload = async (
   };
 
   try {
-    const response = await FileSystem.uploadAsync(
-      BASE_API + url,
-      image,
-      options
-    );
+    const response = await uploadAsync(BASE_API + url, image, options);
 
     // console.log(
     //   `status: ${response.status}\nheader:\n${JSON.stringify(
@@ -215,4 +226,24 @@ const imageUpload = async (
     console.log(err);
     throw Error(err.message);
   }
+};
+
+/**
+ * gets all of the trails
+ *
+ * @return a promise with either data.error as an error message or a clean list
+ *              of trails (it does not update the trailContext)
+ *
+ * (https://stackoverflow.com/questions/41103360/how-to-use-fetch-in-typescript)
+ */
+export const getTrails = async <T>(): Promise<T> => {
+  return fetch(BASE_API + "trails")
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      const cleanData = guardDataType<TrailData[]>(data);
+      return cleanData as T;
+    });
 };

@@ -1,15 +1,13 @@
 import { useState, useEffect, useContext } from "react";
 import { useTrailContext } from "../hooks/useTrailContext";
-import useFetch from "../hooks/useFetch";
 
 // context
 import { AuthContext } from "../contexts/authContext";
-import { TrailContext } from "../contexts/TrailContext";
 import { TrailActions } from "../contexts/TrailContext/actions";
 
-// helpers
+// helpers/styles
 import { checkFGStatus } from "../utils/permissionHelpers";
-import { guardDataType } from "../utils/typeGuard";
+import { getTrails } from "../utils/fetchHelpers";
 import styles from "../styles/Styles";
 
 // Components
@@ -26,14 +24,14 @@ import ShowTrails from "../components/ShowTrails";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import { POIObj, GotPOIObj } from "../interfaces/POIObj";
 import { TrailData } from "../interfaces/TrailData";
-import { addPOIToTrail } from "../utils/fetchHelpers";
 import { SubmitTrailData } from "../interfaces/SaveTrailData";
-type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Constants
-import { BASE_API, CAMP_ALLEN_COORDS } from "../utils/constants";
+import { CAMP_ALLEN_COORDS } from "../utils/constants";
 
 const IS_TEST = true;
+
+type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
@@ -43,13 +41,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // Authorization
   const { auth, setAuth } = useContext(AuthContext);
   const userId = auth.userData?.user.userId || null;
-  const getToken = () => {
-    const token = auth.userData?.token;
-    if (!token) {
-      throw Error("User not authorized");
-    }
-    return token;
-  };
 
   // Information about the trail
   const { trailId, trailList, locationArr, poiArr, trailDispatch } =
@@ -61,29 +52,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   });
   const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>();
 
-  // Display options and Recording options
+  // Display options
   const [modalVisible, setModalVisible] = useState(false);
-
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [pauseRecording, setPauseRecording] = useState(false);
-
-  // forTest:
-  useEffect(() => {
-    if (!IS_TEST) return;
-    if (isRecording || !pauseRecording) {
-      console.log("isRecording:", isRecording);
-      console.log("pauseRecoding:", pauseRecording);
-      console.log("Trail Recording started");
-      console.log("locationArr.length: ", locationArr.length);
-      console.log("modalVisible: ", modalVisible);
-    } else {
-      console.log("Recording Stopped");
-      console.log("isRecording:", isRecording);
-      console.log("pauseRecoding:", pauseRecording);
-    }
-  }, [isRecording, pauseRecording]);
-
-  const { fetchData, data, error, loading } = useFetch<TrailData[]>();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Get Permissions.
   useEffect(() => {
@@ -134,59 +106,25 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     }
   }, [route.params?.newPOI]);
 
-  const getTrails = async () => {
-    fetch(BASE_API + "trails")
-      .then((res) => res.json())
-      .then((data) => {
-        const cleanData = guardDataType<TrailData>(data);
-        trailDispatch({ type: TrailActions.SetAllTrails, payload: cleanData });
-      });
-  };
-
-  const addNewPOIs = async (newTrailId: number) => {
-    const token = getToken();
-
-    for (let i = 0; i < poiArr.length; i++) {
-      const point = poiArr[i];
-      point.trailId = newTrailId;
-      await addPOIToTrail(point, token);
-    }
-    trailDispatch({ type: TrailActions.ClearPOIArr });
-    // setPOIArr([]);
-    getTrails();
-  };
-
-  // fired when data changes (post fetchData)
-  // useEffect(() => {
-  //   let unmounted = false;
-  //   if (!data) return;
-
-  //   // capture the error message
-  //   if (error) {
-  //     console.error(error);
-  //     return;
-  //   }
-
-  //   if (poiArr.length > 0) {
-  //     const newTrailId = data[data.length - 1].trailId;
-
-  //     addNewPOIs(newTrailId!);
-  //   }
-
-  //   return () => {
-  //     unmounted = true;
-  //   };
-  // }, [data]);
-
+  // Get Trails
   useEffect(() => {
-    getTrails();
+    setIsLoading(true);
+    getTrails<TrailData[]>()
+      .then((data) => {
+        trailDispatch({ type: TrailActions.SetAllTrails, payload: data });
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        setError(err);
+        setIsLoading(false);
+      });
   }, []);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
       <SaveTrailModal modalVisible={modalVisible} submitTrail={submitTrail} />
 
-      {loading && <ActivityIndicator size="large" />}
+      {isLoading && <ActivityIndicator size="large" />}
 
       <MapView
         style={styles.map}
@@ -220,6 +158,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
       {/* Other button containers are at the bottom of the screen */}
       <View style={[styles.fgContainer]}>
+        {/* {error && <Text style={styles.errText}>{error}</Text>} */}
         <Text style={styles.permissionsText}>
           {trailId
             ? `Trail Name: ${
@@ -287,7 +226,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           setModalVisible={setModalVisible}
           gotTrailData={gotTrailData}
           setGotTrailData={setGotTrailData}
-          fetchData={fetchData}
         />
       </View>
     </SafeAreaView>
