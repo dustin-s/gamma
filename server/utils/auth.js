@@ -23,7 +23,7 @@ exports.verifyToken = (req, res, next) => {
     logger.error("No token", {
       controller: "auth.js --> verifyToken()",
     });
-    res.sendStatus(400).send("Token not present");
+    res.status(400).json("Token not present");
     return;
   }
 
@@ -41,6 +41,6 @@ exports.verifyToken = (req, res, next) => {
       controller: "auth.js --> verifyToken()",
       errorMsg: "Invalid token",
     });
-    res.status(403).send("Token invalid");
+    res.status(403).json("Token invalid");
   }
 };
