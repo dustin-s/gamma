@@ -23,6 +23,9 @@ import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
 import useFetch from "../../hooks/useFetch";
 import { useTrailContext } from "../../hooks/useTrailContext";
 import styles from "../../styles/Styles";
+import { BASE_API } from "../../utils/constants";
+import { guardDataType } from "../../utils/typeGuard";
+import { TrailData } from "../../interfaces/TrailData";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
@@ -195,10 +198,6 @@ export default function AdminButtons({
       TrailCoords: locationArr,
     });
 
-    // console.log("FormData:");
-    // console.log(JSON.stringify(formData, null, 2));
-    // console.log("\n************************************");
-
     const token = auth.userData?.token;
 
     const options: RequestInit = {
@@ -212,6 +211,14 @@ export default function AdminButtons({
     };
 
     // save trail data (get trail back and append to trail)
+    const res = await fetch(BASE_API + "trails", options);
+    const data = res.json() as any;
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    // const cleanData = guardDataType<TrailData[]>(data);
+
     /*
     fetchData({ url: "trails/", options });
     //   if (poiArr.length > 0) {
