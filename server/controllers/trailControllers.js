@@ -137,7 +137,7 @@ exports.saveTrail = async (req, res, next) => {
       user: req.user.userId,
     });
 
-    next();
+    res.status(201).json(trail.toJSON());
   } catch (err) {
     console.log("\ncatch error:");
     console.log(err);
@@ -202,7 +202,8 @@ exports.updateTrail = async (req, res, next) => {
       msg: "Update trail success",
       user: req.user.userId,
     });
-    next();
+
+    res.status(201).json(trail.toJSON());
   } catch (err) {
     console.log("\ncatch error:");
     console.log(err);
