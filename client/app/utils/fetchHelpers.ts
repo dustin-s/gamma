@@ -44,34 +44,23 @@ const difference = (
 export const changeToFormData = async (
   data: Record<string, any>,
   parentKey?: string,
-  fd?: FormData,
-  c = 0
+  fd?: FormData
 ) => {
-  c++; // counter to track depth of iterations...
-  // console.log(c, "\t*** Change to FormData ***");
-  // console.log(c, "\tEntry parentKey:", parentKey);
-  // console.log(c, "\tEntry data:", JSON.stringify(data, null, 2));
-
   const formData = fd || new FormData();
   parentKey = parentKey || "";
 
   for (const key in data) {
     if (data[key] instanceof Array) {
-      // console.log(c, "\tdata is array");
       for (const value of data[key]) {
-        changeToFormData(value, parentKey + key + "_", formData, c);
+        changeToFormData(value, parentKey + key + "_", formData);
       }
     } else if (typeof data[key] === "object") {
-      // console.log(c, "\tdata is object");
-      changeToFormData(data[key], parentKey + key + "_", formData, c);
+      changeToFormData(data[key], parentKey + key + "_", formData);
     } else {
-      // console.log(`${c}\tparentKey + key (${parentKey + key}) `);
-      // console.log(`${c}\tdata (${data[key]}) is ${typeof data[key]}`);
       formData.append(parentKey + key, data[key].toString());
     }
   }
 
-  // console.log(c, "\t************************************");
   return formData;
 };
 
