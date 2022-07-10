@@ -23,41 +23,18 @@ const {
 
 router.get("/", listTrails);
 
-router.post(
-  "/",
-  verifyToken,
-  fieldsUpload,
-  saveTrailValidator,
-  saveTrail,
-  listTrails
-);
+router.post("/", verifyToken, fieldsUpload, saveTrailValidator, saveTrail);
+router.post("/updateTrail", verifyToken, updateTrailValidator, updateTrail);
+router.delete("/:trailId", verifyToken, deleteTrail, listTrails);
 
-router.post(
-  "/updateTrail",
-  verifyToken,
-  updateTrailValidator,
-  updateTrail,
-  listTrails
-);
-
-router.post(
-  "/addPOI",
-  verifyToken,
-  fieldsUpload,
-  addPOIValidator,
-  addPOI,
-  listTrails
-);
+router.post("/addPOI", verifyToken, fieldsUpload, addPOIValidator, addPOI);
 router.post(
   "/updatePOI",
   verifyToken,
   fieldsUpload,
   updatePOIValidator,
-  updatePOI,
-  listTrails
+  updatePOI
 );
 // post "/:trailID/add_hazard"
-
-router.delete("/:trailId", verifyToken, deleteTrail, listTrails);
 
 module.exports = router;

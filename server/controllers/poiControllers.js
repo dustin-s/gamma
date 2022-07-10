@@ -56,7 +56,7 @@ exports.addPOI = async (req, res, next) => {
       errorMsg: "add POI Success",
     });
 
-    next();
+    res.status(201).json(poi.toJSON());
   } catch (err) {
     console.log("\ncatch error:");
     console.log(err);
@@ -125,7 +125,8 @@ exports.updatePOI = async (req, res, next) => {
       controller,
       errorMsg: "update POI Success",
     });
-    next();
+
+    res.status(200).json(poi.toJSON());
   } catch (err) {
     console.log(err);
     logger.error(err, {
