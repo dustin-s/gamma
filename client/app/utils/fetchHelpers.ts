@@ -65,15 +65,12 @@ export const changeToFormData = async (
 };
 
 /**
- * Adds a point of interest to the database. This does not return new trail
- * data.
- *
- * *This does not return updated trail data.*
+ * Adds a point of interest to the database.
  *
  * @param newPOI data on the POI to be added. It must contain a *trailId* and
  *              *pointsOfInterestId* must be null or missing.
  * @param token the token from the authentication.
- * @returns the success/failure of the database submission.
+ * @returns the POI object that was successfully uploaded
  */
 export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
   console.log("*** Add POI to Trail function ***");
@@ -91,15 +88,12 @@ export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
 };
 
 /**
- * Updates a point of interest to the database. This does not return new trail
- * data.
+ * Updates a point of interest to the database.
  *
- * *This does not return updated trail data.*
- * @param newPOI data on the POI to be added. It must contain a
- *              *pointsOfInterestId*.
+ * @param newPOI data on the POI to be added. It must contain a *pointsOfInterestId*.
  * @param oldPOI the original POI that is being updated
  * @param token the token from the authentication.
- * @returns the success/failure of the database submission.
+ * @returns the POI object that was successfully uploaded
  */
 export const updatePOI = async (
   newPOI: POIObj,
@@ -134,11 +128,10 @@ export const updatePOI = async (
  * Does the actual upload to the database if there is no image as part of the
  * data.
  *
- * @param data this is an object that contains the data that is going to be
- *              submitted to the database.
+ * @param data this is an object that contains the data that is going to be submitted to the database.
  * @param token authorization token of a signed in user.
- * @param url API url of the database to be submitted (the BASE_API will be
- *              added to this).
+ * @param url API url of the database to be submitted (the BASE_API will be added to this).
+ * @returns the POI object that was successfully uploaded
  */
 const noImageUpload = async (
   data: Record<string, string>,
@@ -167,7 +160,7 @@ const noImageUpload = async (
       throw Error(responseData.error);
     }
     // we only need to check if there is an error - we will refetch data in main object.
-    return;
+    return responseData as POIObj;
   } catch (error: any) {
     throw Error(error);
   }
@@ -179,11 +172,10 @@ const noImageUpload = async (
  *
  * *Only 1 image can be uploaded at a time:!*
  *
- * @param data this is an object that contains the data that is going to be
- *              submitted to the database.
+ * @param data this is an object that contains the data that is going to be submitted to the database.
  * @param token authorization token of a signed in user.
- * @param url API url of the database to be submitted (the BASE_API will be
- *              added to this).
+ * @param url API url of the database to be submitted (the BASE_API will be added to this).
+ * @returns the POI object that was successfully uploaded
  */
 const imageUpload = async (
   data: Record<string, string>,
@@ -202,7 +194,7 @@ const imageUpload = async (
   const options: FileSystemUploadOptions = {
     headers: {
       "Content-Type": "multipart/form-data",
-      Accept: "image/jpeg, image/png",
+      Accept: "application/json",
       Authorization: `Bearer ${token}`,
     },
     httpMethod: "POST",
@@ -222,10 +214,11 @@ const imageUpload = async (
     //   )}\nbody:\n${response.body}`
     // );
 
-    if (response.status >= 200 && response.status < 300) {
-      return;
+    const data = JSON.parse(response.body);
+    if (data.error) {
+      throw Error(data.error);
     } else {
-      throw Error(response.body);
+      return data as POIObj;
     }
   } catch (err: any) {
     console.log(err);
@@ -236,8 +229,7 @@ const imageUpload = async (
 /**
  * gets all of the trails
  *
- * @returns a promise with either data.error as an error message or a clean list
- *              of trails (it does not update the trailContext)
+ * @returns a promise with either data.error as an error message or a clean list of trails (it does not update the trailContext)
  */
 //  (https://stackoverflow.com/questions/41103360/how-to-use-fetch-in-typescript)
 export const getTrails = async <T>(): Promise<T> => {

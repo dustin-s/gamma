@@ -35,6 +35,8 @@ interface AdminButtonsProps {
   gotTrailData: SubmitTrailData;
   setGotTrailData(value: SetStateAction<SubmitTrailData>): void;
   setModalVisible(value: SetStateAction<boolean>): void;
+  setIsLoading(value: SetStateAction<boolean>): void;
+  setError(value: SetStateAction<string>): void;
 }
 
 export default function AdminButtons({
@@ -43,6 +45,8 @@ export default function AdminButtons({
   setModalVisible, // <-- Can we pull the modal in to this screen?
   gotTrailData,
   setGotTrailData,
+  setIsLoading,
+  setError,
 }: AdminButtonsProps) {
   // Authorization
   const { auth } = useContext(AuthContext);
@@ -185,64 +189,68 @@ export default function AdminButtons({
     isClosed,
   }: SaveTrailData) => {
     console.log("********** Save Data **********");
-    if (userId === null) {
-      throw new Error("userId is null when saving trail");
+    try {
+      if (userId === null) {
+        throw new Error("userId is null when saving trail");
+      }
+
+      const formData = await changeToFormData({
+        name,
+        description,
+        difficulty,
+        isClosed,
+        createdBy: userId,
+        TrailCoords: locationArr,
+      });
+
+      const token = getToken();
+
+      const options: RequestInit = {
+        method: "POST",
+        headers: {
+          Accept: "multipart/form-data",
+          "Cache-control": "no-cache",
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      };
+
+      // save trail data (get trail back and append to trail)
+      const response = await fetch(BASE_API + "trails", options);
+      const data = response.json() as any;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      const newTrail: TrailData = guardDataType<TrailData>(data);
+
+      if (poiArr.length > 0) {
+        const newTrailId = newTrail.trailId;
+
+        for (let i = 0; i < poiArr.length; i++) {
+          // add each POI to the DB
+          const point = poiArr[i];
+          point.trailId = newTrailId;
+          const newPOI = await addPOIToTrail(point, token);
+
+          // add each POI to the new trail
+          newTrail.PointsOfInterests?.push(newPOI);
+        }
+      }
+      trailDispatch({ type: TrailActions.ClearPOIArr });
+      trailDispatch({ type: TrailActions.ClearLocations });
+      trailDispatch({ type: TrailActions.AddTrail, payload: newTrail });
+
+      setAddingTrail(false);
+      setIsLoading(false);
+    } catch (err: any) {
+      console.log(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(String(err));
+      }
     }
-
-    const formData = await changeToFormData({
-      name,
-      description,
-      difficulty,
-      isClosed,
-      createdBy: userId,
-      TrailCoords: locationArr,
-    });
-
-    const token = auth.userData?.token;
-
-    const options: RequestInit = {
-      method: "POST",
-      headers: {
-        Accept: "multipart/form-data",
-        "Cache-control": "no-cache",
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    };
-
-    // save trail data (get trail back and append to trail)
-    const res = await fetch(BASE_API + "trails", options);
-    const data = res.json() as any;
-
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    // const cleanData = guardDataType<TrailData[]>(data);
-
-    /*
-    fetchData({ url: "trails/", options });
-    //   if (poiArr.length > 0) {
-    //     const newTrailId = data[data.length - 1].trailId;
-
-    //     addNewPOIs(newTrailId!);
-    //   }
-
-    trailDispatch({ type: TrailActions.ClearLocations });
-    setAddingTrail(false);
-    // alert("Trail saved");*/
-  };
-
-  const addNewPOIs = async (newTrailId: number) => {
-    const token = getToken();
-
-    for (let i = 0; i < poiArr.length; i++) {
-      const point = poiArr[i];
-      point.trailId = newTrailId;
-      await addPOIToTrail(point, token);
-    }
-    trailDispatch({ type: TrailActions.ClearPOIArr });
-    // setPOIArr([]);
-    getTrails();
   };
 
   const savePOI = async () => {
@@ -282,6 +290,11 @@ export default function AdminButtons({
       await fetchData({ url: "trails" });
     } catch (err: any) {
       console.log(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(String(err));
+      }
     }
   };
 

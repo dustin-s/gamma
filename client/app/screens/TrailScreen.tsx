@@ -226,6 +226,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           setModalVisible={setModalVisible}
           gotTrailData={gotTrailData}
           setGotTrailData={setGotTrailData}
+          setIsLoading={setIsLoading}
         />
       </View>
     </SafeAreaView>
