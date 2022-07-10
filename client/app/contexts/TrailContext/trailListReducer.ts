@@ -7,6 +7,7 @@ import { TrailIdActions } from "./trailIdReducer";
 type trailListPayload = {
   [TrailActions.SetAllTrails]: TrailData[];
   [TrailActions.AddTrail]: TrailData;
+  [TrailActions.UpdateTrail]: TrailData;
 };
 
 export type TrailListActions =
@@ -21,6 +22,11 @@ export const trailDataReducer = (
       return (state = action.payload);
     case TrailActions.AddTrail:
       return [...state, action.payload];
+    case TrailActions.UpdateTrail:
+      const updatedState = state.map((prev: TrailData) =>
+        prev.trailId === action.payload.trailId ? action.payload : prev
+      );
+      return updatedState;
     default:
       return state;
   }

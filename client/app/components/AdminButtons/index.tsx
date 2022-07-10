@@ -15,7 +15,7 @@ import { AuthContext } from "../../contexts/authContext";
 import { TrailActions } from "../../contexts/TrailContext/actions";
 
 import { LocationObject } from "expo-location";
-import { GotPOIObj } from "../../interfaces/POIObj";
+import { POIObj } from "../../interfaces/POIObj";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { StackNativeScreenProps } from "../../interfaces/StackParamList";
 import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
@@ -30,8 +30,6 @@ import { TrailData } from "../../interfaces/TrailData";
 const LOCATION_TASK_NAME = "background-location-task";
 
 interface AdminButtonsProps {
-  gotPOI: GotPOIObj;
-  setGotPOI(value: SetStateAction<GotPOIObj>): void;
   gotTrailData: SubmitTrailData;
   setGotTrailData(value: SetStateAction<SubmitTrailData>): void;
   setModalVisible(value: SetStateAction<boolean>): void;
@@ -40,8 +38,6 @@ interface AdminButtonsProps {
 }
 
 export default function AdminButtons({
-  gotPOI, // <-- can we get the route params directly? Move that whole use effect here?
-  setGotPOI,
   setModalVisible, // <-- Can we pull the modal in to this screen?
   gotTrailData,
   setGotTrailData,
@@ -60,11 +56,12 @@ export default function AdminButtons({
     return token;
   };
 
-  const { trailId, locationArr, poiArr, trailDispatch } = useTrailContext();
+  const { trailId, trailList, locationArr, poiArr, trailDispatch } =
+    useTrailContext();
 
   const navigation =
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
-  const routes = useRoute<StackNativeScreenProps<"Trail Screen">["route"]>();
+  const route = useRoute<StackNativeScreenProps<"Trail Screen">["route"]>();
 
   //
   const { fetchData } = useFetch();
@@ -253,7 +250,7 @@ export default function AdminButtons({
     }
   };
 
-  const savePOI = async () => {
+  const savePOI = async (newPOI: POIObj) => {
     console.log("***** Save POI *****");
     try {
       // resume recording (if needed)
@@ -261,33 +258,55 @@ export default function AdminButtons({
         setPauseRecording(false);
       }
 
-      const { newPOI, oldPOI } = gotPOI;
-      console.log("newPOI:\n", newPOI);
-
-      // no POI to add (route returned "Cancel")
-      if (!newPOI) return;
-
       const token = getToken();
+      const curTrailId = newPOI.trailId;
+      const curPOIId = newPOI.pointsOfInterestId;
 
-      if (oldPOI) {
-        // has both a POI ID and TRail ID
-        console.log("***** Update POI *****");
-        console.log("Old POI:\n", oldPOI);
-        await updatePOI(newPOI, oldPOI, token);
-      } else if (newPOI.trailId) {
-        // doesn't have a POI ID
-        console.log("***** Add New POI to Trail *****");
-        console.log("Trail Id:", newPOI.trailId);
-        await addPOIToTrail(newPOI, token);
-      } else {
-        // if new trail...
-        console.log("Add POI to array");
+      // if new trail...
+      if (!curPOIId && !curTrailId) {
         trailDispatch({ type: TrailActions.AddPOI, payload: newPOI });
         return;
       }
-      setGotPOI({ newPOI: undefined, oldPOI: undefined });
-      // after getting POI, append to trail
-      await fetchData({ url: "trails" });
+
+      // not a new trail - set up variable to store new list of POIs
+      let newTrailsPOIs: POIObj[] = [];
+
+      // get trailIndex
+      const trailIndex = trailList.findIndex(
+        (trail: TrailData) => trail.trailId === curTrailId
+      );
+      if (trailIndex < 0) {
+        throw Error("SavePOI: No trail index found");
+      }
+      // get current list of POIs (this will be modified into newTrailsPOIs)
+      const trailsPOIs = trailList[trailIndex].PointsOfInterests || [];
+
+      // update existing POI ELSE new POI for existing Trail
+      if (curPOIId && curTrailId) {
+        const oldPOI = trailsPOIs.filter(
+          (poi: POIObj) => poi.pointsOfInterestId === curPOIId
+        )[0];
+
+        const addedPOI = await updatePOI(newPOI, oldPOI, token);
+
+        newTrailsPOIs = trailsPOIs.map((old: POIObj) =>
+          old.pointsOfInterestId == addedPOI.pointsOfInterestId ? addedPOI : old
+        );
+      } else if (!curPOIId && curTrailId) {
+        const addedPOI = await addPOIToTrail(newPOI, token);
+
+        newTrailsPOIs = [...trailsPOIs, addedPOI];
+      }
+      // ensure update was done
+      if (newTrailsPOIs.length > 0) {
+        const newTrail = {
+          ...trailList[trailIndex],
+          PointsOfInterests: newTrailsPOIs,
+        };
+        trailDispatch({ type: TrailActions.UpdateTrail, payload: newTrail });
+      }
+      return;
+      //
     } catch (err: any) {
       console.log(err);
       if (err instanceof Error) {
@@ -303,11 +322,18 @@ export default function AdminButtons({
     console.log("*********************************************");
     console.log(
       "Admin Buttons: routes.params?.newPOI",
-      routes.params?.newPOI || "null"
+      route.params?.newPOI || "null"
     );
     console.log("*********************************************");
-    savePOI();
-  }, [gotPOI]);
+    if (!route.params?.newPOI) {
+      return;
+    }
+
+    const newPOI = route.params.newPOI;
+    if (newPOI !== "Cancel") {
+      savePOI(newPOI);
+    }
+  }, [route]);
 
   // save trails
   useEffect(() => {

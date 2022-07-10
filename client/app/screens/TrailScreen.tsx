@@ -22,7 +22,6 @@ import ShowTrails from "../components/ShowTrails";
 
 // Types/Interfaces
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import { POIObj, GotPOIObj } from "../interfaces/POIObj";
 import { TrailData } from "../interfaces/TrailData";
 import { SubmitTrailData } from "../interfaces/SaveTrailData";
 
@@ -34,7 +33,7 @@ const IS_TEST = true;
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
-export default function TrailScreen({ navigation, route }: TrailScreenProps) {
+export default function TrailScreen({ navigation }: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
   const [region, setRegion] = useState(CAMP_ALLEN_COORDS);
 
@@ -46,10 +45,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const { trailId, trailList, locationArr, poiArr, trailDispatch } =
     useTrailContext();
 
-  const [gotPOI, setGotPOI] = useState<GotPOIObj>({
-    newPOI: undefined,
-    oldPOI: undefined,
-  });
   const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>();
 
   // Display options
@@ -76,35 +71,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
     setModalVisible(false);
     setGotTrailData(value);
   };
-
-  // save POI
-  useEffect(() => {
-    console.log("********** Trail Screen **********");
-    console.log(`time:  ${new Date().toLocaleString()}`);
-    console.log("Route Params:", route.params);
-
-    if (route.params?.newPOI && trailList) {
-      let newPOI: POIObj | undefined = undefined;
-      let oldPOI: POIObj | undefined = undefined;
-
-      if (route.params.newPOI !== "Cancel") {
-        newPOI = route.params.newPOI;
-
-        // only if a POI ID exists will there be an old POI
-        if (newPOI.pointsOfInterestId && newPOI.trailId) {
-          const curTrailId = newPOI.trailId;
-          const curPOIId = newPOI.pointsOfInterestId;
-
-          oldPOI = trailList
-            .filter((el: TrailData) => el.trailId === curTrailId)[0]
-            .PointsOfInterests?.filter(
-              (el: POIObj) => el.pointsOfInterestId === curPOIId
-            )[0];
-        }
-      }
-      setGotPOI({ newPOI, oldPOI });
-    }
-  }, [route.params?.newPOI]);
 
   // Get Trails
   useEffect(() => {
@@ -158,7 +124,7 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
       {/* Other button containers are at the bottom of the screen */}
       <View style={[styles.fgContainer]}>
-        {/* {error && <Text style={styles.errText}>{error}</Text>} */}
+        {error !== "" && <Text style={styles.errText}>{error}</Text>}
         <Text style={styles.permissionsText}>
           {trailId
             ? `Trail Name: ${
@@ -221,12 +187,11 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
         {/* Show these buttons for a logged in user */}
         <AdminButtons
-          gotPOI={gotPOI}
-          setGotPOI={setGotPOI}
           setModalVisible={setModalVisible}
           gotTrailData={gotTrailData}
           setGotTrailData={setGotTrailData}
           setIsLoading={setIsLoading}
+          setError={setError}
         />
       </View>
     </SafeAreaView>
