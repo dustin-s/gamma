@@ -78,9 +78,5 @@ export default function ShowTrails({
     }
   };
 
-  useEffect(() => {
-    console.log("ShowTrails trailList length:", trailList.length);
-  }, []);
-
   return <>{renderTrails()}</>;
 }

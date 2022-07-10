@@ -4,7 +4,12 @@ import * as TaskManager from "expo-task-manager";
 import { checkFGStatus } from "../../utils/permissionHelpers";
 import { View } from "react-native";
 import MapButton from "../MapButton";
-import { addPOIToTrail, updatePOI } from "../../utils/fetchHelpers";
+import {
+  addPOIToTrail,
+  changeToFormData,
+  getTrails,
+  updatePOI,
+} from "../../utils/fetchHelpers";
 
 import { AuthContext } from "../../contexts/authContext";
 import { TrailActions } from "../../contexts/TrailContext/actions";
@@ -27,14 +32,12 @@ interface AdminButtonsProps {
   gotTrailData: SubmitTrailData;
   setGotTrailData(value: SetStateAction<SubmitTrailData>): void;
   setModalVisible(value: SetStateAction<boolean>): void;
-  fetchData: any;
 }
 
 export default function AdminButtons({
   gotPOI, // <-- can we get the route params directly? Move that whole use effect here?
   setGotPOI,
   setModalVisible, // <-- Can we pull the modal in to this screen?
-  // fetchData, <-- change this to use trailContext
   gotTrailData,
   setGotTrailData,
 }: AdminButtonsProps) {
@@ -56,6 +59,7 @@ export default function AdminButtons({
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
   const routes = useRoute<StackNativeScreenProps<"Trail Screen">["route"]>();
 
+  //
   const { fetchData } = useFetch();
 
   // recording status
@@ -177,26 +181,23 @@ export default function AdminButtons({
     difficulty,
     isClosed,
   }: SaveTrailData) => {
+    console.log("********** Save Data **********");
     if (userId === null) {
       throw new Error("userId is null when saving trail");
     }
 
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("difficulty", difficulty);
-    formData.append("isClosed", isClosed.toString());
-    formData.append("createdBy", userId.toString());
-    for (let location of locationArr) {
-      for (const [key, value] of Object.entries(location)) {
-        formData.append(`TrailCoords_${key}`, value?.toString() ?? "");
-      }
-    }
-    // hazards: HazardObj[];
+    const formData = await changeToFormData({
+      name,
+      description,
+      difficulty,
+      isClosed,
+      createdBy: userId,
+      TrailCoords: locationArr,
+    });
 
-    console.log("*** Save Data ***");
-    console.log(formData);
-    console.log("\n************************************");
+    // console.log("FormData:");
+    // console.log(JSON.stringify(formData, null, 2));
+    // console.log("\n************************************");
 
     const token = auth.userData?.token;
 
@@ -209,11 +210,32 @@ export default function AdminButtons({
       },
       body: formData,
     };
+
+    // save trail data (get trail back and append to trail)
+    /*
     fetchData({ url: "trails/", options });
+    //   if (poiArr.length > 0) {
+    //     const newTrailId = data[data.length - 1].trailId;
+
+    //     addNewPOIs(newTrailId!);
+    //   }
 
     trailDispatch({ type: TrailActions.ClearLocations });
     setAddingTrail(false);
-    // alert("Trail saved");
+    // alert("Trail saved");*/
+  };
+
+  const addNewPOIs = async (newTrailId: number) => {
+    const token = getToken();
+
+    for (let i = 0; i < poiArr.length; i++) {
+      const point = poiArr[i];
+      point.trailId = newTrailId;
+      await addPOIToTrail(point, token);
+    }
+    trailDispatch({ type: TrailActions.ClearPOIArr });
+    // setPOIArr([]);
+    getTrails();
   };
 
   const savePOI = async () => {
@@ -249,12 +271,14 @@ export default function AdminButtons({
         return;
       }
       setGotPOI({ newPOI: undefined, oldPOI: undefined });
+      // after getting POI, append to trail
       await fetchData({ url: "trails" });
     } catch (err: any) {
       console.log(err);
     }
   };
 
+  // save pois (can do this from the effect directly)
   useEffect(() => {
     console.log("*********************************************");
     console.log(
@@ -265,6 +289,7 @@ export default function AdminButtons({
     savePOI();
   }, [gotPOI]);
 
+  // save trails
   useEffect(() => {
     if (!gotTrailData) return;
 

@@ -43,19 +43,35 @@ const difference = (
  */
 export const changeToFormData = async (
   data: Record<string, any>,
-  parentKey?: string
+  parentKey?: string,
+  fd?: FormData,
+  c = 0
 ) => {
-  // console.log("changeToFormData: Entry data:", stringify(data));
-  const formData = new FormData();
+  c++; // counter to track depth of iterations...
+  // console.log(c, "\t*** Change to FormData ***");
+  // console.log(c, "\tEntry parentKey:", parentKey);
+  // console.log(c, "\tEntry data:", JSON.stringify(data, null, 2));
+
+  const formData = fd || new FormData();
   parentKey = parentKey || "";
 
-  Object.keys(data).forEach((key: string) => {
-    if (typeof data[key] === "object") {
-      changeToFormData(data[key], parentKey + key + "_");
+  for (const key in data) {
+    if (data[key] instanceof Array) {
+      // console.log(c, "\tdata is array");
+      for (const value of data[key]) {
+        changeToFormData(value, parentKey + key + "_", formData, c);
+      }
+    } else if (typeof data[key] === "object") {
+      // console.log(c, "\tdata is object");
+      changeToFormData(data[key], parentKey + key + "_", formData, c);
+    } else {
+      // console.log(`${c}\tparentKey + key (${parentKey + key}) `);
+      // console.log(`${c}\tdata (${data[key]}) is ${typeof data[key]}`);
+      formData.append(parentKey + key, data[key].toString());
     }
-    formData.append(parentKey + key, data[key]);
-  });
+  }
 
+  // console.log(c, "\t************************************");
   return formData;
 };
 
@@ -231,11 +247,10 @@ const imageUpload = async (
 /**
  * gets all of the trails
  *
- * @return a promise with either data.error as an error message or a clean list
+ * @returns a promise with either data.error as an error message or a clean list
  *              of trails (it does not update the trailContext)
- *
- * (https://stackoverflow.com/questions/41103360/how-to-use-fetch-in-typescript)
  */
+//  (https://stackoverflow.com/questions/41103360/how-to-use-fetch-in-typescript)
 export const getTrails = async <T>(): Promise<T> => {
   return fetch(BASE_API + "trails")
     .then((res) => res.json())
