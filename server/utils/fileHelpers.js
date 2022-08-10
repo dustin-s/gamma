@@ -26,3 +26,25 @@ exports.ensureDirExists = async (path) => {
     return await fs.promises.mkdir(path, { recursive: true });
   }
 };
+
+/**
+ * Deletes the director at path and all subdirectories.
+ *
+ * @param {string} path
+ * @returns true if successfully deleted the directory or false if the directory doesn't exist
+ */
+exports.deleteDir = async (path) => {
+  try {
+    await fs.promises.access(path);
+  } catch (error) {
+    return false;
+  }
+  try {
+    await fs.promises.rm(path, { recursive: true, force: true });
+    return true;
+  } catch (err) {
+    console.log("deleteDir catch error:");
+    console.log(err);
+    throw new Error(err);
+  }
+};

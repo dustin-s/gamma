@@ -9,22 +9,15 @@ import {
   Switch,
   Alert,
 } from "react-native";
-import { SaveTrailData } from "../interfaces/SaveTrailData";
+import { SubmitTrailData } from "../interfaces/SaveTrailData";
 import SlideSelector from "./SlideSelector";
 
 interface SaveTrailModalProps {
   modalVisible: boolean;
-  setModalVisible(value: SetStateAction<boolean>): void;
-  saveTrail({}: SaveTrailData): void;
-  doCancel(): void;
+  submitTrail(value: SubmitTrailData): void;
 }
 
-const SaveTrailModal = ({
-  modalVisible,
-  setModalVisible,
-  saveTrail,
-  doCancel,
-}: SaveTrailModalProps) => {
+const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [difficulty, setDifficulty] = useState<"easy" | "moderate" | "hard">(
@@ -32,20 +25,16 @@ const SaveTrailModal = ({
   );
   const [isClosed, setIsClosed] = useState(false);
 
-  useEffect(() => {
-    if (modalVisible) {
-      console.log("\nModal visible");
-      console.log(`name: ${name}`);
-      console.log(`description: ${description}`);
-      console.log(`difficulty: ${difficulty}`);
-      console.log(`isClosed: ${isClosed}`);
-    }
-  }, [modalVisible]);
+  const resetModal = () => {
+    // reset modal's states
+    setName("");
+    setDescription("");
+    setDifficulty("easy");
+    setIsClosed(false);
+  };
 
   const handleCancel = () => {
     console.log("cancel was pressed on the modal");
-    // do warning modal
-    // doCancel();
 
     return Alert.alert(
       "Cancel",
@@ -55,16 +44,13 @@ const SaveTrailModal = ({
           text: "No",
           onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
+          // not resetting values here - they may want to reuse them.
         },
         {
           text: "Yes",
           onPress: () => {
-            // reset modal's states
-            setName("");
-            setDescription("");
-            setDifficulty("easy");
-
-            doCancel();
+            resetModal();
+            submitTrail("Cancel");
           },
         },
       ]
@@ -81,8 +67,10 @@ const SaveTrailModal = ({
     };
     console.log(saveData);
 
-    saveTrail(saveData);
-    setModalVisible(!modalVisible);
+    submitTrail(saveData);
+
+    // reset variables after successful save
+    resetModal();
   };
 
   return (
@@ -92,7 +80,7 @@ const SaveTrailModal = ({
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
-          setModalVisible(!modalVisible);
+          submitTrail("Closed");
         }}
       >
         <View style={styles.centeredView}>
@@ -101,7 +89,7 @@ const SaveTrailModal = ({
               <Text style={styles.headerLabel}>Save Trail</Text>
               <Pressable
                 style={styles.closeBtn}
-                onPress={() => setModalVisible(!modalVisible)}
+                onPress={() => submitTrail("Closed")}
               >
                 <Text style={styles.closeBtnText}>X</Text>
               </Pressable>
@@ -154,20 +142,6 @@ const SaveTrailModal = ({
                 onSelect={setDifficulty}
                 selected={difficulty}
               />
-              {/* <Text style={styles.label}>Difficulty</Text>
-              <TextInput
-                style={styles.txtInput}
-                placeholder={difficulty}
-                value={difficulty}
-                onChangeText={(value) => {
-                  if (
-                    value === "easy" ||
-                    value === "moderate" ||
-                    value === "hard"
-                  )
-                    setDifficulty(value);
-                }}
-              /> */}
             </View>
             <View style={styles.controlGroup}>
               <Text style={styles.label}>Closed?</Text>

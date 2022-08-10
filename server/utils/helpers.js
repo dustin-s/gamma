@@ -1,4 +1,5 @@
-exports.validationErrors = (arr) => arr.map((el) => el.msg).join("\n");
+exports.validationErrors = (arr) =>
+  arr.map((el) => [el.param, el.msg].join(": ")).join("\n");
 
 /**
  * Returns the length of the array, or if it isn't an array, it returns 1

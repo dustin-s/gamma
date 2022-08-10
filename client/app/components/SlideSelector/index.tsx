@@ -49,11 +49,7 @@ export default function SlideSelector({
         <Text style={[styles.title, { color }]}>{item.label}</Text>
         {isSelected && (
           <View style={styles.imageContainer}>
-            <Image
-              source={circleImage}
-              style={styles.circle}
-              // resizeMode={"contain"}
-            />
+            <Image source={circleImage} style={styles.circle} />
           </View>
         )}
       </Pressable>
@@ -72,7 +68,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     justifyContent: "center",
-    // alignItems: "center",
   },
   item: {
     padding: 10,

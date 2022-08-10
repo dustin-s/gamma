@@ -1,323 +1,275 @@
-const { body, validationResult } = require("express-validator");
-const sharp = require("sharp");
+const { validationResult } = require("express-validator");
 
 const { loggers } = require("winston");
+const { SAVE_DIRECTORY } = require("../config/imageUpload");
 const logger = loggers.get("logger");
 
-const {
-  SAVE_DIRECTORY,
-  QUALITY: quality,
-  RESIZE,
-  VALID_IMAGE_TYPES,
-} = require("../config/imageUpload");
+const { Trail, TrailCoords, PointsOfInterest } = require("../models");
+
 const { distance } = require("../utils/distance");
-const { ensureDirExists, getFileName } = require("../utils/fileHelpers");
+const { deleteDir } = require("../utils/fileHelpers");
+const { validationErrors } = require("../utils/helpers");
+const { getImageLinks } = require("../utils/images");
 
-const { Trail, TrailCoords, User, PointsOfInterest } = require("../models");
-const {
-  validationErrors,
-  checkLengthOfObjectArrays,
-  makeObjectArray,
-} = require("../utils/helpers");
-
-// returns a list of all of the trails and the trail's points
-exports.listTrails = async (req, res) => {
+/**
+ * returns a list of all of the trails (open and closed), the trail's points, and if they exist, the active points of interest and hazards
+ */
+exports.listTrails = async (req, res, next) => {
+  const controller = "listTrails";
   try {
-    trails = await Trail.findAll({ include: [TrailCoords, PointsOfInterest] });
+    trails = await Trail.findAll({
+      include: [TrailCoords, PointsOfInterest],
+    });
     res.status(200).json(trails);
   } catch (err) {
-    logger.debug(err, {
-      controller: "listTrails",
+    logger.error(err, {
+      controller,
       errorMsg: "listTrails Catch Error",
     });
     res.status(500).json(err);
   }
 };
 
-// How to save a trail:
-// 1. Validation of data
-//    a. ensure the data is of the correct type
-//    b. ensure each poi has an image (req.files['poi'].length === req.poi.length)
-// 2. save the trail and TrailCoords
-// 3. save the Points of Interest
-//    a. save the images (../public/images/poi/trailId/<image index>.jpg)
-//    b. save the poi
-exports.saveTrail = [
-  // Trail validation
-  body("createdBy", "Invalid data type, must be an integer")
-    .isInt()
-    .bail()
-    .toInt()
-    .custom(async (value) => {
-      const user = await User.findByPk(value);
-      if (!user) {
-        throw new Error("UserID doesn't exist");
-      }
-    }),
-  body("name", "Invalid data type, must be a string")
-    .optional()
-    .isString()
-    .trim()
-    .escape()
-    .custom(async (value) => {
-      const trail = await Trail.findAll({ where: { name: value } });
-      if (trail.length > 0) {
-        throw new Error(`Trail name, ${value}, is already in use`);
-      }
-    }),
-  body("description", "Invalid data type, must be a string")
-    .optional()
-    .isString()
-    .trim()
-    .escape(),
-  body("difficulty", "Invalid selection for difficulty")
-    .exists()
-    .withMessage("Difficulty field is required")
-    .bail()
-    .trim()
-    .isIn(["easy", "moderate", "hard"]),
-  body("isClosed", "isClosed must be true/false")
-    .optional()
-    .isBoolean()
-    .toBoolean(),
+/**
+ * Adds a trail to the DB
+ *
+ * This will be from a multipart form (because of the potential image).
+ * The following fields are required:
+ *    createdBy {int}
+ *    difficulty {"easy", "moderate", "hard"}
+ *
+ *    At least 2 TrailCoords which require:
+ *      TrailCoords.latitude (float)
+ *      TrailCoords.longitude (float)
+ *
+ *    If a POI array exists it requires
+ *      POI.description {string}
+ *      POI.image {buffer object from multer (req.files)}
+ *      POI.isActive (boolean)
+ *      POI.latitude (float)
+ *      POI.longitude (float)
+ *
+ * The following fields are optional for the trail:
+ *    name {string}
+ *    description {string}
+ *    isClosed {boolean}
+ *
+ * The following fields are optional for the TrailCoords and POIs:
+ *    accuracy {float}
+ *    altitude {float}
+ *    altitudeAccuracy {float}
+ *    heading {float}
+ *    speed {float}
+ *
+ */
+exports.saveTrail = async (req, res, next) => {
+  // console.log("************ Main Function ************");
+  // console.log("req.body:\n", req.body, "\n****");
 
-  // Trail Points validation
-  body()
-    .custom((value) => {
-      return checkLengthOfObjectArrays(value, "TrailCoords");
-    })
-    .withMessage("TrailCoords arrays must be the same length")
-    .bail()
-    .custom((value) => {
-      value.TrailCoords = makeObjectArray(value, "TrailCoords");
-      return true;
-    }),
-  body("TrailCoords", "There must be at least 2 points on the trail").isArray({
-    min: 2,
-  }),
-  body(
-    ["TrailCoords.*.latitude", "TrailCoords.*.longitude"],
-    "Invalid data type, must be a float (#.#)"
-  )
-    .exists()
-    .isFloat()
-    .toFloat(),
-  body(
-    [
-      "TrailCoords.*.accuracy.*",
-      "TrailCoords.*.altitude.*",
-      "TrailCoords.*.altitudeAccuracy.*",
-      "TrailCoords.*.heading.*",
-      "TrailCoords.*.speed.*",
-    ],
-    "Invalid data type, must be a float (#.#)"
-  )
-    .optional()
-    .isFloat()
-    .toFloat(),
+  const controller = "saveTrail";
 
-  // Points of Interest validation
-  // POI is optional, however if 1 item exists, they all must exist and an image is required for each item. (use express-validator.check so I have access to req.files and not just req.body) All existence error checking is done here. Type checking and sanitization will be done later.
-  body()
-    .custom((value, { req }) => {
-      // console.log("************ POI Validation ************");
-      // Add the files back in to the req.body so that they can be treated normally in validation
-      const files = req.files.POI_image;
-      if (files) {
-        value.POI_files = files;
-      }
-
-      // Check to ensure all existing arrays are of the same length
-      return checkLengthOfObjectArrays(value, "POI");
-    })
-    .withMessage("POI arrays must be the same length")
-    .bail()
-    .custom((value) => {
-      value.POI = makeObjectArray(value, "POI");
-      return true;
-    }),
-  body("POI").optional(),
-  body("POI.*.description.*", "Invalid data type, must be a string")
-    .exists()
-    .isString()
-    .trim()
-    .escape(),
-  body("POI.*.files")
-    .exists()
-    .custom((value, { req }) => {
-      // check valid mime types
-      const mimetypeArr = value.mimetype.split("/");
-
-      return (
-        mimetypeArr[0] === "image" &&
-        VALID_IMAGE_TYPES.indexOf(mimetypeArr[1]) > -1
-      );
-    })
-    .withMessage(`Files must be of type: .${VALID_IMAGE_TYPES.join(", .")}`),
-  body("POI.*.isActive", "Point of Interest isActive must be true/false")
-    .exists()
-    .isBoolean()
-    .toBoolean(),
-  body(
-    ["POI.*.latitude", "POI.*.longitude"],
-    "Invalid data type, must be a float (#.#)"
-  )
-    .exists()
-    .isFloat()
-    .toFloat(),
-  body(
-    [
-      "POI.*.accuracy",
-      "POI.*.altitude",
-      "POI.*.altitudeAccuracy",
-      "POI.*.heading",
-      "POI.*.speed",
-    ],
-    "Invalid data type, must be a float (#.#)"
-  )
-    .optional()
-    .isFloat()
-    .toFloat(),
-
-  // Finally, the actual function!
-  async (req, res) => {
-    console.log("************ Main Function ************"); //, req.files);
-    console.log("req.body:\n", req.body, "\n****");
-
-    try {
-      // handle validation errors
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        logger.debug(errors.array(), {
-          controller: "saveTrail",
-          errorMsg: "validation error",
-        });
-        // res.status(400).json({ error: validationErrors(errors.array()) });
-        res.status(400).json({ error: errors.array() });
-        return;
-      }
-
-      const body = req.body;
-
-      const newTrail = {
-        name: body.name,
-        description: body.description,
-        difficulty: body.difficulty,
-        isClosed: body.isClosed,
-        createdBy: body.createdBy,
-        TrailCoords: body.TrailCoords,
-      };
-
-      // clean coords? remove duplicates... check for backtracking?
-
-      let dist = 0;
-      for (let i = 0; i < newTrail.TrailCoords.length - 1; i++) {
-        const a = newTrail.TrailCoords[i];
-        const b = newTrail.TrailCoords[i + 1];
-
-        dist += distance(a.latitude, a.longitude, b.latitude, b.longitude);
-      }
-      newTrail.distance = dist;
-
-      // console.log("\nnewTrail:\n", newTrail, "\n\ndistance:", dist, "\n");
-
-      // create the new trail
-      const trail = await Trail.create(newTrail, {
-        include: [Trail.TrailCoords, PointsOfInterest],
+  try {
+    // handle validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      logger.error(errors.array(), {
+        controller,
+        errorMsg: "validation error",
       });
-      if (!trail) {
-        throw new Error("No trail created.");
-      }
-
-      // Make Point of Interest array
-      // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/
-      if (body.POI) {
-        for (const point of body.POI) {
-          // const link = getImageLinks(trail.trailId, point.files, "POI");
-          point.trailId = trail.trailId;
-          point.image = await getImageLinks(trail.trailId, point.files, "POI");
-        }
-
-        const pois = await PointsOfInterest.bulkCreate(body.POI);
-        if (!pois) {
-          throw new Error("No points of interest created.");
-        }
-
-        // repopulate trail with the POIs
-        await trail.reload();
-      }
-
-      // ensure new trail returns an array (if only 1 item is returned)
-      let trailArr = [];
-      if (Array.isArray(trail)) {
-        trailArr = trail;
-      } else {
-        trailArr = [trail];
-      }
-
-      logger.debug(JSON.stringify(trailArr), {
-        controller: "saveTrail",
-        msg: "return data",
-      });
-
-      console.log(trailArr);
-      // send the new trail back to the client
-      // res.status(201).json(body.POI);
-      res.status(201).json(trailArr);
-      return;
-    } catch (err) {
-      logger.debug(err, {
-        controller: "saveTrail",
-        errorMsg: "catch error",
-      });
-      res.status(500).json({ error: err.message });
+      res.status(400).json({ error: validationErrors(errors.array()) });
       return;
     }
-  },
-];
 
-/**
- * Takes in a trailId, file (from req.files) and a type, either POI or Hazard to define where the image will be stored. Images will be stored in:
- *
- *    ./public/images/<trailId>/<POI | Hazard>/
- *
- * @param {number} trailId
- * @param {fileObject} file
- * @param {"POI" | "Hazard"} type
- * @returns The link to the files storage location
- */
-async function getImageLinks(trailId, file, type) {
-  try {
-    // ensure filesystem exists for save
-    const path = SAVE_DIRECTORY + trailId + "/POI/";
-    // console.log("getImageLinks: path", path);
+    const body = req.body;
 
-    await ensureDirExists(path);
+    const newTrail = {
+      name: body.name,
+      description: body.description,
+      difficulty: body.difficulty,
+      isClosed: body.isClosed,
+      createdBy: body.createdBy,
+      TrailCoords: body.TrailCoords,
+    };
 
-    const { buffer, originalname } = file;
-    const { fileName } = getFileName(originalname);
-    const link = `${path}${fileName}.webp`;
+    // clean coords? remove duplicates... check for backtracking?
 
-    await sharp(buffer)
-      .resize(RESIZE)
-      .webp({ quality })
-      .toFile(link)
-      .catch((err) => {
-        console.log(err);
-        logger.debug(err, {
-          controller: "getImageLinks",
-          errorMsg: "getImageLinks Sharp Error writing file",
-        });
-        throw new Error(err);
-      });
+    let dist = 0;
+    for (let i = 0; i < newTrail.TrailCoords.length - 1; i++) {
+      const a = newTrail.TrailCoords[i];
+      const b = newTrail.TrailCoords[i + 1];
 
-    // console.log("getImageLinks: link", link);
-    return link;
+      dist += distance(a.latitude, a.longitude, b.latitude, b.longitude);
+    }
+    newTrail.distance = dist;
+
+    // console.log("\nnewTrail:\n", newTrail, "\n\ndistance:", dist, "\n");
+
+    // create the new trail
+    const trail = await Trail.create(newTrail, {
+      include: [Trail.TrailCoords, PointsOfInterest],
+    });
+    if (!trail) {
+      throw new Error("No trail created.");
+    }
+
+    // Make Point of Interest array
+    // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/
+    if (body.POI) {
+      for (const point of body.POI) {
+        // const link = getImageLinks(trail.trailId, point.files, "POI");
+        point.trailId = trail.trailId;
+        point.image = await getImageLinks(trail.trailId, point.files, "POI");
+      }
+
+      const pois = await PointsOfInterest.bulkCreate(body.POI);
+      if (!pois) {
+        throw new Error("No points of interest created.");
+      }
+
+      // repopulate trail with the POIs
+      await trail.reload();
+    }
+
+    logger.info(trail.toJSON(), {
+      controller,
+      msg: "Save trail success",
+      user: req.user.userId,
+    });
+
+    res.status(201).json(trail.toJSON());
   } catch (err) {
+    console.log("\ncatch error:");
     console.log(err);
-    logger.debug(err, {
-      controller: "getImageLinks",
+    logger.error(err, {
+      controller,
       errorMsg: "catch error",
     });
+    res.status(500).json({ error: err.message });
   }
-}
+};
+
+/**
+ * This switches whether or not a trail is opened or closed.
+ *
+ * The req.body should have a JSON format of:
+ * {
+ *    "userId": "required existing id",
+ *    "trailId": "required existing id",
+ *    "name": "optional string",
+ *    "description": "optional string",
+ *    "difficulty": "optional string ("easy", "moderate", "hard")",
+ *    "isClosed": "optional boolean"
+ *  }
+ */
+exports.updateTrail = async (req, res, next) => {
+  const editableFields = ["name", "description", "difficulty", "isClosed"];
+  const controller = "updateTrail";
+
+  try {
+    // handle validation errors
+    const { userId, trailId } = req.body;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log(errors);
+      logger.error(errors.array(), {
+        controller,
+        errorMsg: "validation error",
+      });
+      res.status(400).json({ error: validationErrors(errors.array()) });
+      return;
+    }
+
+    const newTrailData = {
+      updatedBy: userId,
+    };
+    for (const [key, value] of Object.entries(req.body)) {
+      if (editableFields.includes(key)) {
+        newTrailData[key] = value;
+      }
+    }
+
+    const trail = await Trail.findByPk(trailId);
+    if (!trail) {
+      throw new Error(`Trail ID: ${trailId} could not be retrieved`);
+    }
+
+    await trail.update(newTrailData);
+
+    console.log("\nupdate trail success\n", trail.toJSON());
+    logger.info(trail.toJSON(), {
+      controller,
+      msg: "Update trail success",
+      user: req.user.userId,
+    });
+
+    res.status(201).json(trail.toJSON());
+  } catch (err) {
+    console.log("\ncatch error:");
+    console.log(err);
+    logger.error(err, {
+      controller,
+      errorMsg: "catch error",
+    });
+    res.status(500).json({ error: err.message });
+  }
+};
+
+/**
+ * This deletes a trail identified by the trailId passed in the url.
+ *
+ * @param {number} trailId
+ */
+// no validation is done on this, the trail exists and is removed or it doesn't and errors out then.
+exports.deleteTrail = async (req, res, next) => {
+  const controller = "deleteTrail";
+  const { trailId } = req.params;
+  console.log(trailId);
+
+  try {
+    console.log(req.user);
+
+    const trail = await Trail.findByPk(trailId);
+    if (!trail) {
+      throw new Error(`Trail ID: ${trailId} could not be retrieved`);
+    }
+
+    const dirDeleted = await deleteDir(SAVE_DIRECTORY + trailId);
+    if (dirDeleted) {
+      logger.info(
+        SAVE_DIRECTORY +
+          trailId +
+          " successfully deleted by userID: " +
+          req.user.userId,
+        {
+          controller,
+          msg: "deleteDir",
+        }
+      );
+    } else {
+      logger.info(SAVE_DIRECTORY + trailId + " does not exist", {
+        controller,
+        msg: "deleteDir",
+      });
+    }
+
+    await trail.destroy();
+    logger.info(
+      trailId + " successfully deleted by userID: " + req.user.userId,
+      {
+        controller,
+        msg: "Delete trail success",
+      }
+    );
+
+    next();
+  } catch (err) {
+    console.log("\ncatch error:");
+    console.log(err);
+    logger.error(err, {
+      controller,
+      errorMsg: "catch error",
+    });
+    res.status(500).json({ error: err.message });
+  }
+};

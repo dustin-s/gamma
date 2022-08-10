@@ -1,4 +1,5 @@
-import { LocationObjectCoords } from "expo-location";
+import { TrailCoords } from "./TrailCoords";
+import { POIObj } from "./POIObj";
 
 export interface TrailData {
   trailId: number | null;
@@ -9,9 +10,9 @@ export interface TrailData {
   createdBy: number;
   updatedBy?: number;
   distance: number;
-  hasNatureGuide: boolean;
-  hasHazard: boolean;
-  TrailCoords: LocationObjectCoords[];
-  // ptsOfInterest: POIObj[];
+  createdAt: Date;
+  updatedAt: Date;
+  TrailCoords: TrailCoords[];
+  PointsOfInterests?: POIObj[];
   // hazards: HazardObj[];
 }

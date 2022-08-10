@@ -12,8 +12,8 @@ exports.RESIZE = {
 // Quality is a value between 1 and 100. The higher the quality, the more space it will take up.  Sharp sets the default at 80. However in Flothemes (https://flothemes.com/flothemes-image-sizes/), a wordpress photography site, they recommend 75 being the cutoff for people to tell the difference: "On the upper end of the quality scale, there are diminishing returns. The difference in perceived quality between an 75% and 100% quality setting is hard to see, but it increases the file size significantly."
 exports.QUALITY = 75;
 
-// This will define the base folder where images will be saved Note: this must end with a "/"
-exports.SAVE_DIRECTORY = "./public/images/";
+// This will define the base folder where images will be saved Note: this must end with a "/". The base folder is always "public/"
+exports.SAVE_DIRECTORY = "images/";
 
 // The extensions that are valid for the file upload. These will be checked against their expected mime type.
 exports.VALID_IMAGE_TYPES = ["jpg", "jpeg", "png", "gif", "webp"];
@@ -30,4 +30,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // middleware to upload the images. Add any other keys to the array that will need to be uploaded
-exports.fieldsUpload = upload.fields([{ name: "POI_image" }]);
+exports.fieldsUpload = upload.fields([
+  { name: "POI_image" },
+  { name: "image", maxCount: 1 },
+]);
