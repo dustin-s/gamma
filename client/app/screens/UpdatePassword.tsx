@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
 // Components
-import { Text, View, TextInput, TouchableOpacity } from "react-native";
+import { Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
 import styles from "../styles/Styles";
@@ -131,9 +131,10 @@ export default function UpdatePassword({ navigation }: Props) {
         />
       </View>
       <View style={styles.btnContainer}>
-        <TouchableOpacity onPress={() => logout()}>
-          <Text style={styles.msg}>Logout</Text>
-        </TouchableOpacity>
+        <MapButton
+          label={"Logout"}
+          backgroundColor={"#750023"}
+          handlePress={() => logout()}/>
       </View>
 
       {loading && <Text>Loading...</Text>}
