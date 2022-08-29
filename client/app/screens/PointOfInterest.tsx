@@ -17,6 +17,14 @@ import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import { AuthContext } from "../contexts/authContext";
 import { BASE_URL } from "../utils/constants";
 
+/**
+ * This is a long form documentation block for documenting code
+ * Add things
+ * Instructions on how to use
+ * Examples
+ * References
+ */
+
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
 
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
