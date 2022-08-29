@@ -20,8 +20,15 @@ This will be fixed when we move it to production.
 ## Understanding the Code Structure
 
 ### The Client Application
+
+This is a [react native application](https://reactnative.dev/). blah blah blah
+
 #### Admin Screen
 #### Point of Interest Screen
+
+This is the screen for adding a point of interest to a trail.
+If the trail already exists, it gets uploaded immediately, if the trail doesn't exist,
+it gets uploaded in the <client/app/components/SaveTrailModal.tsx>.
 
 - Main controller code for the manipulating points of interest. `client/app/screens/PointOfInterest.tsx`
 - client/app/interfaces/POIObj.ts
