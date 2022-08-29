@@ -29,9 +29,8 @@ type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
 
 /**
  * 
- * @param navigation - The navigation should be ThisKindOfObject 
- * @param route - This is a description of the route param
- * @returns POIScreenProps - This is a description of the return
+ * @param param0 - This parameter should a StackNativeScreenProps and contain a navigation and route 
+ * @returns React Native view for Point of Interest Screen
  */
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const curLoc = route.params?.currentLocation ?? {
