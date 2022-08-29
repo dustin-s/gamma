@@ -39,3 +39,13 @@ it gets uploaded in the `client/app/components/SaveTrailModal.tsx`.
 #### Trail Screen
 #### Update Password Screen
 ### The Server Application
+
+_Describe server side application._
+
+#### Admin Screen
+
+_Describe server side components_
+
+#### Point of Interest Screen
+#### Trail Screen
+#### Update Password Screen
