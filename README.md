@@ -40,7 +40,7 @@ it gets uploaded in the `client/app/components/SaveTrailModal.tsx`.
 #### Update Password Screen
 ### The Server Application
 
-_Describe server side application._
+_Describe server and database side of GAMMA application._
 
 #### Admin Screen
 
