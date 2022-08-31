@@ -12,7 +12,7 @@ import styles from "../styles/Styles";
 
 // Components
 import MapView from "react-native-maps";
-import { ActivityIndicator, Alert, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Text, View, Image } from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -97,6 +97,11 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
         initialRegion={region}
         showsUserLocation={true}
       >
+      
+      <Image 
+        source={require('../styles/trailKey.png')}
+        style={styles.mapKey}/>
+
         {trailList && (
           <ShowTrails
             locationArr={locationArr}
