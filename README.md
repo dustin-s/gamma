@@ -21,26 +21,11 @@ This will be fixed when we move it to production.
 
 ### The Client Application
 
-This is a [react native application](https://reactnative.dev/). blah blah blah
-
+This is a [react native application](https://reactnative.dev/). The purpose of which is to have self-guided nature hikes and an easily updatable map.
 
 #### Admin Login Screen
 
-This is the screen for administraters to login to edit the map.
-The only way to make an account is on the server through [Insomnia](https://insomnia.rest/). 
-
-``` 
-curl --request POST \
-  --url https://gamma.lessthangeeky.com/api/users/signup \
-  --header 'Content-Type: application/json' \
-  --data '{
-	"userName":"Admin",
-	"password":"1234@Test",
-	"email":"admin@test.com",
-	"isAdmin": true	
-}  
-```
-
+This is the screen for administraters to login to edit the map. Admin accounts are made directly in the database.
 
 - Controler code to handle signing in. `client\app\screens\AdminLogin.tsx`
 - Data store for auth user status; controls user accessibility for screens `client\app\contexts\authContext.tsx` 

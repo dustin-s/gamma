@@ -1,5 +1,6 @@
 import { StyleSheet, Dimensions, Platform } from "react-native";
-
+//This is a Global StyleSheet.
+//It holds the main styling aspects for consistant styling.
 const styles = StyleSheet.create({
   btnContainer: {
     flexDirection: "row",
