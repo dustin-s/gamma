@@ -29,56 +29,73 @@ This is a [react native application](https://reactnative.dev/). blah blah blah
 This is the screen for administraters to login to edit the map.
 The only way to make an account is on the server through [Insomnia](https://insomnia.rest/). 
 
+``` 
+curl --request POST \
+  --url https://gamma.lessthangeeky.com/api/users/signup \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"userName":"Admin",
+	"password":"1234@Test",
+	"email":"admin@test.com",
+	"isAdmin": true	
+}  
+```
+
+
 - Controler code to handle signing in. `client\app\screens\AdminLogin.tsx`
-- Loging in changes state of auth user status in `client\app\contexts\authContext.tsx` which controls user accessibility for screens.
+- Data store for auth user status; controls user accessibility for screens `client\app\contexts\authContext.tsx` 
 - _See Update Password Screen details for information about `client\app\interfaces\User.ts`._
 
 #### Point of Interest Screen
 
-This is the screen for adding a point of interest to a trail.
+This is the screen for adding a point of interest (POI) to a trail.
 If the trail already exists, it gets uploaded immediately, if the trail doesn't exist,
 it gets uploaded in the `client/app/components/SaveTrailModal.tsx`.
 
 - Main controller code for the manipulating points of interest. `client/app/screens/PointOfInterest.tsx`
 - Turns the POI into an object. `client/app/interfaces/POIObj.ts`
-- client/app/contexts/TrailContext/poiReducer.ts
+- Data store for POI. `client/app/contexts/TrailContext/poiReducer.ts`
 - Controller to create a new or update POIs while mapping trails. `client/app/components/AdminButtons/index.tsx`
-- Controler for camera. `client\app\components\ShowCamera.tsx`
+- Controller for camera on a mobile device. `client\app\components\ShowCamera.tsx`
 - Returns the POI data as a touchable marker on the trail. `client/app/components/POIMarker.tsx`
 - _See Admin Login Screen details for information about `client\app\contexts\authContext.tsx`._
 
 #### Trail Screen
 
-This is the main screen of the app. 
+This is the main screen of the app enabling users to explore the map and trails. 
+There are admin dependancies for edditing the map  _*See Admin Login Screen `client\app\contexts\authContext.tsx` details for more information._
 
-- This is the main controller that renders everything for the trails. `client\app\screens\TrailScreen.tsx`
-
-- client\app\interfaces\TrailCoords.ts
-- client\app\interfaces\TrailData.ts
-- client\app\interfaces\SaveTrailData.ts
-
+- This is the primary controller that renders everything for the trails. `client\app\screens\TrailScreen.tsx`
+- This holds the defult coordinates of the app. `client\app\utils\constants.ts`
+- Calculates trail length. `client\app\utils\distance.ts`
+- Function for getting trail coordinates and colors. `client\app\utils\mapFunctions.ts`
+- Controller for foreground permissions. `client\app\utils\permissionHelpers.ts`
+- Returns correct value depending on the information being passed through. `typeclient\app\utils\typeGuard.ts`
+- Promise for save trail data. `client\app\interfaces\SaveTrailData.ts`
+- Promise for trail coordinences. `client\app\interfaces\TrailCoords.ts`
+- Promise for trail data. `client\app\interfaces\TrailData.ts`
 - Destructures the context so that the values can be used directly. `client\app\hooks\useTrailContext.ts`
-- Controls trail actions. `client\app\contexts\TrailContext\actions.ts`
-- client\app\contexts\TrailContext\index.tsx
-- client\app\contexts\TrailContext\locationReducer.ts
-- client\app\contexts\TrailContext\poiReducer.ts
-- client\app\contexts\TrailContext\trailIdReducer.ts
-- client\app\contexts\TrailContext\trailListReducer.ts
-
+- Declairs actions for data stores. `client\app\contexts\TrailContext\actions.ts`
+- Main data store for trail functions. `client\app\contexts\TrailContext\index.tsx`
+- Data store for locations. `client\app\contexts\TrailContext\locationReducer.ts`
+- _See Point of Interest Screen details for information about `client\app\contexts\TrailContext\poiReducer.ts`_
+- Data store for trail IDs. `client\app\contexts\TrailContext\trailIdReducer.ts`
+- Data store for trail lists. `client\app\contexts\TrailContext\trailListReducer.ts`
 - To set trail details before saving trails. `client\app\components\SaveTrailModal.tsx`
-- client\app\components\ShowTrails.tsx
-- client\app\components\TrailHeadMarker.tsx
-- client\app\components\TrailStatusMarkers\index.tsx
-- Properties and style of the button that navigates to the login or update password/signout screen. `client\app\components\LoginButton`
+ _*See Point of Interest Screen details for more information._
+- Renders trails. `client\app\components\ShowTrails.tsx`
+- Properties and styling for trailhead marker. `client\app\components\TrailHeadMarker.tsx`
+- Properties and styling for cones, flowers, and distance bubbles. `client\app\components\TrailStatusMarkers\index.tsx`
+- Properties and style for the navigation button to the Login and Update Password Screen. `client\app\components\LoginButton`
 - _See Point of Interest Screen details for information about`client\app\components\POIMarker.tsx`._
 
 #### Update Password Screen
 
-This screen is for changing administrators passwords and signing out.
+This screen is for changing administrator(s) passwords and signing out.
 This screen appears only when you are logged in.
 
-- Controler code to handle updating passwords and signing out. `client\app\screens\UpdatePassword.tsx`
-- Comunicates with the server for admin user info to varify or update it. `client\app\interfaces\User.ts`
+- Controller code to handle updating passwords and signing out. `client\app\screens\UpdatePassword.tsx`
+- Promise for user data. `client\app\interfaces\User.ts`
 - _See Admin Login Screen details for information about `client\app\contexts\authContext.tsx`._
 
 ### The Server Application
