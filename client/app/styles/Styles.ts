@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions, Platform } from "react-native";
+import { StyleSheet, Dimensions, Platform, useWindowDimensions } from "react-native";
 
 const styles = StyleSheet.create({
   btnContainer: {
@@ -51,6 +51,13 @@ const styles = StyleSheet.create({
   map: {
     height: Dimensions.get("window").height,
     width: Dimensions.get("window").width,
+  },
+
+  mapKey: {
+    position: "absolute",  
+    width: Dimensions.get("window").width,
+    height: 125,
+    flex: 1,
   },
 
   msg: {
