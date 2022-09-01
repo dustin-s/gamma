@@ -182,10 +182,10 @@ const imageUpload = async (
   token: string,
   url: string
 ) => {
-  // console.log("*** imageUpload ***");
+  console.log("*** imageUpload ***");
 
   const { image } = data;
-
+  console.log({ image });
   if (!image) {
     throw Error("missing image to upload");
   }
@@ -203,6 +203,7 @@ const imageUpload = async (
     parameters: data,
   };
 
+  console.log({ options });
   try {
     const response = await uploadAsync(BASE_API + url, image, options);
 
@@ -216,6 +217,7 @@ const imageUpload = async (
 
     const data = JSON.parse(response.body);
     if (data.error) {
+      console.log("data.error");
       throw Error(data.error);
     } else {
       return data as POIObj;

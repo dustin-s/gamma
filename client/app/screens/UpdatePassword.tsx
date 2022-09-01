@@ -134,14 +134,17 @@ export default function UpdatePassword({ navigation }: Props) {
         <MapButton
           label={"Logout"}
           backgroundColor={"#750023"}
-          handlePress={() => logout()}/>
+          handlePress={() => logout()}
+        />
       </View>
 
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
           <Text style={styles.errText}>Error:</Text>
-          <Text style={styles.errText}>{error}</Text>
+          <Text style={styles.errText}>
+            {typeof error === "string" ? error : error.message}
+          </Text>
         </>
       )}
     </SafeAreaView>

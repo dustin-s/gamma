@@ -12,7 +12,7 @@ import styles from "../styles/Styles";
 
 // Components
 import MapView from "react-native-maps";
-import { ActivityIndicator, Alert, Text, View, Image } from "react-native";
+import { ActivityIndicator, Text, View, Image } from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -78,6 +78,16 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
     getTrails<TrailData[]>()
       .then((data) => {
         trailDispatch({ type: TrailActions.SetAllTrails, payload: data });
+        console.log("Trail Data:");
+        data.map((trail) =>
+          console.log(
+            `${trail.trailId}\t${trail.difficulty}\t${
+              trail.difficulty !== "moderate" ? "\t" : ""
+            }${trail.name}\tcoords#: ${trail.TrailCoords.length}\tPOIs#:${
+              trail.PointsOfInterests?.length || 0
+            }`
+          )
+        );
         setIsLoading(false);
       })
       .catch((err) => {
@@ -85,6 +95,10 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
         setIsLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    console.log({ isLoading });
+  }, [isLoading]);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
@@ -97,10 +111,10 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
         initialRegion={region}
         showsUserLocation={true}
       >
-      
-      <Image 
-        source={require('../styles/trailKey.png')}
-        style={styles.mapKey}/>
+        {/* <Image
+          source={require("../styles/trailKey.png")}
+          style={styles.mapKey}
+        /> */}
 
         {trailList && (
           <ShowTrails
@@ -156,7 +170,7 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
                 console.log("locationArr.length: ", locationArr.length);
                 console.log("poiArr.length", poiArr.length);
                 console.log("trails");
-                trailList?.forEach((trail) =>
+                trailList?.map((trail) =>
                   console.log(
                     `${trail.trailId}\t${trail.difficulty}\t${
                       trail.difficulty !== "moderate" ? "\t" : ""
@@ -169,7 +183,10 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
             <MapButton
               label="refresh"
               backgroundColor="orange"
-              handlePress={getTrails}
+              handlePress={() => {
+                setError("");
+                setGotTrailData("Cancel");
+              }}
             />
           </View>
         )}
