@@ -53,11 +53,15 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width,
   },
 
-  mapKey: {
-    position: "absolute",  
+  mapKey: {  
     width: Dimensions.get("window").width,
-    height: 125,
-    flex: 1,
+    height: Platform.OS ==="ios"? 125 : 110,
+
+  },
+
+  mapKeyContainer: {
+    position: "absolute",
+    top: Platform.OS === "ios" ? /** IOS*/ 0 : /**Android */ 0, 
   },
 
   msg: {
