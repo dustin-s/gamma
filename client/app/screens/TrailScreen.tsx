@@ -81,16 +81,6 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
     getTrails<TrailData[]>()
       .then((data) => {
         trailDispatch({ type: TrailActions.SetAllTrails, payload: data });
-        console.log("Trail Data:");
-        data.map((trail) =>
-          console.log(
-            `${trail.trailId}\t${trail.difficulty}\t${
-              trail.difficulty !== "moderate" ? "\t" : ""
-            }${trail.name}\tcoords#: ${trail.TrailCoords.length}\tPOIs#:${
-              trail.PointsOfInterests?.length || 0
-            }`
-          )
-        );
         setIsLoading(false);
       })
       .catch((err) => {
@@ -98,10 +88,6 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
         setIsLoading(false);
       });
   }, []);
-
-  useEffect(() => {
-    console.log({ isLoading });
-  }, [isLoading]);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
