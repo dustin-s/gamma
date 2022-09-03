@@ -84,13 +84,35 @@ This screen appears only when you are logged in.
 - _See Admin Login Screen details for information about `client\app\contexts\authContext.tsx`._
 
 ### The Server Application
+The server side application is node.js app built on sequelize and express.
 
-_Describe server and database side of GAMMA application._
+#### Trail API Routes
 
-#### Admin Screen
+`GET /trails/`
+- Get the Current Trails
 
-_Describe server side components_
+`POST /trails/`
+- Create New Trail
 
-#### Point of Interest Screen
-#### Trail Screen
-#### Update Password Screen
+`POST /trails/updateTrail`
+- Update a Trail
+
+`DELETE /trails/:trailId`
+- Delete an Existing Trail
+
+`POST /trails/addPOI`
+- Create a new POI
+
+`POST /trails/updatePOI`
+- Update a POI
+
+#### User API Routes
+
+`POST /users/signup`
+- Create a New User
+
+`POST /users/login`
+- Login a New User
+
+`POST /users/update`
+- Update an Existing User
