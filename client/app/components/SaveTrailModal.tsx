@@ -119,8 +119,8 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
                 data={[
                   {
                     label: "Easy",
-                    colorSelected: "green",
-                    colorNotSelected: "lightgreen",
+                    colorSelected: "#004C00",
+                    colorNotSelected: "green",
                     textColorSelected: "black",
                     value: "easy",
                   },

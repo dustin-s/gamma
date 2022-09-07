@@ -19,7 +19,7 @@ export const getColor = (difficulty?: string): string => {
     case "moderate":
       return "orange";
     case "easy":
-      return "green";
+      return "#004C00";
     default:
       return "blue";
   }

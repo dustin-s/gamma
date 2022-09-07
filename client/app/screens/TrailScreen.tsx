@@ -12,13 +12,14 @@ import styles from "../styles/Styles";
 
 // Components
 import MapView from "react-native-maps";
-import { ActivityIndicator, Alert, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Text, View, Dimensions, } from "react-native";
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LoginButton from "../components/LoginButton";
 import AdminButtons from "../components/AdminButtons";
 import ShowTrails from "../components/ShowTrails";
+import TrailKey from "../components/TrailKey";
 
 // Types/Interfaces
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
@@ -111,7 +112,11 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
         )}
       </MapView>
 
-      <View style={[styles.loginBtnContainer]}>
+      <View style={[styles.mapKeyContainer]}>
+        <TrailKey/>
+      </View>
+      
+      <View style={[styles.loginBtnContainer]}>       
         {/* Login */}
         {!auth.isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
