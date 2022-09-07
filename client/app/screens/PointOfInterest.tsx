@@ -19,6 +19,11 @@ import { BASE_URL } from "../utils/constants";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
 
+/**
+ * 
+ * @param param0 - This parameter should a StackNativeScreenProps and contain a navigation and route 
+ * @returns React Native view for Point of Interest Screen
+ */
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const curLoc = route.params?.currentLocation ?? {
     latitude: 0,

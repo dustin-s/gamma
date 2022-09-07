@@ -1,3 +1,5 @@
+//This is a Global StyleSheet.
+//It holds the main styling aspects for consistant styling.
 import { StyleSheet, Dimensions, Platform, useWindowDimensions } from "react-native";
 
 const styles = StyleSheet.create({
