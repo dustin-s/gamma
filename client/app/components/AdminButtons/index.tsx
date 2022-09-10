@@ -92,6 +92,7 @@ export default function AdminButtons({
       trailDispatch({ type: TrailActions.AddLocation, payload: curLoc.coords });
     }
 
+    console.log("TaskManager.defineTask:");
     console.log("pauseRecording:", pauseRecording);
     console.log("\nlocation length=", locationArr.length);
     console.log(`time:  ${new Date(curLoc.timestamp).toLocaleString()}`);
@@ -355,15 +356,19 @@ export default function AdminButtons({
 
   // forTest:
   useEffect(() => {
-    if (isRecording || !pauseRecording) {
-      console.log("isRecording:", isRecording);
-      console.log("pauseRecoding:", pauseRecording);
-      console.log("Trail Recording started");
-      console.log("locationArr.length: ", locationArr.length);
-    } else {
-      console.log("Recording Stopped");
-      console.log("isRecording:", isRecording);
-      console.log("pauseRecoding:", pauseRecording);
+    console.log({
+      "AdminButtons- UseEffect": {
+        isRecording,
+        pauseRecording,
+        "locationArr.length: ": locationArr.length,
+      },
+    });
+    if (auth.userData?.user.userId) {
+      if (isRecording || !pauseRecording) {
+        console.log("Trail Recording started");
+      } else {
+        console.log("Recording Stopped");
+      }
     }
   }, [isRecording, pauseRecording]);
 

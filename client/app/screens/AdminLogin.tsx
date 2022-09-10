@@ -109,7 +109,9 @@ export default function AdminLogin({ navigation }: Props) {
       {error && (
         <>
           <Text style={styles.errText}>Error:</Text>
-          <Text style={styles.errText}>{error}</Text>
+          <Text style={styles.errText}>
+            {typeof error === "string" ? error : error.message}
+          </Text>
         </>
       )}
     </SafeAreaView>

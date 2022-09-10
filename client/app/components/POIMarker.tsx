@@ -19,9 +19,23 @@ export default function POIMarker({ poi }: POIMarkerProps) {
     navigation.navigate("Point of Interest", { poi });
   };
 
+  const parseCoord = (coord: unknown): number => {
+    if (typeof coord === "number") {
+      return coord;
+    }
+    if (typeof coord === "string") {
+      return parseFloat(coord);
+    } else {
+      throw `Coord: ${coord} is not a number. It is a ${typeof coord}`;
+    }
+  };
+
   return (
     <Marker
-      coordinate={{ latitude: poi.latitude, longitude: poi.longitude }}
+      coordinate={{
+        latitude: parseCoord(poi.latitude),
+        longitude: parseCoord(poi.longitude),
+      }}
       onPress={handleOnPress}
     >
       <View>

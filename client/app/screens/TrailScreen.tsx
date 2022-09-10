@@ -12,7 +12,9 @@ import styles from "../styles/Styles";
 
 // Components
 import MapView from "react-native-maps";
-import { ActivityIndicator, Alert, Text, View, Dimensions, } from "react-native";
+
+import { ActivityIndicator, Alert, Text, View, Dimensions } from "react-native";
+
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -113,10 +115,10 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
       </MapView>
 
       <View style={[styles.mapKeyContainer]}>
-        <TrailKey/>
+        <TrailKey />
       </View>
-      
-      <View style={[styles.loginBtnContainer]}>       
+
+      <View style={[styles.loginBtnContainer]}>
         {/* Login */}
         {!auth.isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
@@ -156,7 +158,7 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
                 console.log("locationArr.length: ", locationArr.length);
                 console.log("poiArr.length", poiArr.length);
                 console.log("trails");
-                trailList?.forEach((trail) =>
+                trailList?.map((trail) =>
                   console.log(
                     `${trail.trailId}\t${trail.difficulty}\t${
                       trail.difficulty !== "moderate" ? "\t" : ""
@@ -169,7 +171,10 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
             <MapButton
               label="refresh"
               backgroundColor="orange"
-              handlePress={getTrails}
+              handlePress={() => {
+                setError("");
+                setGotTrailData("Cancel");
+              }}
             />
           </View>
         )}
