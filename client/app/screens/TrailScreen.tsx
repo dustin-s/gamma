@@ -31,7 +31,7 @@ import { SubmitTrailData } from "../interfaces/SaveTrailData";
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
 
-const IS_TEST = true;
+const IS_TEST = false;
 
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
@@ -58,8 +58,8 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
   // Get Permissions.
   useEffect(() => {
     // everyone needs foreground permissions
-    // background permission are not request based on based on comment made
-    //  by "byCedric" on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
+    // background permission are not requested based on comment made by "byCedric"
+    //  on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
     const setFGStatus = async () => {
       console.log(`**** Get Auth ****`);
       const status = await checkFGStatus();
