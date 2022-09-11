@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   StyleSheet,

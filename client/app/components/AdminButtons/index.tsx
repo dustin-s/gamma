@@ -26,6 +26,7 @@ import styles from "../../styles/Styles";
 import { BASE_API } from "../../utils/constants";
 import { guardDataType } from "../../utils/typeGuard";
 import { TrailData } from "../../interfaces/TrailData";
+import { useAuthentication } from "../../hooks/useAuthentication";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
@@ -45,16 +46,8 @@ export default function AdminButtons({
   setError,
 }: AdminButtonsProps) {
   // Authorization
-  const { auth } = useContext(AuthContext);
-
-  const userId = auth.userData?.user.userId || null;
-  const getToken = () => {
-    const token = auth.userData?.token;
-    if (!token) {
-      throw Error("User not authorized");
-    }
-    return token;
-  };
+  const { getToken, userId, fgPermissions, isAuthenticated } =
+    useAuthentication();
 
   const { trailId, trailList, locationArr, poiArr, trailDispatch } =
     useTrailContext();
@@ -91,7 +84,7 @@ export default function AdminButtons({
   });
 
   const handleStartRecording = async () => {
-    if (auth.fgPermissions) {
+    if (fgPermissions) {
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Highest,
         distanceInterval: 1, // minimum change (in meters) betweens updates
@@ -325,7 +318,7 @@ export default function AdminButtons({
     setGotTrailData(undefined);
   }, [gotTrailData]);
 
-  if (!auth.userData?.user.userId) {
+  if (!isAuthenticated) {
     return null;
   }
   return (

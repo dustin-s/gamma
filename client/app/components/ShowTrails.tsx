@@ -9,7 +9,7 @@ import TrailStatusMarkers from "./TrailStatusMarkers";
 import { getColor, getCoords } from "../utils/mapFunctions";
 import POIMarker from "./POIMarker";
 import { useTrailContext } from "../hooks/useTrailContext";
-import { AuthContext } from "../contexts/authContext";
+import { useAuthentication } from "../hooks/useAuthentication";
 
 interface ShowTrailsProps {
   locationArr: LocationObjectCoords[];
@@ -22,7 +22,7 @@ export default function ShowTrails({
   trailId,
   setTrailId,
 }: ShowTrailsProps) {
-  const { auth } = useContext(AuthContext);
+  const { isAuthenticated } = useAuthentication();
   const { trailList } = useTrailContext();
 
   const renderTrails = () => {
@@ -40,7 +40,7 @@ export default function ShowTrails({
       )[0];
       const poiList =
         trailInfo.PointsOfInterests?.filter((poi) =>
-          auth.isAuthenticated ? poi : poi.isActive
+          isAuthenticated ? poi : poi.isActive
         ) || null;
 
       return (

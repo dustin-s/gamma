@@ -10,11 +10,12 @@ import {
 } from "react-native";
 import MapButton from "../components/MapButton";
 import ShowCamera from "../components/ShowCamera";
+import { useAuthentication } from "../hooks/useAuthentication";
 import { POIObj } from "../interfaces/POIObj";
 
 // Types:
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import { AuthContext } from "../contexts/authContext";
+// import { AuthContext } from "../contexts/authContext";
 import { BASE_URL } from "../utils/constants";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
@@ -46,7 +47,8 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   // add the base URL to the image - don't change/use the poiObj.image after this.
   const originalImage = poiObj.image ? BASE_URL + poiObj.image : null;
 
-  const { auth } = useContext(AuthContext);
+  const { isAuthenticated } = useAuthentication();
+
   const [image, setImage] = useState(originalImage); // stores the URI for the image
   const [editDesc, setEditDesc] = useState(poiObj.description === null);
   const [description, setDescription] = useState(poiObj.description);
@@ -74,7 +76,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   };
 
   const handleSave = () => {
-    if (!auth.isAuthenticated || !checkIsDirty()) {
+    if (!isAuthenticated || !checkIsDirty()) {
       navigation.navigate("Trail Screen");
       return;
     }
@@ -103,6 +105,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     if (errMsg.length > 0) {
       Alert.alert(errMsg.join("\n"));
     } else {
+      // savePOI(newPOI);
       navigation.navigate({
         name: "Trail Screen",
         params: { newPOI },
@@ -111,6 +114,73 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     }
   };
 
+  /*
+  async function savePOI(newPOI: POIObj) {
+    try {
+      const token = getToken();
+      const curTrailId = newPOI.trailId;
+      const curPOIId = newPOI.pointsOfInterestId;
+
+      // if new trail...
+      if (!curPOIId && !curTrailId) {
+        trailDispatch({ type: TrailActions.AddPOI, payload: newPOI });
+        return;
+      }
+
+      // not a new trail - set up variable to store new list of POIs
+      let newTrailsPOIs: POIObj[] = [];
+
+      // get trailIndex
+      const trailIndex = trailList.findIndex(
+        (trail: TrailData) => trail.trailId === curTrailId
+      );
+      if (trailIndex < 0) {
+        throw Error("SavePOI: No trail index found");
+      }
+      // get current list of POIs (this will be modified into newTrailsPOIs)
+      const trailsPOIs = trailList[trailIndex].PointsOfInterests || [];
+
+      // update existing POI ELSE new POI for existing Trail
+      if (curPOIId && curTrailId) {
+        const oldPOI = trailsPOIs.filter(
+          (poi: POIObj) => poi.pointsOfInterestId === curPOIId
+        )[0];
+
+        const addedPOI = await updatePOI(newPOI, oldPOI, token);
+
+        newTrailsPOIs = trailsPOIs.map((old: POIObj) =>
+          old.pointsOfInterestId == addedPOI.pointsOfInterestId ? addedPOI : old
+        );
+      } else if (!curPOIId && curTrailId) {
+        const addedPOI = await addPOIToTrail(newPOI, token);
+
+        newTrailsPOIs = [...trailsPOIs, addedPOI];
+      }
+      // ensure update was done
+      if (newTrailsPOIs.length > 0) {
+        const newTrail = {
+          ...trailList[trailIndex],
+          PointsOfInterests: newTrailsPOIs,
+        };
+        trailDispatch({ type: TrailActions.UpdateTrail, payload: newTrail });
+      }
+      return;
+      //
+    } catch (err: any) {
+      console.log(err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError(String(err));
+      }
+    }
+
+    // resume recording (if needed)
+    if (addingTrail) {
+      setPauseRecording(false);
+    }
+  }
+*/
   useEffect(() => {
     const newIsDirty = {
       photoChanged: originalImage !== image || image === null,
@@ -153,7 +223,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         source={{ uri: image ? image : "https://" }}
         style={styles.image}
       >
-        {auth.isAuthenticated && (
+        {isAuthenticated && (
           <View style={styles.imageButtonContainer}>
             {isDirty.photoChanged && image && (
               <MapButton
@@ -180,7 +250,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       {!editDesc && (
         <View style={styles.textContainer}>
           <Text style={styles.text}>{description}</Text>
-          {auth.isAuthenticated && (
+          {isAuthenticated && (
             <View style={styles.button}>
               <MapButton
                 label="Edit"
@@ -192,7 +262,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         </View>
       )}
 
-      {auth.isAuthenticated && (
+      {isAuthenticated && (
         <View style={styles.controlGroup}>
           <Text style={styles.label}>Active?</Text>
           <Switch

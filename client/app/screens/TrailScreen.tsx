@@ -1,19 +1,15 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { useTrailContext } from "../hooks/useTrailContext";
-
-// context
-import { AuthContext } from "../contexts/authContext";
-import { TrailActions } from "../contexts/TrailContext/actions";
+import { useAuthentication } from "../hooks/useAuthentication";
 
 // helpers/styles
-import { checkFGStatus } from "../utils/permissionHelpers";
 import { getTrails } from "../utils/fetchHelpers";
 import styles from "../styles/Styles";
 
 // Components
 import MapView from "react-native-maps";
 
-import { ActivityIndicator, Alert, Text, View, Dimensions } from "react-native";
+import { ActivityIndicator, Text, View } from "react-native";
 
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
@@ -41,12 +37,17 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
   const [region, setRegion] = useState(CAMP_ALLEN_COORDS);
 
   // Authorization
-  const { auth, setAuth } = useContext(AuthContext);
-  const userId = auth.userData?.user.userId || null;
+  const { isAuthenticated, userId, setFGStatus } = useAuthentication();
 
   // Information about the trail
-  const { trailId, trailList, locationArr, poiArr, trailDispatch } =
-    useTrailContext();
+  const {
+    trailId,
+    trailList,
+    locationArr,
+    poiArr,
+    trailDispatch,
+    TrailActions,
+  } = useTrailContext();
 
   const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>();
 
@@ -57,13 +58,6 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
 
   // Get Permissions.
   useEffect(() => {
-    // everyone needs foreground permissions
-    // background permission are not requested based on comment made by "byCedric"
-    //  on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
-    const setFGStatus = async () => {
-      const status = await checkFGStatus();
-      await setAuth({ ...auth, fgPermissions: status });
-    };
     setFGStatus();
   }, []);
 
@@ -118,7 +112,7 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
 
       <View style={[styles.loginBtnContainer]}>
         {/* Login */}
-        {!auth.isAuthenticated && (
+        {!isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
         )}
         {/*Change Password/Logout*/}
