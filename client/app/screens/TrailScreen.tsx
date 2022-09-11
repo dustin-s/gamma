@@ -43,8 +43,8 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
   const {
     trailId,
     trailList,
-    locationArr,
-    poiArr,
+    locationArr, // only used in console.log button
+    poiArr, // only used in console.log button
     trailDispatch,
     TrailActions,
   } = useTrailContext();
@@ -94,8 +94,6 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
       >
         {trailList && (
           <ShowTrails
-            locationArr={locationArr}
-            trailId={trailId}
             setTrailId={(chosenTrailId) =>
               trailDispatch({
                 type: TrailActions.SetTrailId,

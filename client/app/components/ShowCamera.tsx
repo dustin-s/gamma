@@ -1,4 +1,4 @@
-import React, { SetStateAction } from "react";
+import { SetStateAction } from "react";
 import * as ImagePicker from "expo-image-picker";
 import MapButton from "./MapButton";
 

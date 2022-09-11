@@ -1,5 +1,4 @@
-import { SetStateAction, useContext, useEffect } from "react";
-import { LocationObjectCoords } from "expo-location";
+import { SetStateAction } from "react";
 import { TrailData } from "../interfaces/TrailData";
 
 import { Polyline } from "react-native-maps";
@@ -12,18 +11,12 @@ import { useTrailContext } from "../hooks/useTrailContext";
 import { useAuthentication } from "../hooks/useAuthentication";
 
 interface ShowTrailsProps {
-  locationArr: LocationObjectCoords[];
-  trailId: number | null;
   setTrailId(value: SetStateAction<number | null>): void;
 }
 
-export default function ShowTrails({
-  locationArr,
-  trailId,
-  setTrailId,
-}: ShowTrailsProps) {
+export default function ShowTrails({ setTrailId }: ShowTrailsProps) {
   const { isAuthenticated } = useAuthentication();
-  const { trailList } = useTrailContext();
+  const { trailList, locationArr, trailId } = useTrailContext();
 
   const renderTrails = () => {
     if (trailId === null && locationArr.length > 0) {
