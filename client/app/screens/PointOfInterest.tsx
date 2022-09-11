@@ -1,4 +1,5 @@
-import { useContext, useEffect, useState } from "react";
+import { LocationObjectCoords } from "expo-location";
+import { useEffect, useState } from "react";
 import {
   Alert,
   ImageBackground,
@@ -26,92 +27,97 @@ type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
  * @returns React Native view for Point of Interest Screen
  */
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
-  const curLoc = route.params?.currentLocation ?? {
-    latitude: 0,
-    longitude: 0,
-    altitude: null,
-    accuracy: null,
-    altitudeAccuracy: null,
-    heading: null,
-    speed: null,
-  };
-  const poiObj: POIObj = route.params?.poi ?? {
-    trailId: route.params?.trailId ? route.params.trailId : null,
-    pointsOfInterestId: null,
-    description: null,
-    image: null,
-    isActive: true,
-    ...curLoc,
-  };
-
-  // add the base URL to the image - don't change/use the poiObj.image after this.
-  const originalImage = poiObj.image ? BASE_URL + poiObj.image : null;
-
   const { isAuthenticated } = useAuthentication();
 
-  const [image, setImage] = useState(originalImage); // stores the URI for the image
-  const [editDesc, setEditDesc] = useState(poiObj.description === null);
-  const [description, setDescription] = useState(poiObj.description);
+  const [origPOI, setOrigPOI] = useState<POIObj | null>(null);
+  const [curLoc, setCurLoc] = useState<LocationObjectCoords | null>(null);
+  const [trailId, setTrailId] = useState<number | null>(null);
+
+  const [image, setImage] = useState<string | null>(null); // stores the URI for the image
+  const [editDesc, setEditDesc] = useState(true);
+  const [description, setDescription] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
-  const [isDirty, setIsDirty] = useState({
-    photoChanged: originalImage === null,
-    descChanged: poiObj.description === null,
-    isActiveChanged: false,
-  });
+
+  const [isDirty, setIsDirty] = useState(false);
+
+  const getOriginalImage = (origPoi: POIObj | null) =>
+    origPoi ? BASE_URL + origPoi.image : null;
 
   const handleCancelImage = () => {
-    setImage(originalImage);
+    const setTo = origPOI ? getOriginalImage(origPOI) : null;
+    setImage(setTo);
   };
 
   const handleCancelDesc = () => {
-    setDescription(poiObj.description);
-    setEditDesc(poiObj.description === null);
+    setDescription(origPOI?.description || null);
+    setEditDesc(true);
   };
+  const isPhotoDirty = () =>
+    origPOI ? image !== getOriginalImage(origPOI) : image !== null;
 
   // Check Dirty
   const checkIsDirty = () => {
-    return (
-      isDirty.photoChanged || isDirty.descChanged || isDirty.isActiveChanged
-    );
+    const img = isPhotoDirty();
+    const desc = description !== origPOI?.description;
+    const active = isActive !== origPOI?.isActive;
+
+    return { img, desc, active };
+  };
+
+  const saveErrorMessages = () => {
+    const errMsg: string[] = [];
+    if (!image) {
+      errMsg.push("An image is required");
+    }
+    if (!description) {
+      errMsg.push("Please add a description");
+    }
+    if (errMsg.length > 0) {
+      return Alert.alert(errMsg.join("\n"));
+    }
+    return errMsg.length;
   };
 
   const handleSave = () => {
-    if (!isAuthenticated || !checkIsDirty()) {
+    if (!isAuthenticated || !isDirty) {
       navigation.navigate("Trail Screen");
       return;
     }
 
     // save...
-    const errMsg: string[] = [];
-    const newPOI: POIObj = { ...poiObj };
+    if (saveErrorMessages() !== 0) {
+      return;
+    }
+    const img = checkIsDirty().img ? image : origPOI?.image;
 
-    // update the object and error check that required fields exist
-    if (image) {
-      if (isDirty.photoChanged) {
-        newPOI.image = image;
-      }
+    let newPOI: POIObj;
+    if (origPOI) {
+      newPOI = {
+        ...origPOI,
+        description: description,
+        image: img!,
+        isActive: isActive,
+      };
     } else {
-      errMsg.push("An image is required");
-    }
-    if (description) {
-      if (isDirty.descChanged) {
-        newPOI.description = description;
+      if (!curLoc) {
+        throw Error("No current location for newPOI being added");
       }
-    } else {
-      errMsg.push("Please add a description");
+      newPOI = {
+        trailId: trailId,
+        pointsOfInterestId: null,
+        description: description,
+        image: image,
+        isActive: isActive,
+        ...curLoc,
+      };
     }
-    newPOI.isActive = isActive;
 
-    if (errMsg.length > 0) {
-      Alert.alert(errMsg.join("\n"));
-    } else {
-      // savePOI(newPOI);
-      navigation.navigate({
-        name: "Trail Screen",
-        params: { newPOI },
-        merge: true,
-      });
-    }
+    // savePOI(newPOI);
+    navigation.navigate({
+      name: "Trail Screen",
+      params: { newPOI },
+      merge: true,
+    });
   };
 
   /*
@@ -182,19 +188,53 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   }
 */
   useEffect(() => {
-    const newIsDirty = {
-      photoChanged: originalImage !== image || image === null,
-      descChanged: poiObj.description !== description,
-      isActiveChanged: poiObj.isActive !== isActive,
-    };
+    const { img, desc, active } = checkIsDirty();
 
-    setIsDirty(newIsDirty);
+    setIsDirty(img || desc || active);
   }, [image, description, isActive]);
+
+  useEffect(() => {
+    if (route.params.currentLocation) {
+      setCurLoc(route.params.currentLocation);
+    }
+    if (route.params.trailId) {
+      setTrailId(route.params.trailId);
+    }
+    if (route.params.poi) {
+      let origPOI = { ...route.params.poi };
+      setOrigPOI(origPOI);
+      setImage(getOriginalImage(origPOI));
+      setEditDesc(false);
+      setDescription(origPOI.description);
+      setIsActive(origPOI.isActive);
+    }
+  }, [route]);
+
+  //
+  useEffect(() => {
+    console.log(
+      "test values:",
+      JSON.stringify(
+        {
+          isAuthenticated,
+          origPOIObj: origPOI,
+          isDirty,
+          editDesc,
+          checkIsDirty: checkIsDirty(),
+          curLoc,
+        },
+        null,
+        2
+      )
+    );
+  });
+
+  //
 
   return (
     <View style={[styles.textContainer]}>
       {/* do the editDesc here so it is at the top of the page... It will be easier for the user to enter data. If they want to see the image, they will just need to close the keyboard. */}
-      {editDesc && (
+      {isAuthenticated && editDesc && (
         <View style={[styles.textContainer]}>
           <TextInput
             style={styles.textInput}
@@ -225,7 +265,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       >
         {isAuthenticated && (
           <View style={styles.imageButtonContainer}>
-            {isDirty.photoChanged && image && (
+            {checkIsDirty().img && image && (
               <MapButton
                 label="Cancel Photo"
                 backgroundColor="blue"
@@ -236,7 +276,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
             <ShowCamera
               label={
                 image
-                  ? isDirty.photoChanged
+                  ? checkIsDirty().img
                     ? "Retake Photo"
                     : "Update Photo"
                   : "Add Photo"
@@ -275,7 +315,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         </View>
       )}
 
-      {!checkIsDirty() ? (
+      {!isDirty ? (
         <View style={styles.buttonContainer}>
           <MapButton
             label="Close"
