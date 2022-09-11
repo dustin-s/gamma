@@ -20,8 +20,8 @@ import { BASE_URL } from "../utils/constants";
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
 
 /**
- * 
- * @param param0 - This parameter should a StackNativeScreenProps and contain a navigation and route 
+ *
+ * @param param0 - This parameter should a StackNativeScreenProps and contain a navigation and route
  * @returns React Native view for Point of Interest Screen
  */
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
@@ -74,15 +74,11 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   };
 
   const handleSave = () => {
-    console.log("********** handleSave **********");
-
     if (!auth.isAuthenticated || !checkIsDirty()) {
-      console.log(`navigation.navigate("Trail Screen")`);
       navigation.navigate("Trail Screen");
       return;
     }
 
-    console.log("Else...");
     // save...
     const errMsg: string[] = [];
     const newPOI: POIObj = { ...poiObj };

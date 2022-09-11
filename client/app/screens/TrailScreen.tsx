@@ -61,9 +61,7 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
     // background permission are not requested based on comment made by "byCedric"
     //  on Oct 18, 2021 in https://github.com/expo/expo/issues/14774
     const setFGStatus = async () => {
-      console.log(`**** Get Auth ****`);
       const status = await checkFGStatus();
-      console.log("auth.fgPermissions:", status);
       await setAuth({ ...auth, fgPermissions: status });
     };
     setFGStatus();

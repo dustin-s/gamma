@@ -63,9 +63,6 @@ export default function AdminButtons({
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
   const route = useRoute<StackNativeScreenProps<"Trail Screen">["route"]>();
 
-  //
-  const { fetchData } = useFetch();
-
   // recording status
   const [addingTrail, setAddingTrail] = useState(false);
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -91,16 +88,9 @@ export default function AdminButtons({
     if (!pauseRecording) {
       trailDispatch({ type: TrailActions.AddLocation, payload: curLoc.coords });
     }
-
-    console.log("TaskManager.defineTask:");
-    console.log("pauseRecording:", pauseRecording);
-    console.log("\nlocation length=", locationArr.length);
-    console.log(`time:  ${new Date(curLoc.timestamp).toLocaleString()}`);
-    console.log("last location:\n", location);
   });
 
   const handleStartRecording = async () => {
-    console.log("handleStartRecording");
     if (auth.fgPermissions) {
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Highest,
@@ -117,9 +107,7 @@ export default function AdminButtons({
       // ensure trailId is not set
       trailDispatch({ type: TrailActions.SetTrailId, payload: null });
       setIsRecording(true);
-      console.log("started recording");
     } else {
-      console.log("handleStartRecording: statusFG:", auth.fgPermissions);
       await checkFGStatus();
     }
   };
@@ -131,13 +119,6 @@ export default function AdminButtons({
 
     if (value) {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
-      console.log("************************************\n");
-      console.log("stopped");
-      console.log(
-        `There were ${locationArr.length} entries in the location array.`
-      );
-      console.log(`There were ${poiArr.length} entries in the POI array.`);
-      console.log("\n************************************");
 
       setIsRecording(false);
     }
@@ -159,8 +140,6 @@ export default function AdminButtons({
 
   const handleAddPOI = async () => {
     const curLoc = await currentLocation();
-    console.log("***** Handle Add POI *****");
-    console.log("curLoc:", curLoc);
 
     if (addingTrail) {
       setPauseRecording(true);
@@ -173,8 +152,6 @@ export default function AdminButtons({
   };
 
   const doCancel = () => {
-    console.log("cancel was pressed on the modal");
-
     trailDispatch({ type: TrailActions.ClearLocations });
     trailDispatch({ type: TrailActions.ClearPOIArr });
     setAddingTrail(false);
@@ -186,7 +163,6 @@ export default function AdminButtons({
     difficulty,
     isClosed,
   }: SaveTrailData) => {
-    console.log("********** Save Data **********");
     try {
       if (userId === null) {
         throw new Error("userId is null when saving trail");
@@ -252,7 +228,6 @@ export default function AdminButtons({
   };
 
   const savePOI = async (newPOI: POIObj) => {
-    console.log("***** Save POI *****");
     try {
       // resume recording (if needed)
       if (addingTrail) {
@@ -320,12 +295,12 @@ export default function AdminButtons({
 
   // save pois (can do this from the effect directly)
   useEffect(() => {
-    console.log("*********************************************");
-    console.log(
-      "Admin Buttons: routes.params?.newPOI",
-      route.params?.newPOI || "null"
-    );
-    console.log("*********************************************");
+    // console.log("*********************************************");
+    // console.log(
+    //   "Admin Buttons: routes.params?.newPOI",
+    //   route.params?.newPOI || "null"
+    // );
+    // console.log("*********************************************");
     if (!route.params?.newPOI) {
       return;
     }
@@ -349,32 +324,6 @@ export default function AdminButtons({
     }
     setGotTrailData(undefined);
   }, [gotTrailData]);
-
-  //
-  //
-  //
-
-  // forTest:
-  useEffect(() => {
-    console.log({
-      "AdminButtons- UseEffect": {
-        isRecording,
-        pauseRecording,
-        "locationArr.length: ": locationArr.length,
-      },
-    });
-    if (auth.userData?.user.userId) {
-      if (isRecording || !pauseRecording) {
-        console.log("Trail Recording started");
-      } else {
-        console.log("Recording Stopped");
-      }
-    }
-  }, [isRecording, pauseRecording]);
-
-  //
-  //
-  //
 
   if (!auth.userData?.user.userId) {
     return null;

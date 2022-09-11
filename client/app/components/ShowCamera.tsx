@@ -19,12 +19,8 @@ function ShowCamera({ label, setTakenImagePath }: ShowCameraProps) {
 
     const result = await ImagePicker.launchCameraAsync();
 
-    // Explore the result
-    console.log(result);
-
     if (!result.cancelled) {
       setTakenImagePath(result.uri);
-      console.log(result.uri);
     }
   };
 
