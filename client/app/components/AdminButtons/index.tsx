@@ -294,13 +294,16 @@ export default function AdminButtons({
     //   route.params?.newPOI || "null"
     // );
     // console.log("*********************************************");
-    if (!route.params?.newPOI) {
+    if (!route.params?.status && !route.params?.errMsg) {
       return;
     }
 
-    const newPOI = route.params.newPOI;
-    if (newPOI !== "Cancel") {
-      savePOI(newPOI);
+    const { status, errMsg } = route.params;
+    if (status !== "cancel" && !errMsg) {
+      setPauseRecording(false);
+    }
+    if (errMsg) {
+      setError(errMsg);
     }
   }, [route]);
 

@@ -15,12 +15,12 @@ export enum TrailActions {
   SetAllTrails = "SET_ALL_TRAILS",
   AddTrail = "ADD_TRAIL",
   UpdateTrail = "UPDATE_TRAIL",
+  // editing POI or adding new to trail, will actually update TrailData[], not POI[]
+  UpdateTrailsPOI = "UPDATE_TRAILS_POI",
 
   ClearLocations = "SET_ALL_LOCATION",
   AddLocation = "ADD_LOCATION",
 
-  // editing POI or adding new to trail, will actually update TrailData[], not POI[]
   ClearPOIArr = "CLEAR_POI_ARR",
   AddPOI = "ADD_POI",
-  // UpdatePOI = "UPDATE_POI",
 }

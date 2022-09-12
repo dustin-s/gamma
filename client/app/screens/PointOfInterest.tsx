@@ -12,12 +12,17 @@ import {
 import MapButton from "../components/MapButton";
 import ShowCamera from "../components/ShowCamera";
 import { useAuthentication } from "../hooks/useAuthentication";
+import { useTrailContext } from "../hooks/useTrailContext";
 import { POIObj } from "../interfaces/POIObj";
 
 // Types:
-import { StackNativeScreenProps } from "../interfaces/StackParamList";
+import {
+  StackNativeScreenProps,
+  SaveTrailStates,
+} from "../interfaces/StackParamList";
 // import { AuthContext } from "../contexts/authContext";
 import { BASE_URL } from "../utils/constants";
+import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
 
@@ -27,7 +32,8 @@ type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
  * @returns React Native view for Point of Interest Screen
  */
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
-  const { isAuthenticated } = useAuthentication();
+  const { isAuthenticated, getToken } = useAuthentication();
+  const { trailDispatch, TrailActions } = useTrailContext();
 
   const [origPOI, setOrigPOI] = useState<POIObj | null>(null);
   const [curLoc, setCurLoc] = useState<LocationObjectCoords | null>(null);
@@ -78,31 +84,62 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     return errMsg.length;
   };
 
-  const handleSave = () => {
+  const handleCancel = () =>
+    navigation.navigate({
+      name: "Trail Screen",
+      params: { status: "cancel" },
+      merge: true,
+    });
+
+  const handleSave = async () => {
     if (!isAuthenticated || !isDirty) {
       navigation.navigate("Trail Screen");
       return;
-    }
-
-    // save...
-    if (saveErrorMessages() !== 0) {
+    } else if (saveErrorMessages() !== 0) {
       return;
-    }
-    const img = checkIsDirty().img ? image : origPOI?.image;
-
-    let newPOI: POIObj;
-    if (origPOI) {
-      newPOI = {
-        ...origPOI,
-        description: description,
-        image: img!,
-        isActive: isActive,
-      };
     } else {
+      const { status, errMsg } = await saveTrail();
+      navigation.navigate({
+        name: "Trail Screen",
+        params: { status, errMsg },
+        merge: true,
+      });
+    }
+  };
+
+  async function saveTrail(): Promise<{
+    status?: SaveTrailStates;
+    errMsg?: string | undefined;
+  }> {
+    let status: SaveTrailStates = "unsaved";
+
+    try {
+      const token = getToken();
+
+      if (origPOI) {
+        // remove URL from original image value
+        const img = checkIsDirty().img ? image : origPOI?.image;
+        const updatedPOIObj: POIObj = {
+          ...origPOI,
+          description: description,
+          image: img,
+          isActive: isActive,
+        };
+
+        const updatedPOI = await updatePOI(updatedPOIObj, origPOI, token);
+
+        trailDispatch({
+          type: TrailActions.UpdateTrailsPOI,
+          payload: updatedPOI,
+        });
+        return { status: "saved" };
+      }
+
       if (!curLoc) {
         throw Error("No current location for newPOI being added");
       }
-      newPOI = {
+
+      const newPOI: POIObj = {
         trailId: trailId,
         pointsOfInterestId: null,
         description: description,
@@ -110,83 +147,30 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         isActive: isActive,
         ...curLoc,
       };
-    }
 
-    // savePOI(newPOI);
-    navigation.navigate({
-      name: "Trail Screen",
-      params: { newPOI },
-      merge: true,
-    });
-  };
-
-  /*
-  async function savePOI(newPOI: POIObj) {
-    try {
-      const token = getToken();
-      const curTrailId = newPOI.trailId;
-      const curPOIId = newPOI.pointsOfInterestId;
-
-      // if new trail...
-      if (!curPOIId && !curTrailId) {
-        trailDispatch({ type: TrailActions.AddPOI, payload: newPOI });
-        return;
-      }
-
-      // not a new trail - set up variable to store new list of POIs
-      let newTrailsPOIs: POIObj[] = [];
-
-      // get trailIndex
-      const trailIndex = trailList.findIndex(
-        (trail: TrailData) => trail.trailId === curTrailId
-      );
-      if (trailIndex < 0) {
-        throw Error("SavePOI: No trail index found");
-      }
-      // get current list of POIs (this will be modified into newTrailsPOIs)
-      const trailsPOIs = trailList[trailIndex].PointsOfInterests || [];
-
-      // update existing POI ELSE new POI for existing Trail
-      if (curPOIId && curTrailId) {
-        const oldPOI = trailsPOIs.filter(
-          (poi: POIObj) => poi.pointsOfInterestId === curPOIId
-        )[0];
-
-        const addedPOI = await updatePOI(newPOI, oldPOI, token);
-
-        newTrailsPOIs = trailsPOIs.map((old: POIObj) =>
-          old.pointsOfInterestId == addedPOI.pointsOfInterestId ? addedPOI : old
-        );
-      } else if (!curPOIId && curTrailId) {
+      if (trailId) {
         const addedPOI = await addPOIToTrail(newPOI, token);
 
-        newTrailsPOIs = [...trailsPOIs, addedPOI];
-      }
-      // ensure update was done
-      if (newTrailsPOIs.length > 0) {
-        const newTrail = {
-          ...trailList[trailIndex],
-          PointsOfInterests: newTrailsPOIs,
-        };
-        trailDispatch({ type: TrailActions.UpdateTrail, payload: newTrail });
-      }
-      return;
-      //
-    } catch (err: any) {
-      console.log(err);
-      if (err instanceof Error) {
-        setError(err.message);
+        trailDispatch({
+          type: TrailActions.UpdateTrailsPOI,
+          payload: addedPOI,
+        });
       } else {
-        setError(String(err));
+        trailDispatch({ type: TrailActions.AddPOI, payload: newPOI });
       }
-    }
 
-    // resume recording (if needed)
-    if (addingTrail) {
-      setPauseRecording(false);
+      return { status: "added" };
+    } catch (err) {
+      let errMsg: string = "Add POI: ";
+      if (err instanceof Error) {
+        errMsg += err.message;
+      } else {
+        errMsg += String(err);
+      }
+      return { status, errMsg };
     }
   }
-*/
+
   useEffect(() => {
     const { img, desc, active } = checkIsDirty();
 
@@ -211,6 +195,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   }, [route]);
 
   //
+  // test prints
   useEffect(() => {
     console.log(
       "test values:",
@@ -228,7 +213,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       )
     );
   });
-
   //
 
   return (
@@ -328,13 +312,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
           <MapButton
             label="Cancel"
             backgroundColor="red"
-            handlePress={() => {
-              navigation.navigate({
-                name: "Trail Screen",
-                params: { newPOI: "Cancel" },
-                merge: true,
-              });
-            }}
+            handlePress={handleCancel}
           />
           <MapButton
             label="Save and Close"

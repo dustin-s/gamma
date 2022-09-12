@@ -27,7 +27,7 @@ import { SubmitTrailData } from "../interfaces/SaveTrailData";
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
 
-const IS_TEST = false;
+const IS_TEST = true;
 
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
@@ -67,8 +67,7 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
     setGotTrailData(value);
   };
 
-  // Get Trails
-  useEffect(() => {
+  function fetchTrails() {
     setIsLoading(true);
     getTrails<TrailData[]>()
       .then((data) => {
@@ -79,7 +78,15 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
         setError(err);
         setIsLoading(false);
       });
+  }
+
+  useEffect(() => {
+    fetchTrails();
   }, []);
+
+  useEffect(() => {
+    console.log("trailList updated");
+  }, [trailList]);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
@@ -139,23 +146,34 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
               backgroundColor="orange"
               handlePress={() => {
                 console.log("\n*************");
-                // const temp = trailList ? [...trailList] : [];
-                // console.log(temp.reverse());
-                // console.log(locationArr);
                 console.log("userId: ", userId);
                 console.log("trailId:", trailId);
                 console.log("trailList.length:", trailList?.length || "null");
                 console.log("locationArr.length: ", locationArr.length);
                 console.log("poiArr.length", poiArr.length);
-                console.log("trails");
-                trailList?.map((trail) =>
-                  console.log(
-                    `${trail.trailId}\t${trail.difficulty}\t${
-                      trail.difficulty !== "moderate" ? "\t" : ""
-                    }${trail.name}`
-                  )
+                !trailId ? (
+                  <>
+                    {console.log("trails")}
+                    {trailList?.map((trail) =>
+                      console.log(
+                        `${trail.trailId}\t${trail.difficulty}\t${
+                          trail.difficulty !== "moderate" ? "\t" : ""
+                        }${trail.name}`
+                      )
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {console.log("POIs")}
+                    {trailList
+                      .filter((trail) => trail.trailId === trailId)[0]
+                      .PointsOfInterests?.map((poi) =>
+                        console.log(
+                          `${poi.pointsOfInterestId}\t${poi.isActive}\t${poi.description}`
+                        )
+                      )}
+                  </>
                 );
-                // console.log("statusFG:", statusFG);
               }}
             />
             <MapButton
@@ -164,6 +182,7 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
               handlePress={() => {
                 setError("");
                 setGotTrailData("Cancel");
+                fetchTrails();
               }}
             />
           </View>
