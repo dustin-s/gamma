@@ -1,5 +1,6 @@
 import { POIObj } from "../../interfaces/POIObj";
 import { TrailData } from "../../interfaces/TrailData";
+import { printTrailWithoutCoords } from "../../utils/testingHelpers";
 import { ActionMap, TrailActions } from "./actions";
 import { LocationActions } from "./locationReducer";
 import { POIActions } from "./poiReducer";
@@ -28,27 +29,44 @@ export const trailDataReducer = (
       return state.map((prev: TrailData) =>
         prev.trailId === action.payload.trailId ? action.payload : prev
       );
-    case TrailActions.UpdateTrailsPOI: {
-      const { trailId, pointsOfInterestId } = action.payload;
-      const curTrail = state.filter((trail) => (trail.trailId = trailId))[0];
+    case TrailActions.UpdateTrailsPOI:
+      const curTrailId = action.payload.trailId;
+      const curTrail = state.find((prev) => prev.trailId === curTrailId);
 
-      console.log({ action });
-      if (trailId) {
-        curTrail.PointsOfInterests?.map((old) =>
-          old.pointsOfInterestId === pointsOfInterestId ? action.payload : old
-        );
-      } else if (curTrail.PointsOfInterests?.length) {
-        curTrail.PointsOfInterests = [
-          ...curTrail.PointsOfInterests,
-          action.payload,
-        ];
-      } else {
-        curTrail.PointsOfInterests = [action.payload];
+      if (!curTrail) {
+        console.log("Unable to find trail when updating POI");
+        return state;
       }
 
-      return state.map((old) => (old.trailId === trailId ? curTrail : old));
-    }
+      return state.map((t) =>
+        t.trailId === curTrailId ? updateTrailPOI(curTrail, action.payload) : t
+      );
+
     default:
       return state;
   }
 };
+
+function updateTrailPOI(prevTrail: TrailData, poi: POIObj) {
+  const { pointsOfInterestId: poiId } = poi;
+  const curTrail: TrailData = { ...prevTrail };
+
+  let newPOIs: POIObj[] = [];
+  if (hasPoiId(curTrail, poiId)) {
+    newPOIs = curTrail.PointsOfInterests!.map((p) =>
+      p.pointsOfInterestId === poiId ? poi : p
+    );
+  } else {
+    newPOIs.push(poi);
+  }
+  curTrail.PointsOfInterests = [...newPOIs];
+
+  return curTrail;
+}
+
+function hasPoiId(curTrail: TrailData, poiId: number | null) {
+  return (
+    curTrail.PointsOfInterests &&
+    curTrail.PointsOfInterests.some((p) => p.pointsOfInterestId === poiId)
+  );
+}

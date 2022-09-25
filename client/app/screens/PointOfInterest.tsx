@@ -58,6 +58,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     setDescription(origPOI?.description || null);
     setEditDesc(true);
   };
+
   const isPhotoDirty = () =>
     origPOI ? image !== getOriginalImage(origPOI) : image !== null;
 
@@ -127,6 +128,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         };
 
         const updatedPOI = await updatePOI(updatedPOIObj, origPOI, token);
+        console.log({ updatedPOI });
 
         trailDispatch({
           type: TrailActions.UpdateTrailsPOI,
@@ -196,6 +198,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
 
   //
   // test prints
+  /*
   useEffect(() => {
     console.log(
       "test values:",
@@ -213,6 +216,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       )
     );
   });
+  */
   //
 
   return (

@@ -43,7 +43,6 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
   const {
     trailId,
     trailList,
-    locationArr, // only used in console.log button
     poiArr, // only used in console.log button
     trailDispatch,
     TrailActions,
@@ -145,11 +144,10 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
               label="console.log(data)"
               backgroundColor="orange"
               handlePress={() => {
-                console.log("\n*************");
+                console.log("*************");
                 console.log("userId: ", userId);
                 console.log("trailId:", trailId);
                 console.log("trailList.length:", trailList?.length || "null");
-                console.log("locationArr.length: ", locationArr.length);
                 console.log("poiArr.length", poiArr.length);
                 !trailId ? (
                   <>
