@@ -79,7 +79,11 @@ export default function AdminButtons({
     const location: LocationObject[] = curData.locations as LocationObject[];
     const curLoc = location[location.length - 1];
     if (!pauseRecording) {
-      trailDispatch({ type: TrailActions.AddLocation, payload: curLoc.coords });
+      console.log(curLoc.coords);
+      trailDispatch({
+        type: TrailActions.AddLocation,
+        payload: curLoc.coords,
+      });
     }
   });
 
@@ -187,11 +191,16 @@ export default function AdminButtons({
       const data = response.json() as any;
 
       if (data.error) {
+        console.log("Save trail data.error", data.error);
         throw new Error(data.error);
       }
+
+      console.log("Save trails success...");
       const newTrail: TrailData = guardDataType<TrailData>(data);
+      console.log("Save trails guardDataType success...");
 
       if (poiArr.length > 0) {
+        console.log("Save trails, saving POIs...");
         const newTrailId = newTrail.trailId;
 
         for (let i = 0; i < poiArr.length; i++) {
@@ -220,6 +229,7 @@ export default function AdminButtons({
     }
   };
 
+  // route
   useEffect(() => {
     if (!route.params?.status && !route.params?.errMsg) {
       return;
@@ -247,6 +257,16 @@ export default function AdminButtons({
     }
     setGotTrailData(undefined);
   }, [gotTrailData]);
+
+  useEffect(() => {
+    console.log({ addingTrail });
+  }, [addingTrail]);
+  useEffect(() => {
+    console.log({ isRecording });
+  }, [isRecording]);
+  useEffect(() => {
+    console.log({ pauseRecording });
+  }, [pauseRecording]);
 
   if (!isAuthenticated) {
     return null;
