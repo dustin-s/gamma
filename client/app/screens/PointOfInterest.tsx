@@ -20,7 +20,6 @@ import {
   StackNativeScreenProps,
   SaveTrailStates,
 } from "../interfaces/StackParamList";
-// import { AuthContext } from "../contexts/authContext";
 import { BASE_URL } from "../utils/constants";
 import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
 
@@ -88,7 +87,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const handleCancel = () =>
     navigation.navigate({
       name: "Trail Screen",
-      params: { status: "cancel" },
+      params: { status: "cancel", errMsg: "" },
       merge: true,
     });
 
@@ -96,9 +95,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     if (!isAuthenticated || !isDirty) {
       navigation.navigate("Trail Screen");
       return;
-    } else if (saveErrorMessages() !== 0) {
-      return;
-    } else {
+    } else if (saveErrorMessages() === 0) {
       const { status, errMsg } = await saveTrail();
       navigation.navigate({
         name: "Trail Screen",
@@ -118,22 +115,28 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       const token = getToken();
 
       if (origPOI) {
-        // remove URL from original image value
         const img = checkIsDirty().img ? image : origPOI?.image;
-        const updatedPOIObj: POIObj = {
+        const updatedPOI: POIObj = {
           ...origPOI,
           description: description,
           image: img,
           isActive: isActive,
         };
 
-        const updatedPOI = await updatePOI(updatedPOIObj, origPOI, token);
-        console.log({ updatedPOI });
+        if (!updatedPOI.trailId) {
+          trailDispatch({
+            type: TrailActions.AddPOI,
+            payload: updatedPOI,
+          });
+        } else {
+          const updatedPOIObj = await updatePOI(updatedPOI, origPOI, token);
+          console.log({ updatedPOIObj });
 
-        trailDispatch({
-          type: TrailActions.UpdateTrailsPOI,
-          payload: updatedPOI,
-        });
+          trailDispatch({
+            type: TrailActions.UpdateTrailsPOI,
+            payload: updatedPOIObj,
+          });
+        }
         return { status: "saved" };
       }
 
@@ -180,9 +183,23 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   }, [image, description, isActive]);
 
   useEffect(() => {
-    if (route.params.currentLocation) {
-      setCurLoc(route.params.currentLocation);
+    console.log("POI useEffect", { route });
+    let rpCurLoc = route.params.currentLocation;
+    console.log({ rpCurLoc });
+    if (rpCurLoc) {
+      setCurLoc(rpCurLoc);
+    } else {
+      navigation.navigate({
+        name: "Trail Screen",
+        params: {
+          status: "unsaved",
+          errMsg:
+            "Current location not acquired, please try to add the Point of interest again",
+        },
+        merge: true,
+      });
     }
+
     if (route.params.trailId) {
       setTrailId(route.params.trailId);
     }
@@ -194,7 +211,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       setDescription(origPOI.description);
       setIsActive(origPOI.isActive);
     }
-  }, [route]);
+  }, []);
 
   //
   // test prints
