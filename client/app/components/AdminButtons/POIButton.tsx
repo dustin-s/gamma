@@ -13,7 +13,7 @@ function POIButton({
   locationArrLength,
   handlePress,
 }: POIButtonProps) {
-  if (trailId || (!isAddingTrail && locationArrLength > 0)) {
+  if (trailId || (isAddingTrail && locationArrLength > 0)) {
     return (
       <MapButton
         label="Add Pt of Interest"

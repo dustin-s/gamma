@@ -52,12 +52,16 @@ function updateTrailPOI(prevTrail: TrailData, poi: POIObj) {
   const curTrail: TrailData = { ...prevTrail };
 
   let newPOIs: POIObj[] = [];
-  if (hasPoiId(curTrail, poiId)) {
+  if (!curTrail.PointsOfInterests) {
+    newPOIs.push(poi);
+  } else if (
+    !curTrail.PointsOfInterests.some((p) => p.pointsOfInterestId === poiId)
+  ) {
+    newPOIs = [...curTrail.PointsOfInterests, poi];
+  } else {
     newPOIs = curTrail.PointsOfInterests!.map((p) =>
       p.pointsOfInterestId === poiId ? poi : p
     );
-  } else {
-    newPOIs.push(poi);
   }
   curTrail.PointsOfInterests = [...newPOIs];
 
