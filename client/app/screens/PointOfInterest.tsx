@@ -126,7 +126,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   }, [image, description, isActive]);
 
   return (
-    <View style={[styles.textContainer]}>
+    <View style={[styles.container]}>
       {/* do the editDesc here so it is at the top of the page... It will be easier for the user to enter data. If they want to see the image, they will just need to close the keyboard. */}
       {editDesc && (
         <View style={[styles.textContainer]}>
@@ -296,6 +296,7 @@ const styles = StyleSheet.create({
   controlGroup: {
     flexDirection: "row",
     alignItems: "center",
+    right: 135,
     padding: 5,
   },
   label: {
