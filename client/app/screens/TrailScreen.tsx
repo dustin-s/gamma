@@ -32,7 +32,7 @@ const IS_TEST = true;
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
 // Main function
-export default function TrailScreen({ navigation }: TrailScreenProps) {
+export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   // Default coordinates upon loading (Camp Allen).
   const [region, setRegion] = useState(CAMP_ALLEN_COORDS);
 
@@ -48,7 +48,7 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
     TrailActions,
   } = useTrailContext();
 
-  const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>();
+  const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>(null);
 
   // Display options
   const [modalVisible, setModalVisible] = useState(false);
@@ -82,6 +82,11 @@ export default function TrailScreen({ navigation }: TrailScreenProps) {
   useEffect(() => {
     fetchTrails();
   }, []);
+
+  useEffect(() => {
+    console.log("Route useEffect", { route });
+    setError(route.params?.errMsg || "");
+  }, [route]);
 
   useEffect(() => {
     console.log("trailList updated");

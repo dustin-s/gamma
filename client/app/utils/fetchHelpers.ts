@@ -73,7 +73,7 @@ export const changeToFormData = async (
  * @returns the POI object that was successfully uploaded
  */
 export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
-  console.log("*** Add POI to Trail function ***");
+  // console.log("*** Add POI to Trail function ***");
 
   const newData: Record<string, string> = {};
   Object.entries(newPOI).forEach(([key, value]) => {
@@ -82,7 +82,7 @@ export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
     }
   });
 
-  console.log("newData:", newData);
+  // console.log("newData:", newData, "newData.trailId", newData.trailId);
 
   return imageUpload(newData, token, "trails/addPOI/");
 };

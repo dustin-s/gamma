@@ -1,32 +1,28 @@
-import { SetStateAction, useContext, useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
 import { checkFGStatus } from "../../utils/permissionHelpers";
-import { View } from "react-native";
+import { Text, View } from "react-native";
+import StartButton from "./StartButton";
+import StopButton from "./StopButton";
+import SaveButton from "./SaveButton";
 import MapButton from "../MapButton";
-import {
-  addPOIToTrail,
-  changeToFormData,
-  getTrails,
-  updatePOI,
-} from "../../utils/fetchHelpers";
+import { addPOIToTrail, changeToFormData } from "../../utils/fetchHelpers";
+import { guardDataType } from "../../utils/typeGuard";
 
-import { AuthContext } from "../../contexts/authContext";
 import { TrailActions } from "../../contexts/TrailContext/actions";
+import { useAuthentication } from "../../hooks/useAuthentication";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { useTrailContext } from "../../hooks/useTrailContext";
 
 import { LocationObject } from "expo-location";
-import { POIObj } from "../../interfaces/POIObj";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import { StackNativeScreenProps } from "../../interfaces/StackParamList";
 import { SaveTrailData, SubmitTrailData } from "../../interfaces/SaveTrailData";
+import { TrailData } from "../../interfaces/TrailData";
 
-import useFetch from "../../hooks/useFetch";
-import { useTrailContext } from "../../hooks/useTrailContext";
 import styles from "../../styles/Styles";
 import { BASE_API } from "../../utils/constants";
-import { guardDataType } from "../../utils/typeGuard";
-import { TrailData } from "../../interfaces/TrailData";
-import { useAuthentication } from "../../hooks/useAuthentication";
+import POIButton from "./POIButton";
 
 const LOCATION_TASK_NAME = "background-location-task";
 
@@ -57,14 +53,8 @@ export default function AdminButtons({
   const route = useRoute<StackNativeScreenProps<"Trail Screen">["route"]>();
 
   // recording status
-  const [addingTrail, setAddingTrail] = useState(false);
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [pauseRecording, setPauseRecording] = useState(false);
-
-  const handleAddTrail = () => {
-    setAddingTrail(true);
-    handleStartRecording();
-  };
+  const [isAddingTrail, setAddingTrail] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
@@ -75,11 +65,11 @@ export default function AdminButtons({
     }
     const curData = data as any;
 
-    // const [location] = locations;
     const location: LocationObject[] = curData.locations as LocationObject[];
     const curLoc = location[location.length - 1];
-    if (!pauseRecording) {
+    if (isRecording) {
       console.log(curLoc.coords);
+
       trailDispatch({
         type: TrailActions.AddLocation,
         payload: curLoc.coords,
@@ -87,7 +77,10 @@ export default function AdminButtons({
     }
   });
 
-  const handleStartRecording = async () => {
+  const isUpdatingLocations = () =>
+    Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+
+  const doStartRecording = async () => {
     if (fgPermissions) {
       await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Highest,
@@ -109,24 +102,44 @@ export default function AdminButtons({
     }
   };
 
-  const handleStopRecording = async () => {
-    let value = await Location.hasStartedLocationUpdatesAsync(
-      LOCATION_TASK_NAME
-    );
-
-    if (value) {
+  const doStopRecording = async () => {
+    if (await isUpdatingLocations()) {
       Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
 
       setIsRecording(false);
     }
   };
 
+  const handleAddTrail = () => {
+    setAddingTrail(true);
+    doStartRecording();
+  };
+
+  const handleStopBtn = () => {
+    setIsRecording(false);
+  };
+
+  const handleStartBtn = () => {
+    setIsRecording(true);
+  };
+
+  const handleAddPOI = async () => {
+    const curLoc = await currentLocation();
+
+    setIsRecording(false);
+    navigation.navigate("Point of Interest", {
+      currentLocation: curLoc,
+      trailId,
+    });
+  };
+
   const handleSave = () => {
+    setIsRecording(false);
     setModalVisible(true);
   };
 
   const currentLocation = async () => {
-    if (addingTrail) {
+    if (isAddingTrail) {
       // return the current location on the trail
       return locationArr[locationArr.length - 1];
     } else {
@@ -135,23 +148,12 @@ export default function AdminButtons({
     }
   };
 
-  const handleAddPOI = async () => {
-    const curLoc = await currentLocation();
-
-    if (addingTrail) {
-      setPauseRecording(true);
-    }
-
-    navigation.navigate("Point of Interest", {
-      currentLocation: curLoc,
-      trailId,
-    });
-  };
-
-  const doCancel = () => {
+  const doCancel = async () => {
+    await doStopRecording();
+    setAddingTrail(false);
+    setIsRecording(false);
     trailDispatch({ type: TrailActions.ClearLocations });
     trailDispatch({ type: TrailActions.ClearPOIArr });
-    setAddingTrail(false);
   };
 
   const doSaveTrail = async ({
@@ -188,19 +190,16 @@ export default function AdminButtons({
 
       // save trail data (get trail back and append to trail)
       const response = await fetch(BASE_API + "trails", options);
-      const data = response.json() as any;
+      const data = (await response.json()) as any;
 
       if (data.error) {
         console.log("Save trail data.error", data.error);
         throw new Error(data.error);
       }
 
-      console.log("Save trails success...");
       const newTrail: TrailData = guardDataType<TrailData>(data);
-      console.log("Save trails guardDataType success...");
 
       if (poiArr.length > 0) {
-        console.log("Save trails, saving POIs...");
         const newTrailId = newTrail.trailId;
 
         for (let i = 0; i < poiArr.length; i++) {
@@ -218,7 +217,10 @@ export default function AdminButtons({
       trailDispatch({ type: TrailActions.AddTrail, payload: newTrail });
 
       setAddingTrail(false);
+      setIsRecording(false);
+      await doStopRecording();
       setIsLoading(false);
+      setError("");
     } catch (err: any) {
       console.log(err);
       if (err instanceof Error) {
@@ -229,15 +231,15 @@ export default function AdminButtons({
     }
   };
 
-  // route
+  // route (only from POI screen?)
   useEffect(() => {
     if (!route.params?.status && !route.params?.errMsg) {
       return;
     }
 
     const { status, errMsg } = route.params;
-    if (status !== "cancel" && !errMsg) {
-      setPauseRecording(false);
+    if (status) {
+      setIsRecording(true);
     }
     if (errMsg) {
       setError(errMsg);
@@ -248,71 +250,74 @@ export default function AdminButtons({
   useEffect(() => {
     if (!gotTrailData) return;
 
-    if (gotTrailData !== "Closed") {
-      if (gotTrailData === "Cancel") {
-        doCancel();
-      } else {
-        doSaveTrail(gotTrailData);
-      }
+    if (gotTrailData === "Closed") {
+      setIsRecording(true);
+    } else if (gotTrailData === "Cancel") {
+      doCancel();
+    } else {
+      doSaveTrail(gotTrailData);
     }
-    setGotTrailData(undefined);
+
+    setGotTrailData(null);
   }, [gotTrailData]);
 
   useEffect(() => {
-    console.log({ addingTrail });
-  }, [addingTrail]);
-  useEffect(() => {
-    console.log({ isRecording });
-  }, [isRecording]);
-  useEffect(() => {
-    console.log({ pauseRecording });
-  }, [pauseRecording]);
+    async function inner() {
+      const serviceInUse = await isUpdatingLocations();
+      console.log({ addingTrail: isAddingTrail, isRecording, serviceInUse });
+    }
+    inner();
+  }, [isAddingTrail, isRecording]);
 
   if (!isAuthenticated) {
     return null;
   }
   return (
-    <View style={[styles.btnContainer, { flexWrap: "wrap" }]}>
-      {!addingTrail ? (
-        <MapButton
-          label="Add Trail"
-          handlePress={handleAddTrail}
-          backgroundColor="blue"
-        />
-      ) : (
-        <>
-          {!isRecording && (
-            <MapButton
-              label="Start"
-              backgroundColor="green"
-              handlePress={handleStartRecording}
+    <>
+      <View
+        style={{
+          flex: 1,
+          flexDirection: "row",
+          justifyContent: "space-between",
+          width: "90%",
+        }}
+      >
+        {isAddingTrail && <Text># of coordinates: {locationArr.length}</Text>}
+        {isRecording && <Text>Recording</Text>}
+      </View>
+      <View style={[styles.btnContainer, { flexWrap: "wrap" }]}>
+        {!isAddingTrail ? (
+          <MapButton
+            label="Add Trail"
+            handlePress={handleAddTrail}
+            backgroundColor="blue"
+          />
+        ) : (
+          <>
+            <StartButton
+              isRecording={isRecording}
+              locationArrLength={locationArr.length}
+              handlePress={handleStartBtn}
             />
-          )}
-
-          {isRecording && (
-            <MapButton
-              label="Stop"
-              backgroundColor="red"
-              handlePress={handleStopRecording}
+            <StopButton
+              isRecording={isRecording}
+              locationArrLength={locationArr.length}
+              handlePress={handleStopBtn}
             />
-          )}
-
-          {!isRecording && locationArr.length > 1 && (
-            <MapButton
-              label="Save"
-              backgroundColor="blue"
+            <SaveButton
+              isRecording={isRecording}
+              locationArrLength={locationArr.length}
               handlePress={handleSave}
             />
-          )}
-        </>
-      )}
-      {(addingTrail || trailId) && (
-        <MapButton
-          label="Add Pt of Interest"
-          backgroundColor="purple"
+          </>
+        )}
+        <POIButton
+          isAddingTrail={isAddingTrail}
+          trailId={trailId}
+          locationArrLength={locationArr.length}
           handlePress={handleAddPOI}
         />
-      )}
-    </View>
+      </View>
+    </>
   );
 }

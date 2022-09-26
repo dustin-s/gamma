@@ -183,21 +183,10 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   }, [image, description, isActive]);
 
   useEffect(() => {
-    console.log("POI useEffect", { route });
+    // console.log("POI useEffect", { route });
     let rpCurLoc = route.params.currentLocation;
-    console.log({ rpCurLoc });
     if (rpCurLoc) {
       setCurLoc(rpCurLoc);
-    } else {
-      navigation.navigate({
-        name: "Trail Screen",
-        params: {
-          status: "unsaved",
-          errMsg:
-            "Current location not acquired, please try to add the Point of interest again",
-        },
-        merge: true,
-      });
     }
 
     if (route.params.trailId) {
