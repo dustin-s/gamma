@@ -24,12 +24,11 @@ import { BASE_URL } from "../utils/constants";
 import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
+interface SaveTrailStatus {
+  status: SaveTrailStates;
+  errMsg?: string;
+}
 
-/**
- *
- * @param param0 - This parameter should a StackNativeScreenProps and contain a navigation and route
- * @returns React Native view for Point of Interest Screen
- */
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const { isAuthenticated, getToken } = useAuthentication();
   const { trailDispatch, TrailActions } = useTrailContext();
@@ -61,7 +60,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   const isPhotoDirty = () =>
     origPOI ? image !== getOriginalImage(origPOI) : image !== null;
 
-  // Check Dirty
   const checkIsDirty = () => {
     const img = isPhotoDirty();
     const desc = description !== origPOI?.description;
@@ -105,10 +103,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
     }
   };
 
-  async function saveTrail(): Promise<{
-    status?: SaveTrailStates;
-    errMsg?: string | undefined;
-  }> {
+  async function saveTrail(): Promise<SaveTrailStatus> {
     let status: SaveTrailStates = "unsaved";
 
     try {
@@ -130,7 +125,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
           });
         } else {
           const updatedPOIObj = await updatePOI(updatedPOI, origPOI, token);
-          console.log({ updatedPOIObj });
 
           trailDispatch({
             type: TrailActions.UpdateTrailsPOI,
@@ -183,7 +177,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
   }, [image, description, isActive]);
 
   useEffect(() => {
-    // console.log("POI useEffect", { route });
     let rpCurLoc = route.params.currentLocation;
     if (rpCurLoc) {
       setCurLoc(rpCurLoc);
@@ -201,29 +194,6 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       setIsActive(origPOI.isActive);
     }
   }, []);
-
-  //
-  // test prints
-  /*
-  useEffect(() => {
-    console.log(
-      "test values:",
-      JSON.stringify(
-        {
-          isAuthenticated,
-          origPOIObj: origPOI,
-          isDirty,
-          editDesc,
-          checkIsDirty: checkIsDirty(),
-          curLoc,
-        },
-        null,
-        2
-      )
-    );
-  });
-  */
-  //
 
   return (
     <View style={[styles.container]}>

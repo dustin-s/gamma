@@ -27,19 +27,15 @@ import { SubmitTrailData } from "../interfaces/SaveTrailData";
 // Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
 
-const IS_TEST = true;
+const IS_TEST = false;
 
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
-// Main function
 export default function TrailScreen({ navigation, route }: TrailScreenProps) {
-  // Default coordinates upon loading (Camp Allen).
   const [region, setRegion] = useState(CAMP_ALLEN_COORDS);
 
-  // Authorization
   const { isAuthenticated, userId, setFGStatus } = useAuthentication();
 
-  // Information about the trail
   const {
     trailId,
     trailList,
@@ -55,12 +51,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Get Permissions.
   useEffect(() => {
     setFGStatus();
   }, []);
 
-  // submitTrail
   const submitTrail = (value: SubmitTrailData) => {
     setModalVisible(false);
     setGotTrailData(value);
@@ -84,13 +78,8 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
   }, []);
 
   useEffect(() => {
-    console.log("Route useEffect", { route });
     setError(route.params?.errMsg || "");
   }, [route]);
-
-  useEffect(() => {
-    console.log("trailList updated");
-  }, [trailList]);
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
@@ -120,17 +109,14 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
       </View>
 
       <View style={[styles.loginBtnContainer]}>
-        {/* Login */}
         {!isAuthenticated && (
           <LoginButton onPress={() => navigation.navigate("Admin")} />
         )}
-        {/*Change Password/Logout*/}
         {userId && (
           <LoginButton onPress={() => navigation.navigate("Update Password")} />
         )}
       </View>
 
-      {/* Other button containers are at the bottom of the screen */}
       <View style={[styles.fgContainer]}>
         {error !== "" && <Text style={styles.errText}>{error}</Text>}
         <Text style={styles.permissionsText}>
@@ -191,7 +177,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           </View>
         )}
 
-        {/* All user's buttons */}
         <View style={styles.btnContainer}>
           {trailId && (
             <MapButton
@@ -207,7 +192,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
           )}
         </View>
 
-        {/* Show these buttons for a logged in user */}
         <AdminButtons
           setModalVisible={setModalVisible}
           gotTrailData={gotTrailData}

@@ -35,18 +35,16 @@ interface AdminButtonsProps {
 }
 
 export default function AdminButtons({
-  setModalVisible, // <-- Can we pull the modal in to this screen?
+  setModalVisible,
   gotTrailData,
   setGotTrailData,
   setIsLoading,
   setError,
 }: AdminButtonsProps) {
-  // Authorization
   const { getToken, userId, fgPermissions, isAuthenticated } =
     useAuthentication();
 
-  const { trailId, trailList, locationArr, poiArr, trailDispatch } =
-    useTrailContext();
+  const { trailId, locationArr, poiArr, trailDispatch } = useTrailContext();
 
   const navigation =
     useNavigation<StackNativeScreenProps<"Point of Interest">["navigation"]>();
@@ -188,12 +186,10 @@ export default function AdminButtons({
         body: formData,
       };
 
-      // save trail data (get trail back and append to trail)
       const response = await fetch(BASE_API + "trails", options);
       const data = (await response.json()) as any;
 
       if (data.error) {
-        console.log("Save trail data.error", data.error);
         throw new Error(data.error);
       }
 
@@ -203,12 +199,10 @@ export default function AdminButtons({
         const newTrailId = newTrail.trailId;
 
         for (let i = 0; i < poiArr.length; i++) {
-          // add each POI to the DB
           const point = poiArr[i];
           point.trailId = newTrailId;
           const newPOI = await addPOIToTrail(point, token);
 
-          // add each POI to the new trail
           newTrail.PointsOfInterests?.push(newPOI);
         }
       }
@@ -222,7 +216,6 @@ export default function AdminButtons({
       setIsLoading(false);
       setError("");
     } catch (err: any) {
-      console.log(err);
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -231,7 +224,6 @@ export default function AdminButtons({
     }
   };
 
-  // route (only from POI screen?)
   useEffect(() => {
     if (!route.params?.status && !route.params?.errMsg) {
       return;
@@ -246,7 +238,6 @@ export default function AdminButtons({
     }
   }, [route]);
 
-  // save trails
   useEffect(() => {
     if (!gotTrailData) return;
 
@@ -260,14 +251,6 @@ export default function AdminButtons({
 
     setGotTrailData(null);
   }, [gotTrailData]);
-
-  useEffect(() => {
-    async function inner() {
-      const serviceInUse = await isUpdatingLocations();
-      console.log({ addingTrail: isAddingTrail, isRecording, serviceInUse });
-    }
-    inner();
-  }, [isAddingTrail, isRecording]);
 
   if (!isAuthenticated) {
     return null;

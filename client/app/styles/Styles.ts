@@ -1,6 +1,11 @@
 //This is a Global StyleSheet.
-//It holds the main styling aspects for consistant styling.
-import { StyleSheet, Dimensions, Platform, useWindowDimensions } from "react-native";
+//It holds the main styling aspects for consistent styling.
+import {
+  StyleSheet,
+  Dimensions,
+  Platform,
+  useWindowDimensions,
+} from "react-native";
 
 const styles = StyleSheet.create({
   btnContainer: {
@@ -55,15 +60,14 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width,
   },
 
-  mapKey: {  
+  mapKey: {
     width: Dimensions.get("window").width,
-    height: Platform.OS ==="ios"? 125 : 110,
-
+    height: Platform.OS === "ios" ? 125 : 110,
   },
 
   mapKeyContainer: {
     position: "absolute",
-    top: Platform.OS === "ios" ? /** IOS*/ 0 : /**Android */ 0, 
+    top: Platform.OS === "ios" ? /** IOS*/ 0 : /**Android */ 0,
   },
 
   msg: {
