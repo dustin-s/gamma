@@ -1,6 +1,5 @@
 import { POIObj } from "../../interfaces/POIObj";
 import { TrailData } from "../../interfaces/TrailData";
-import { printTrailWithoutCoords } from "../../utils/testingHelpers";
 import { ActionMap, TrailActions } from "./actions";
 import { LocationActions } from "./locationReducer";
 import { POIActions } from "./poiReducer";
@@ -66,11 +65,4 @@ function updateTrailPOI(prevTrail: TrailData, poi: POIObj) {
   curTrail.PointsOfInterests = [...newPOIs];
 
   return curTrail;
-}
-
-function hasPoiId(curTrail: TrailData, poiId: number | null) {
-  return (
-    curTrail.PointsOfInterests &&
-    curTrail.PointsOfInterests.some((p) => p.pointsOfInterestId === poiId)
-  );
 }
