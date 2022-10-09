@@ -24,7 +24,6 @@ exports.saveTrailValidator = [
     .optional()
     .isString()
     .trim()
-    .escape()
     .custom(async (value) => {
       const trail = await Trail.findAll({ where: { name: value } });
       if (trail.length > 0) {
@@ -34,8 +33,7 @@ exports.saveTrailValidator = [
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("difficulty", "Invalid selection for difficulty")
     .exists()
     .withMessage("Difficulty field is required")
@@ -104,8 +102,7 @@ exports.saveTrailValidator = [
   body("POI.*.description", "Invalid data type, must be a string")
     .exists()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("POI.*.files")
     .exists()
     .custom((value) => {
@@ -169,7 +166,6 @@ exports.updateTrailValidator = [
     .optional()
     .isString()
     .trim()
-    .escape()
     .custom(async (value, { req }) => {
       const trail = await Trail.findAll({ where: { name: value } });
       if (trail.length > 0) {
@@ -183,8 +179,7 @@ exports.updateTrailValidator = [
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("difficulty", "Invalid selection for difficulty")
     .optional()
     .trim()

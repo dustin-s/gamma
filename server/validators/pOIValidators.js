@@ -34,8 +34,7 @@ exports.addPOIValidator = [
   body("description", "Invalid data type, must be a string")
     .exists()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("files")
     .exists()
     .custom((value) => {
@@ -100,8 +99,7 @@ exports.updatePOIValidator = [
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("files")
     .optional()
     .custom((value) => {
