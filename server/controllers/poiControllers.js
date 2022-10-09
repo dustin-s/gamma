@@ -27,7 +27,6 @@ const { getImageLinks, removeImage } = require("../utils/images");
  *    speed {float}
  */
 exports.addPOI = async (req, res, next) => {
-  // console.log("req.body", req.body);
   const controller = "addPOI";
 
   try {
@@ -40,17 +39,14 @@ exports.addPOI = async (req, res, next) => {
       res.status(400).json({ error: validationErrors(errors.array()) });
       return;
     }
-    // make POI to save
     const body = req.body;
     body.image = await getImageLinks(body.trailId, body.files, "POI");
 
-    // save POI to DB
     const poi = await PointsOfInterest.create(body);
     if (!poi) {
       throw new Error("No points of interest created.");
     }
 
-    console.log("\nadd POI Success\n", poi.toJSON());
     logger.debug(poi.toJSON(), {
       controller,
       errorMsg: "add POI Success",
@@ -58,8 +54,6 @@ exports.addPOI = async (req, res, next) => {
 
     res.status(201).json(poi.toJSON());
   } catch (err) {
-    console.log("\ncatch error:");
-    console.log(err);
     logger.error(err, {
       controller,
       errorMsg: "catch error",
@@ -87,13 +81,11 @@ exports.updatePOI = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log(errors);
       logger.error(errors.array(), {
         controller,
         errorMsg: "validation error",
       });
       res.status(400).json({ error: validationErrors(errors.array()) });
-      // res.status(400).json({ error: errors.array() });
       return;
     }
 
@@ -117,10 +109,8 @@ exports.updatePOI = async (req, res, next) => {
       }
     }
 
-    // console.log("newPOI:\n", newPOI);
     await poi.update(newPOI);
 
-    console.log("\nupdate POI Success\n", poi.toJSON());
     logger.debug(poi.toJSON(), {
       controller,
       errorMsg: "update POI Success",
@@ -128,7 +118,6 @@ exports.updatePOI = async (req, res, next) => {
 
     res.status(200).json(poi.toJSON());
   } catch (err) {
-    console.log(err);
     logger.error(err, {
       controller,
       errorMsg: "catch error",

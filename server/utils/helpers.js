@@ -38,8 +38,6 @@ exports.checkLengthOfObjectArrays = (body, objectName) => {
  * @returns {object[]} an array of objects
  */
 exports.makeObjectArray = (body, objectName) => {
-  // console.log("****** makeObjectArray Start ******");
-
   try {
     const newObjArr = [];
 
@@ -47,11 +45,9 @@ exports.makeObjectArray = (body, objectName) => {
       const properties = key.split("_");
 
       if (properties[0] === objectName) {
-        properties.shift(); // remove the current objectName
-        let newProp = properties.join("_"); // rejoin the property name with removed underscores
+        properties.shift();
+        let newProp = properties.join("_");
 
-        // if the value is an array, add multiple objects, otherwise just add 1
-        // also ensure that if the object already exists, add to it, otherwise, create it.
         if (Array.isArray(value)) {
           value.forEach((val, index) => {
             newObjArr[index]
@@ -66,8 +62,6 @@ exports.makeObjectArray = (body, objectName) => {
       }
     }
 
-    // console.log("newObjArr:", newObjArr);
-    // console.log("****** makeObjectArray End ******");
     return newObjArr;
   } catch (err) {
     console.log(err);

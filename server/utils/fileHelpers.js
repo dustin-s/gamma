@@ -43,8 +43,6 @@ exports.deleteDir = async (path) => {
     await fs.promises.rm(path, { recursive: true, force: true });
     return true;
   } catch (err) {
-    console.log("deleteDir catch error:");
-    console.log(err);
     throw new Error(err);
   }
 };

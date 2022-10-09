@@ -9,7 +9,6 @@ const {
 } = require("../utils/helpers");
 
 exports.saveTrailValidator = [
-  // Trail validation
   body("createdBy", "Invalid data type, must be an integer")
     .isInt()
     .bail()
@@ -45,7 +44,6 @@ exports.saveTrailValidator = [
     .isBoolean()
     .toBoolean(),
 
-  // Trail Points validation
   body()
     .custom((value) => {
       return checkLengthOfObjectArrays(value, "TrailCoords");
@@ -80,8 +78,6 @@ exports.saveTrailValidator = [
     .isFloat()
     .toFloat(),
 
-  // Points of Interest validation
-  // This adds the files and then creates an array of POI objects back in to the req.body so the POI object can be validated normally
   body()
     .custom((value, { req }) => {
       const files = req.files.POI_image;
@@ -89,7 +85,6 @@ exports.saveTrailValidator = [
         value.POI_files = files;
       }
 
-      // Check to ensure all existing arrays are of the same length
       return checkLengthOfObjectArrays(value, "POI");
     })
     .withMessage("POI arrays must be the same length")
@@ -106,7 +101,6 @@ exports.saveTrailValidator = [
   body("POI.*.files")
     .exists()
     .custom((value) => {
-      // check valid mime types
       const mimetypeArr = value.mimetype.split("/");
 
       return (
