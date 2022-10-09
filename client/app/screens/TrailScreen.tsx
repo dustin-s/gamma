@@ -2,15 +2,11 @@ import { useState, useEffect } from "react";
 import { useTrailContext } from "../hooks/useTrailContext";
 import { useAuthentication } from "../hooks/useAuthentication";
 
-// helpers/styles
 import { getTrails } from "../utils/fetchHelpers";
 import styles from "../styles/Styles";
 
-// Components
 import MapView from "react-native-maps";
-
 import { ActivityIndicator, Text, View } from "react-native";
-
 import MapButton from "../components/MapButton";
 import SaveTrailModal from "../components/SaveTrailModal";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,15 +15,11 @@ import AdminButtons from "../components/AdminButtons";
 import ShowTrails from "../components/ShowTrails";
 import TrailKey from "../components/TrailKey";
 
-// Types/Interfaces
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 import { TrailData } from "../interfaces/TrailData";
 import { SubmitTrailData } from "../interfaces/SaveTrailData";
 
-// Constants
 import { CAMP_ALLEN_COORDS } from "../utils/constants";
-
-const IS_TEST = false;
 
 type TrailScreenProps = StackNativeScreenProps<"Trail Screen">;
 
@@ -36,17 +28,10 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
 
   const { isAuthenticated, userId, setFGStatus } = useAuthentication();
 
-  const {
-    trailId,
-    trailList,
-    poiArr, // only used in console.log button
-    trailDispatch,
-    TrailActions,
-  } = useTrailContext();
+  const { trailId, trailList, trailDispatch, TrailActions } = useTrailContext();
 
   const [gotTrailData, setGotTrailData] = useState<SubmitTrailData>(null);
 
-  // Display options
   const [modalVisible, setModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -127,55 +112,6 @@ export default function TrailScreen({ navigation, route }: TrailScreenProps) {
               }`
             : `Select a trail to get started.`}
         </Text>
-
-        {/* Debug buttons */}
-        {IS_TEST && (
-          <View style={styles.btnContainer}>
-            <MapButton
-              label="console.log(data)"
-              backgroundColor="orange"
-              handlePress={() => {
-                console.log("*************");
-                console.log("userId: ", userId);
-                console.log("trailId:", trailId);
-                console.log("trailList.length:", trailList?.length || "null");
-                console.log("poiArr.length", poiArr.length);
-                !trailId ? (
-                  <>
-                    {console.log("trails")}
-                    {trailList?.map((trail) =>
-                      console.log(
-                        `${trail.trailId}\t${trail.difficulty}\t${
-                          trail.difficulty !== "moderate" ? "\t" : ""
-                        }${trail.name}`
-                      )
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {console.log("POIs")}
-                    {trailList
-                      .filter((trail) => trail.trailId === trailId)[0]
-                      .PointsOfInterests?.map((poi) =>
-                        console.log(
-                          `${poi.pointsOfInterestId}\t${poi.isActive}\t${poi.description}`
-                        )
-                      )}
-                  </>
-                );
-              }}
-            />
-            <MapButton
-              label="refresh"
-              backgroundColor="orange"
-              handlePress={() => {
-                setError("");
-                setGotTrailData("Cancel");
-                fetchTrails();
-              }}
-            />
-          </View>
-        )}
 
         <View style={styles.btnContainer}>
           {trailId && (

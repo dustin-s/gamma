@@ -23,7 +23,6 @@ export default function SlideSelector({
   onSelect,
   data,
 }: SlideSelectorProps) {
-  // render item
   const renderItem = (item: DataItem, key: number) => {
     const value = item?.value ?? item.label;
     const isSelected = value === selected;

@@ -1,4 +1,3 @@
-import { TrailCoords } from "../interfaces/TrailCoords";
 import { TrailData } from "../interfaces/TrailData";
 
 type PrintTrail = Omit<TrailData, "TrailCoords">;

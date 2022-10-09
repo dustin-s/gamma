@@ -1,31 +1,24 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
-// Components
 import { Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
 import styles from "../styles/Styles";
 
-// Hooks
 import useFetch from "../hooks/useFetch";
 import { AuthContext } from "../contexts/authContext";
 
-// Types
 import { User } from "../interfaces/User";
 import { checkFGStatus } from "../utils/permissionHelpers";
 type Props = StackNativeScreenProps<"Admin">;
 
 export default function AdminLogin({ navigation }: Props) {
-  // const [statusFG, requestFGPermission] = Location.useForegroundPermissions();
-  // form controls
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Auth stuff...
   const { setAuth } = useContext(AuthContext);
 
-  // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
 
   async function handleSignIn() {
@@ -44,7 +37,7 @@ export default function AdminLogin({ navigation }: Props) {
 
   const dealWithData = async () => {
     if (data) {
-      let fgStatus = await checkFGStatus(); // use as model for bgStatus
+      let fgStatus = await checkFGStatus();
 
       setAuth({
         isAuthenticated: true,
@@ -52,7 +45,6 @@ export default function AdminLogin({ navigation }: Props) {
         fgPermissions: fgStatus,
       });
 
-      // returns to calling screen
       navigation.goBack();
     }
   };

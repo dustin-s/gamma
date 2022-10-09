@@ -31,7 +31,6 @@ const styles = StyleSheet.create({
     padding: 10,
   },
 
-  //Foreground container on TrailScreen
   fgContainer: {
     alignItems: "center",
     bottom: 40,
@@ -67,7 +66,7 @@ const styles = StyleSheet.create({
 
   mapKeyContainer: {
     position: "absolute",
-    top: Platform.OS === "ios" ? /** IOS*/ 0 : /**Android */ 0,
+    top: Platform.OS === "ios" ? 0 : 0,
   },
 
   msg: {

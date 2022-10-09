@@ -73,16 +73,12 @@ export const changeToFormData = async (
  * @returns the POI object that was successfully uploaded
  */
 export const addPOIToTrail = async (newPOI: POIObj, token: string) => {
-  // console.log("*** Add POI to Trail function ***");
-
   const newData: Record<string, string> = {};
   Object.entries(newPOI).forEach(([key, value]) => {
     if (value) {
       newData[key] = value.toString();
     }
   });
-
-  // console.log("newData:", newData, "newData.trailId", newData.trailId);
 
   return imageUpload(newData, token, "trails/addPOI/");
 };
@@ -100,23 +96,17 @@ export const updatePOI = async (
   oldPOI: POIObj,
   token: string
 ) => {
-  console.log("*** Update POI function ***");
   if (!newPOI.pointsOfInterestId) {
     throw Error("missing newPOI.pointsOfInterestId when it is expected");
   }
 
-  console.log("*** Get changedData ***");
   try {
     const changedData = await difference(newPOI, oldPOI);
     changedData["pointsOfInterestId"] = newPOI.pointsOfInterestId.toString();
 
-    console.log("changedData:", JSON.stringify(changedData, null, 2));
-
     if (changedData.image) {
-      console.log("do image upload");
       return imageUpload(changedData, token, "trails/updatePOI/");
     } else {
-      console.log("do regular upload");
       return noImageUpload(changedData, token, "trails/updatePOI/");
     }
   } catch (e: any) {
@@ -138,8 +128,6 @@ const noImageUpload = async (
   token: string,
   url: string
 ) => {
-  // console.log("*** noImageUpload ***");
-
   try {
     const formData = await changeToFormData(data);
 
@@ -159,7 +147,7 @@ const noImageUpload = async (
     if (responseData.error) {
       throw Error(responseData.error);
     }
-    // we only need to check if there is an error - we will refetch data in main object.
+
     return responseData as POIObj;
   } catch (error: any) {
     throw Error(error);
@@ -182,10 +170,7 @@ const imageUpload = async (
   token: string,
   url: string
 ) => {
-  console.log("*** imageUpload ***");
-
   const { image } = data;
-  console.log({ image });
   if (!image) {
     throw Error("missing image to upload");
   }
@@ -203,27 +188,16 @@ const imageUpload = async (
     parameters: data,
   };
 
-  console.log({ options });
   try {
     const response = await uploadAsync(BASE_API + url, image, options);
 
-    // console.log(
-    //   `status: ${response.status}\nheader:\n${JSON.stringify(
-    //     response.headers,
-    //     null,
-    //     2
-    //   )}\nbody:\n${response.body}`
-    // );
-
     const data = JSON.parse(response.body);
     if (data.error) {
-      console.log("data.error");
       throw Error(data.error);
     } else {
       return data as POIObj;
     }
   } catch (err: any) {
-    console.log(err);
     throw Error(err.message);
   }
 };

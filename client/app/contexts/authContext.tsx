@@ -1,4 +1,4 @@
-// stolen from: https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/context
+// referenced from: https://react-typescript-cheatsheet.netlify.app/docs/basic/getting-started/context
 import React from "react";
 import { User } from "../interfaces/User";
 
@@ -24,7 +24,7 @@ export function createCtx<A>(defaultValue: A) {
     return <ctx.Provider value={{ auth, setAuth }} {...props} />;
   }
 
-  return [ctx, Provider] as const; // alternatively, [typeof ctx, typeof Provider]
+  return [ctx, Provider] as const;
 }
 
 export const [ctx, AuthProvider] = createCtx<Authentication>({

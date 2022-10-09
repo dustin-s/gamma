@@ -16,7 +16,6 @@ export const trailIdReducer = (
 ) => {
   switch (action.type) {
     case TrailActions.SetTrailId:
-      // console.log("Set Trail Id:", action.payload);
       return (state = action.payload);
     default:
       return state;

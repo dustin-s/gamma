@@ -2,7 +2,6 @@ import { useContext } from "react";
 import { initialStateType, TrailContext } from "../contexts/TrailContext";
 import { TrailActions } from "../contexts/TrailContext/actions";
 
-// this is mainly being used to spread the TrailContext
 export const useTrailContext = () => {
   const context = useContext(TrailContext);
 

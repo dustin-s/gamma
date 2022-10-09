@@ -26,7 +26,6 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
   const [isClosed, setIsClosed] = useState(false);
 
   const resetModal = () => {
-    // reset modal's states
     setName("");
     setDescription("");
     setDifficulty("easy");
@@ -41,7 +40,6 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
         {
           text: "No",
           style: "cancel",
-          // not resetting values here - they may want to reuse them.
         },
         {
           text: "Yes",
@@ -64,7 +62,6 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
 
     submitTrail(saveData);
 
-    // reset variables after successful save
     resetModal();
   };
 
@@ -221,7 +218,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   txtInput: {
-    // this will cause the input to fill the entire space use "marginEnd" to limit its size
     flexGrow: 1,
     borderWidth: 1,
     fontSize: 20,

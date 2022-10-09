@@ -25,8 +25,12 @@ interface TrailStatusMarkersProps {
 export default function TrailStatusMarkers({
   trailInfo,
 }: TrailStatusMarkersProps) {
-  // find the halfway point of the trail for the placement of the marker
-  // step through each point of the trail and find its distance from the origin (adding along the way). Once the current point is beyond the 1/2 way mark, then find the distance between return where, between those 2 points the halfway mark is.
+  /** Find the halfway point of the trail for the placement of the marker. Then
+   *  step through each point of the trail and find its distance from the origin
+   *  (adding along the way). Once the current point is beyond the 1/2 way mark,
+   *  then find the distance between return where, between those 2 points the
+   *  halfway mark is.
+   */
   const getPlacement = (): LatLng => {
     const trailPts = getCoords(trailInfo);
     const endDist = trailInfo.distance / 2;
@@ -59,7 +63,6 @@ export default function TrailStatusMarkers({
   return (
     <Marker coordinate={getPlacement()}>
       <View>
-        {/* add appropriate images on top of the distance bubble -- this will keep the bubble centered on the marker's location */}
         <View style={styles.container}>
           {trailInfo.isClosed && (
             <Image
@@ -76,7 +79,6 @@ export default function TrailStatusMarkers({
             />
           )}
         </View>
-        {/* show the distance bubble */}
         <View style={styles.bubble}>
           <Text style={styles.label}>{trailInfo.distance.toFixed(2)}</Text>
         </View>
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
   arrowBorder: {
     backgroundColor: "transparent",
     borderColor: "transparent",
-    borderTopColor: TEXT_COLOR, //"#007a87",
+    borderTopColor: TEXT_COLOR,
     borderWidth: 8,
     alignSelf: "center",
     marginTop: -0.5,

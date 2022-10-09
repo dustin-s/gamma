@@ -57,8 +57,7 @@ export default function AdminButtons({
   // Define the task passing its name and a callback that will be called whenever the location changes
   TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }) => {
     if (error) {
-      console.error("TaskManager.defineTask error:");
-      console.error(error);
+      setError(error.message);
       return;
     }
     const curData = data as any;
@@ -66,8 +65,6 @@ export default function AdminButtons({
     const location: LocationObject[] = curData.locations as LocationObject[];
     const curLoc = location[location.length - 1];
     if (isRecording) {
-      console.log(curLoc.coords);
-
       trailDispatch({
         type: TrailActions.AddLocation,
         payload: curLoc.coords,
@@ -84,7 +81,7 @@ export default function AdminButtons({
         accuracy: Location.Accuracy.Highest,
         distanceInterval: 1, // minimum change (in meters) betweens updates
         deferredUpdatesInterval: 1000, // minimum interval (in milliseconds) between updates
-        // foregroundService is how you get the task to be updated as often as would be if the app was open
+
         foregroundService: {
           notificationTitle: "Using your location",
           notificationBody:
@@ -92,7 +89,6 @@ export default function AdminButtons({
         },
       });
 
-      // ensure trailId is not set
       trailDispatch({ type: TrailActions.SetTrailId, payload: null });
       setIsRecording(true);
     } else {
@@ -138,7 +134,6 @@ export default function AdminButtons({
 
   const currentLocation = async () => {
     if (isAddingTrail) {
-      // return the current location on the trail
       return locationArr[locationArr.length - 1];
     } else {
       const curLoc = await Location.getCurrentPositionAsync();

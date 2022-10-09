@@ -9,7 +9,6 @@ interface ShowCameraProps {
 
 function ShowCamera({ label, setTakenImagePath }: ShowCameraProps) {
   const takePicture = async () => {
-    // Ask the user for the permission to access the camera
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
