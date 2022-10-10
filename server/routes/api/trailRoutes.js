@@ -35,6 +35,5 @@ router.post(
   updatePOIValidator,
   updatePOI
 );
-// post "/:trailID/add_hazard"
 
 module.exports = router;

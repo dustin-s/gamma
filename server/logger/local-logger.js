@@ -1,4 +1,4 @@
-const { createLogger, format, transports } = require("winston");
+const { format, transports } = require("winston");
 const { colorize, combine, errors, printf, timestamp } = format;
 
 const myFormat = printf(({ level, message, stack, timestamp }) => {

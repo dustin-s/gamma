@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { initialStateType, TrailContext } from "../contexts/TrailContext";
+import { TrailActions } from "../contexts/TrailContext/actions";
 
-// this is mainly being used to spread the TrailContext
 export const useTrailContext = () => {
   const context = useContext(TrailContext);
 
@@ -12,7 +12,6 @@ export const useTrailContext = () => {
     );
   }
 
-  // destructure the context so we can use the values directly, TS doesn't let us just spread the state.
   const { trailId, trailList, locationArr, poiArr }: initialStateType =
     context.trailState;
 
@@ -22,5 +21,6 @@ export const useTrailContext = () => {
     locationArr,
     poiArr,
     trailDispatch: context.trailDispatch,
+    TrailActions,
   };
 };

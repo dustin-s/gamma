@@ -1,4 +1,5 @@
-import { useContext, useEffect, useState } from "react";
+import { LocationObjectCoords } from "expo-location";
+import { useEffect, useState } from "react";
 import {
   Alert,
   ImageBackground,
@@ -10,125 +11,194 @@ import {
 } from "react-native";
 import MapButton from "../components/MapButton";
 import ShowCamera from "../components/ShowCamera";
+import { useAuthentication } from "../hooks/useAuthentication";
+import { useTrailContext } from "../hooks/useTrailContext";
 import { POIObj } from "../interfaces/POIObj";
 
 // Types:
-import { StackNativeScreenProps } from "../interfaces/StackParamList";
-import { AuthContext } from "../contexts/authContext";
+import {
+  StackNativeScreenProps,
+  SaveTrailStates,
+} from "../interfaces/StackParamList";
 import { BASE_URL } from "../utils/constants";
+import { addPOIToTrail, updatePOI } from "../utils/fetchHelpers";
 
 type POIScreenProps = StackNativeScreenProps<"Point of Interest">;
+interface SaveTrailStatus {
+  status: SaveTrailStates;
+  errMsg?: string;
+}
 
-/**
- * 
- * @param param0 - This parameter should a StackNativeScreenProps and contain a navigation and route 
- * @returns React Native view for Point of Interest Screen
- */
 export default function PointOfInterest({ navigation, route }: POIScreenProps) {
-  const curLoc = route.params?.currentLocation ?? {
-    latitude: 0,
-    longitude: 0,
-    altitude: null,
-    accuracy: null,
-    altitudeAccuracy: null,
-    heading: null,
-    speed: null,
-  };
-  const poiObj: POIObj = route.params?.poi ?? {
-    trailId: route.params?.trailId ? route.params.trailId : null,
-    pointsOfInterestId: null,
-    description: null,
-    image: null,
-    isActive: true,
-    ...curLoc,
-  };
+  const { isAuthenticated, getToken } = useAuthentication();
+  const { trailDispatch, TrailActions } = useTrailContext();
 
-  // add the base URL to the image - don't change/use the poiObj.image after this.
-  const originalImage = poiObj.image ? BASE_URL + poiObj.image : null;
+  const [origPOI, setOrigPOI] = useState<POIObj | null>(null);
+  const [curLoc, setCurLoc] = useState<LocationObjectCoords | null>(null);
+  const [trailId, setTrailId] = useState<number | null>(null);
 
-  const { auth } = useContext(AuthContext);
-  const [image, setImage] = useState(originalImage); // stores the URI for the image
-  const [editDesc, setEditDesc] = useState(poiObj.description === null);
-  const [description, setDescription] = useState(poiObj.description);
+  const [image, setImage] = useState<string | null>(null); // stores the URI for the image
+  const [editDesc, setEditDesc] = useState(true);
+  const [description, setDescription] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
-  const [isDirty, setIsDirty] = useState({
-    photoChanged: originalImage === null,
-    descChanged: poiObj.description === null,
-    isActiveChanged: false,
-  });
+
+  const [isDirty, setIsDirty] = useState(false);
+
+  const getOriginalImage = (origPoi: POIObj | null) =>
+    origPoi ? BASE_URL + origPoi.image : null;
 
   const handleCancelImage = () => {
-    setImage(originalImage);
+    const setTo = origPOI ? getOriginalImage(origPOI) : null;
+    setImage(setTo);
   };
 
   const handleCancelDesc = () => {
-    setDescription(poiObj.description);
-    setEditDesc(poiObj.description === null);
+    setDescription(origPOI?.description || null);
+    setEditDesc(true);
   };
 
-  // Check Dirty
+  const isPhotoDirty = () =>
+    origPOI ? image !== getOriginalImage(origPOI) : image !== null;
+
   const checkIsDirty = () => {
-    return (
-      isDirty.photoChanged || isDirty.descChanged || isDirty.isActiveChanged
-    );
+    const img = isPhotoDirty();
+    const desc = description !== origPOI?.description;
+    const active = isActive !== origPOI?.isActive;
+
+    return { img, desc, active };
   };
 
-  const handleSave = () => {
-    console.log("********** handleSave **********");
-
-    if (!auth.isAuthenticated || !checkIsDirty()) {
-      console.log(`navigation.navigate("Trail Screen")`);
-      navigation.navigate("Trail Screen");
-      return;
-    }
-
-    console.log("Else...");
-    // save...
+  const saveErrorMessages = () => {
     const errMsg: string[] = [];
-    const newPOI: POIObj = { ...poiObj };
-
-    // update the object and error check that required fields exist
-    if (image) {
-      if (isDirty.photoChanged) {
-        newPOI.image = image;
-      }
-    } else {
+    if (!image) {
       errMsg.push("An image is required");
     }
-    if (description) {
-      if (isDirty.descChanged) {
-        newPOI.description = description;
-      }
-    } else {
+    if (!description) {
       errMsg.push("Please add a description");
     }
-    newPOI.isActive = isActive;
-
     if (errMsg.length > 0) {
-      Alert.alert(errMsg.join("\n"));
-    } else {
+      return Alert.alert(errMsg.join("\n"));
+    }
+    return errMsg.length;
+  };
+
+  const handleCancel = () =>
+    navigation.navigate({
+      name: "Trail Screen",
+      params: { status: "cancel", errMsg: "" },
+      merge: true,
+    });
+
+  const handleSave = async () => {
+    if (!isAuthenticated || !isDirty) {
+      navigation.navigate("Trail Screen");
+      return;
+    } else if (saveErrorMessages() === 0) {
+      const { status, errMsg } = await saveTrail();
       navigation.navigate({
         name: "Trail Screen",
-        params: { newPOI },
+        params: { status, errMsg },
         merge: true,
       });
     }
   };
 
-  useEffect(() => {
-    const newIsDirty = {
-      photoChanged: originalImage !== image || image === null,
-      descChanged: poiObj.description !== description,
-      isActiveChanged: poiObj.isActive !== isActive,
-    };
+  async function saveTrail(): Promise<SaveTrailStatus> {
+    let status: SaveTrailStates = "unsaved";
 
-    setIsDirty(newIsDirty);
+    try {
+      const token = getToken();
+
+      if (origPOI) {
+        const img = checkIsDirty().img ? image : origPOI?.image;
+        const updatedPOI: POIObj = {
+          ...origPOI,
+          description: description,
+          image: img,
+          isActive: isActive,
+        };
+
+        if (!updatedPOI.trailId) {
+          trailDispatch({
+            type: TrailActions.AddPOI,
+            payload: updatedPOI,
+          });
+        } else {
+          const updatedPOIObj = await updatePOI(updatedPOI, origPOI, token);
+
+          trailDispatch({
+            type: TrailActions.UpdateTrailsPOI,
+            payload: updatedPOIObj,
+          });
+        }
+        return { status: "saved" };
+      }
+
+      if (!curLoc) {
+        throw Error("No current location for newPOI being added");
+      }
+
+      const newPOI: POIObj = {
+        trailId: trailId,
+        pointsOfInterestId: null,
+        description: description,
+        image: image,
+        isActive: isActive,
+        ...curLoc,
+      };
+
+      if (trailId) {
+        const addedPOI = await addPOIToTrail(newPOI, token);
+
+        trailDispatch({
+          type: TrailActions.UpdateTrailsPOI,
+          payload: addedPOI,
+        });
+      } else {
+        trailDispatch({ type: TrailActions.AddPOI, payload: newPOI });
+      }
+
+      return { status: "added" };
+    } catch (err) {
+      let errMsg: string = "Add POI: ";
+      if (err instanceof Error) {
+        errMsg += err.message;
+      } else {
+        errMsg += String(err);
+      }
+      return { status, errMsg };
+    }
+  }
+
+  useEffect(() => {
+    const { img, desc, active } = checkIsDirty();
+
+    setIsDirty(img || desc || active);
   }, [image, description, isActive]);
+
+  useEffect(() => {
+    let rpCurLoc = route.params.currentLocation;
+    if (rpCurLoc) {
+      setCurLoc(rpCurLoc);
+    }
+
+    if (route.params.trailId) {
+      setTrailId(route.params.trailId);
+    }
+    if (route.params.poi) {
+      let origPOI = { ...route.params.poi };
+      setOrigPOI(origPOI);
+      setImage(getOriginalImage(origPOI));
+      setEditDesc(false);
+      setDescription(origPOI.description);
+      setIsActive(origPOI.isActive);
+    }
+  }, []);
 
   return (
     <View style={[styles.container]}>
       {/* do the editDesc here so it is at the top of the page... It will be easier for the user to enter data. If they want to see the image, they will just need to close the keyboard. */}
-      {editDesc && (
+      {isAuthenticated && editDesc && (
         <View style={[styles.textContainer]}>
           <TextInput
             style={styles.textInput}
@@ -157,9 +227,9 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         source={{ uri: image ? image : "https://" }}
         style={styles.image}
       >
-        {auth.isAuthenticated && (
+        {isAuthenticated && (
           <View style={styles.imageButtonContainer}>
-            {isDirty.photoChanged && image && (
+            {checkIsDirty().img && image && (
               <MapButton
                 label="Cancel Photo"
                 backgroundColor="blue"
@@ -170,7 +240,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
             <ShowCamera
               label={
                 image
-                  ? isDirty.photoChanged
+                  ? checkIsDirty().img
                     ? "Retake Photo"
                     : "Update Photo"
                   : "Add Photo"
@@ -184,7 +254,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
       {!editDesc && (
         <View style={styles.textContainer}>
           <Text style={styles.text}>{description}</Text>
-          {auth.isAuthenticated && (
+          {isAuthenticated && (
             <View style={styles.button}>
               <MapButton
                 label="Edit"
@@ -196,7 +266,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         </View>
       )}
 
-      {auth.isAuthenticated && (
+      {isAuthenticated && (
         <View style={styles.controlGroup}>
           <Text style={styles.label}>Active?</Text>
           <Switch
@@ -209,7 +279,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
         </View>
       )}
 
-      {!checkIsDirty() ? (
+      {!isDirty ? (
         <View style={styles.buttonContainer}>
           <MapButton
             label="Close"
@@ -222,13 +292,7 @@ export default function PointOfInterest({ navigation, route }: POIScreenProps) {
           <MapButton
             label="Cancel"
             backgroundColor="red"
-            handlePress={() => {
-              navigation.navigate({
-                name: "Trail Screen",
-                params: { newPOI: "Cancel" },
-                merge: true,
-              });
-            }}
+            handlePress={handleCancel}
           />
           <MapButton
             label="Save and Close"

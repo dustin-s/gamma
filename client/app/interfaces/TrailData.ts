@@ -14,5 +14,4 @@ export interface TrailData {
   updatedAt: Date;
   TrailCoords: TrailCoords[];
   PointsOfInterests?: POIObj[];
-  // hazards: HazardObj[];
 }

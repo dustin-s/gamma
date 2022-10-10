@@ -1,4 +1,4 @@
-import React, { SetStateAction } from "react";
+import { SetStateAction } from "react";
 import * as ImagePicker from "expo-image-picker";
 import MapButton from "./MapButton";
 
@@ -9,7 +9,6 @@ interface ShowCameraProps {
 
 function ShowCamera({ label, setTakenImagePath }: ShowCameraProps) {
   const takePicture = async () => {
-    // Ask the user for the permission to access the camera
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (permissionResult.granted === false) {
@@ -19,12 +18,8 @@ function ShowCamera({ label, setTakenImagePath }: ShowCameraProps) {
 
     const result = await ImagePicker.launchCameraAsync();
 
-    // Explore the result
-    console.log(result);
-
     if (!result.cancelled) {
       setTakenImagePath(result.uri);
-      console.log(result.uri);
     }
   };
 

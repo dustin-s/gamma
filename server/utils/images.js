@@ -24,11 +24,9 @@ const { ensureDirExists, getFileName } = require("./fileHelpers");
 
 exports.getImageLinks = async (trailId, file, type) => {
   try {
-    // ensure filesystem exists for save
     const path = `${SAVE_DIRECTORY}${trailId}/${type}/`;
     const fullPath = "public/" + path;
 
-    // console.log("getImageLinks: path", path);
     await ensureDirExists(fullPath);
 
     const { buffer, originalname } = file;
@@ -40,7 +38,6 @@ exports.getImageLinks = async (trailId, file, type) => {
       .jpeg({ quality })
       .toFile(fullPath + link)
       .catch((err) => {
-        console.log(err);
         logger.error(err, {
           controller: "getImageLinks",
           errorMsg: "getImageLinks Sharp Error writing file",
@@ -48,10 +45,8 @@ exports.getImageLinks = async (trailId, file, type) => {
         throw new Error(err);
       });
 
-    // console.log("getImageLinks: link", link);
     return path + link;
   } catch (err) {
-    console.log(err);
     logger.error(err, {
       controller: "getImageLinks",
       errorMsg: "catch error",
@@ -68,7 +63,6 @@ exports.removeImage = (path) => {
   try {
     fs.unlinkSync(path);
   } catch (err) {
-    console.log(err);
     logger.error(err, {
       controller: "removeImage",
       errorMsg: "catch error",

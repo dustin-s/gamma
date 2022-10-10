@@ -18,10 +18,8 @@ export const locationReducer = (
 ) => {
   switch (action.type) {
     case TrailActions.ClearLocations:
-      // console.log("Clear Locations");
       return (state = []);
     case TrailActions.AddLocation:
-      // console.log("Add Locations");
       return [...state, action.payload];
     default:
       return state;

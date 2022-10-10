@@ -1,13 +1,13 @@
-/** 
+/**
  * based off of https://medium.com/swlh/react-context-with-usereducer-and-typescript-1b7bd9a1c15
- * 
+ *
  * how this works: each state item will have its type declared in the
  * initialStateType and its default state in initialState
  * each state item will then get its own reducer (in a
  * separate file). The actions for the reducers will be
  * declared in the actions.ts file. These will then be
  * pulled in to the mainReducer function.
- * 
+ *
  * Note: if all of the states are not declared in the
  * mainReducer function, it will cause errors in the
  * Provider -> useReducer function.
@@ -57,7 +57,9 @@ const mainReducer = (
   poiArr: poiReducer(poiArr, action),
 });
 
-const TrailContextProvider: FC = ({ children }) => {
+const TrailContextProvider: FC = ({
+  children,
+}: React.PropsWithChildren<{}>) => {
   const [trailState, trailDispatch] = useReducer(mainReducer, initialState);
 
   return (

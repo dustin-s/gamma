@@ -5,4 +5,4 @@ export interface SaveTrailData {
   isClosed: boolean;
 }
 
-export type SubmitTrailData = SaveTrailData | "Cancel" | "Closed" | undefined;
+export type SubmitTrailData = SaveTrailData | "Cancel" | "Closed" | null;

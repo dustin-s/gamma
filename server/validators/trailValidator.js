@@ -9,7 +9,6 @@ const {
 } = require("../utils/helpers");
 
 exports.saveTrailValidator = [
-  // Trail validation
   body("createdBy", "Invalid data type, must be an integer")
     .isInt()
     .bail()
@@ -24,7 +23,6 @@ exports.saveTrailValidator = [
     .optional()
     .isString()
     .trim()
-    .escape()
     .custom(async (value) => {
       const trail = await Trail.findAll({ where: { name: value } });
       if (trail.length > 0) {
@@ -34,8 +32,7 @@ exports.saveTrailValidator = [
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("difficulty", "Invalid selection for difficulty")
     .exists()
     .withMessage("Difficulty field is required")
@@ -47,7 +44,6 @@ exports.saveTrailValidator = [
     .isBoolean()
     .toBoolean(),
 
-  // Trail Points validation
   body()
     .custom((value) => {
       return checkLengthOfObjectArrays(value, "TrailCoords");
@@ -82,8 +78,6 @@ exports.saveTrailValidator = [
     .isFloat()
     .toFloat(),
 
-  // Points of Interest validation
-  // This adds the files and then creates an array of POI objects back in to the req.body so the POI object can be validated normally
   body()
     .custom((value, { req }) => {
       const files = req.files.POI_image;
@@ -91,7 +85,6 @@ exports.saveTrailValidator = [
         value.POI_files = files;
       }
 
-      // Check to ensure all existing arrays are of the same length
       return checkLengthOfObjectArrays(value, "POI");
     })
     .withMessage("POI arrays must be the same length")
@@ -104,12 +97,10 @@ exports.saveTrailValidator = [
   body("POI.*.description", "Invalid data type, must be a string")
     .exists()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("POI.*.files")
     .exists()
     .custom((value) => {
-      // check valid mime types
       const mimetypeArr = value.mimetype.split("/");
 
       return (
@@ -169,7 +160,6 @@ exports.updateTrailValidator = [
     .optional()
     .isString()
     .trim()
-    .escape()
     .custom(async (value, { req }) => {
       const trail = await Trail.findAll({ where: { name: value } });
       if (trail.length > 0) {
@@ -183,8 +173,7 @@ exports.updateTrailValidator = [
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("difficulty", "Invalid selection for difficulty")
     .optional()
     .trim()

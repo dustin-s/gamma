@@ -1,5 +1,4 @@
-import { SetStateAction, useEffect } from "react";
-import { LocationObjectCoords } from "expo-location";
+import { SetStateAction } from "react";
 import { TrailData } from "../interfaces/TrailData";
 
 import { Polyline } from "react-native-maps";
@@ -9,19 +8,15 @@ import TrailStatusMarkers from "./TrailStatusMarkers";
 import { getColor, getCoords } from "../utils/mapFunctions";
 import POIMarker from "./POIMarker";
 import { useTrailContext } from "../hooks/useTrailContext";
+import { useAuthentication } from "../hooks/useAuthentication";
 
 interface ShowTrailsProps {
-  locationArr: LocationObjectCoords[];
-  trailId: number | null;
   setTrailId(value: SetStateAction<number | null>): void;
 }
 
-export default function ShowTrails({
-  locationArr,
-  trailId,
-  setTrailId,
-}: ShowTrailsProps) {
-  const { trailList } = useTrailContext();
+export default function ShowTrails({ setTrailId }: ShowTrailsProps) {
+  const { isAuthenticated } = useAuthentication();
+  const { trailList, locationArr, trailId } = useTrailContext();
 
   const renderTrails = () => {
     if (trailId === null && locationArr.length > 0) {
@@ -36,6 +31,10 @@ export default function ShowTrails({
       const trailInfo = trailList.filter(
         (el: TrailData) => el.trailId === trailId
       )[0];
+      const poiList =
+        trailInfo.PointsOfInterests?.filter((poi) =>
+          isAuthenticated ? poi : poi.isActive
+        ) || null;
 
       return (
         <View>
@@ -44,22 +43,14 @@ export default function ShowTrails({
             strokeColor={getColor(trailInfo.difficulty)}
             strokeWidth={6}
           />
-          {trailInfo.PointsOfInterests &&
-            trailInfo.PointsOfInterests.map((poi) => (
+          {poiList &&
+            poiList.map((poi) => (
               <POIMarker poi={poi} key={poi.pointsOfInterestId} />
             ))}
         </View>
       );
     } else if (trailList) {
       return trailList.map((trailInfo) => {
-        const activePOI = [];
-        if (trailInfo.PointsOfInterests) {
-          trailInfo.PointsOfInterests.map((poi) => {
-            if (poi.isActive) {
-              activePOI.push(poi);
-            }
-          });
-        }
         return (
           <View key={trailInfo.trailId}>
             <Polyline

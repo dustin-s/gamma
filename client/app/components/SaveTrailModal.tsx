@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -26,7 +26,6 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
   const [isClosed, setIsClosed] = useState(false);
 
   const resetModal = () => {
-    // reset modal's states
     setName("");
     setDescription("");
     setDifficulty("easy");
@@ -34,17 +33,13 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
   };
 
   const handleCancel = () => {
-    console.log("cancel was pressed on the modal");
-
     return Alert.alert(
       "Cancel",
       "Are you sure you want to cancel? This will delete your current trail data.",
       [
         {
           text: "No",
-          onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
-          // not resetting values here - they may want to reuse them.
         },
         {
           text: "Yes",
@@ -58,18 +53,15 @@ const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
   };
 
   const handleSubmit = () => {
-    console.log("SaveTrailModal handleSubmit: reached");
     const saveData = {
       name,
       description,
       difficulty,
       isClosed,
     };
-    console.log(saveData);
 
     submitTrail(saveData);
 
-    // reset variables after successful save
     resetModal();
   };
 
@@ -226,7 +218,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   txtInput: {
-    // this will cause the input to fill the entire space use "marginEnd" to limit its size
     flexGrow: 1,
     borderWidth: 1,
     fontSize: 20,

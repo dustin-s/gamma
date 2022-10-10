@@ -7,13 +7,11 @@ const { VALID_IMAGE_TYPES } = require("../config/imageUpload");
 const { PointsOfInterest, Trail } = require("../models");
 
 exports.addPOIValidator = [
-  // Points of Interest validation
   body().custom((value, { req }) => {
     logger.debug("raw body: " + JSON.stringify(req.body, null, 2), {
       controller: "addPOIValidator",
       errorMsg: "body.custom",
     });
-    // Add the files back in to the req.body so that they can be treated normally in validation
     const files = req.files.image;
     if (files) {
       value.files = files[0];
@@ -34,12 +32,10 @@ exports.addPOIValidator = [
   body("description", "Invalid data type, must be a string")
     .exists()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("files")
     .exists()
     .custom((value) => {
-      // check valid mime types
       const mimetypeArr = value.mimetype.split("/");
 
       return (
@@ -67,13 +63,11 @@ exports.addPOIValidator = [
 ];
 
 exports.updatePOIValidator = [
-  // Points of Interest validation
   body().custom((value, { req }) => {
     logger.debug("raw body: " + JSON.stringify(req.body, null, 2), {
       controller: "updatePOIValidator",
       errorMsg: "body.custom",
     });
-    // Add the files back in to the req.body so that they can be treated normally in validation
     const files = req.files.image;
     if (files) {
       value.files = files[0];
@@ -88,24 +82,19 @@ exports.updatePOIValidator = [
     .bail()
     .custom(async (value) => {
       const poi = await PointsOfInterest.findByPk(value);
-      console.log("***** Check if POI exists");
       if (!poi) {
-        console.log("****** POI doesn't exists");
         throw new Error("pointsOfInterestId doesn't exist");
       }
-      console.log("****** POI exists");
       return true;
     }),
   // optional fields
   body("description", "Invalid data type, must be a string")
     .optional()
     .isString()
-    .trim()
-    .escape(),
+    .trim(),
   body("files")
     .optional()
     .custom((value) => {
-      // check valid mime types
       const mimetypeArr = value.mimetype.split("/");
 
       return (

@@ -13,8 +13,6 @@ exports.distance = (lat1, lon1, lat2, lon2) => {
   // 60 nautical miles to one degree, a nautical mile is 1.1515 statute miles
   dist = dist * 60 * 1.1515;
 
-  // console.log("\nlat1 = ", lat1, "\nlon1 = ", lon1, "\nlat2 = ", lat2, "\nlon2 = ", lon2, "\ntheta = ", theta, "\ndist = ", dist);
-
   return dist;
 };
 

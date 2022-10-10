@@ -4,10 +4,17 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { LocationObjectCoords } from "expo-location";
 import { POIObj } from "./POIObj";
 
+export type SaveTrailStates = "saved" | "added" | "cancel" | "unsaved";
+
 export type StackParamList = {
   Home: undefined;
   Admin: undefined;
-  "Trail Screen": { newPOI?: POIObj | "Cancel" } | undefined;
+  "Trail Screen":
+    | {
+        status?: SaveTrailStates;
+        errMsg?: string;
+      }
+    | undefined;
   "Update Password": undefined;
   "Point of Interest": {
     poi?: POIObj;
