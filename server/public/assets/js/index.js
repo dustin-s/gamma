@@ -5,7 +5,6 @@ const btnTrails = document.querySelector("#trails");
 btnTrails.addEventListener("click", showTrails);
 
 function showTrails() {
-  console.log("\nShow Trails:\n\n");
   const requestUrl = BASE_API + "trails";
 
   fetch(requestUrl)

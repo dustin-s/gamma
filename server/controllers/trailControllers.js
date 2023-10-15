@@ -63,16 +63,11 @@ exports.listTrails = async (req, res, next) => {
  *
  */
 exports.saveTrail = async (req, res, next) => {
-  // console.log("************ Main Function ************");
-  // console.log("req.body:\n", req.body, "\n****");
-
   const controller = "saveTrail";
 
   try {
-    // handle validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log(errors);
       logger.error(errors.array(), {
         controller,
         errorMsg: "validation error",
@@ -92,8 +87,6 @@ exports.saveTrail = async (req, res, next) => {
       TrailCoords: body.TrailCoords,
     };
 
-    // clean coords? remove duplicates... check for backtracking?
-
     let dist = 0;
     for (let i = 0; i < newTrail.TrailCoords.length - 1; i++) {
       const a = newTrail.TrailCoords[i];
@@ -103,9 +96,6 @@ exports.saveTrail = async (req, res, next) => {
     }
     newTrail.distance = dist;
 
-    // console.log("\nnewTrail:\n", newTrail, "\n\ndistance:", dist, "\n");
-
-    // create the new trail
     const trail = await Trail.create(newTrail, {
       include: [Trail.TrailCoords, PointsOfInterest],
     });
@@ -113,11 +103,8 @@ exports.saveTrail = async (req, res, next) => {
       throw new Error("No trail created.");
     }
 
-    // Make Point of Interest array
-    // images will be stored at /public/images/<Trail ID>/<POI || Hazard>/
     if (body.POI) {
       for (const point of body.POI) {
-        // const link = getImageLinks(trail.trailId, point.files, "POI");
         point.trailId = trail.trailId;
         point.image = await getImageLinks(trail.trailId, point.files, "POI");
       }
@@ -127,7 +114,6 @@ exports.saveTrail = async (req, res, next) => {
         throw new Error("No points of interest created.");
       }
 
-      // repopulate trail with the POIs
       await trail.reload();
     }
 
@@ -137,10 +123,8 @@ exports.saveTrail = async (req, res, next) => {
       user: req.user.userId,
     });
 
-    next();
+    res.status(201).json(trail.toJSON());
   } catch (err) {
-    console.log("\ncatch error:");
-    console.log(err);
     logger.error(err, {
       controller,
       errorMsg: "catch error",
@@ -167,11 +151,9 @@ exports.updateTrail = async (req, res, next) => {
   const controller = "updateTrail";
 
   try {
-    // handle validation errors
     const { userId, trailId } = req.body;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      console.log(errors);
       logger.error(errors.array(), {
         controller,
         errorMsg: "validation error",
@@ -196,16 +178,14 @@ exports.updateTrail = async (req, res, next) => {
 
     await trail.update(newTrailData);
 
-    console.log("\nupdate trail success\n", trail.toJSON());
     logger.info(trail.toJSON(), {
       controller,
       msg: "Update trail success",
       user: req.user.userId,
     });
-    next();
+
+    res.status(201).json(trail.toJSON());
   } catch (err) {
-    console.log("\ncatch error:");
-    console.log(err);
     logger.error(err, {
       controller,
       errorMsg: "catch error",
@@ -223,11 +203,8 @@ exports.updateTrail = async (req, res, next) => {
 exports.deleteTrail = async (req, res, next) => {
   const controller = "deleteTrail";
   const { trailId } = req.params;
-  console.log(trailId);
 
   try {
-    console.log(req.user);
-
     const trail = await Trail.findByPk(trailId);
     if (!trail) {
       throw new Error(`Trail ID: ${trailId} could not be retrieved`);
@@ -263,8 +240,6 @@ exports.deleteTrail = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.log("\ncatch error:");
-    console.log(err);
     logger.error(err, {
       controller,
       errorMsg: "catch error",

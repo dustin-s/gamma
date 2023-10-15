@@ -1,4 +1,4 @@
-import React, { SetStateAction, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -9,22 +9,15 @@ import {
   Switch,
   Alert,
 } from "react-native";
-import { SaveTrailData } from "../interfaces/SaveTrailData";
+import { SubmitTrailData } from "../interfaces/SaveTrailData";
 import SlideSelector from "./SlideSelector";
 
 interface SaveTrailModalProps {
   modalVisible: boolean;
-  setModalVisible(value: SetStateAction<boolean>): void;
-  saveTrail({}: SaveTrailData): void;
-  doCancel(): void;
+  submitTrail(value: SubmitTrailData): void;
 }
 
-const SaveTrailModal = ({
-  modalVisible,
-  setModalVisible,
-  saveTrail,
-  doCancel,
-}: SaveTrailModalProps) => {
+const SaveTrailModal = ({ modalVisible, submitTrail }: SaveTrailModalProps) => {
   const [name, setName] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [difficulty, setDifficulty] = useState<"easy" | "moderate" | "hard">(
@@ -32,39 +25,27 @@ const SaveTrailModal = ({
   );
   const [isClosed, setIsClosed] = useState(false);
 
-  useEffect(() => {
-    if (modalVisible) {
-      console.log("\nModal visible");
-      console.log(`name: ${name}`);
-      console.log(`description: ${description}`);
-      console.log(`difficulty: ${difficulty}`);
-      console.log(`isClosed: ${isClosed}`);
-    }
-  }, [modalVisible]);
+  const resetModal = () => {
+    setName("");
+    setDescription("");
+    setDifficulty("easy");
+    setIsClosed(false);
+  };
 
   const handleCancel = () => {
-    console.log("cancel was pressed on the modal");
-    // do warning modal
-    // doCancel();
-
     return Alert.alert(
       "Cancel",
       "Are you sure you want to cancel? This will delete your current trail data.",
       [
         {
           text: "No",
-          onPress: () => console.log("Cancel Pressed"),
           style: "cancel",
         },
         {
           text: "Yes",
           onPress: () => {
-            // reset modal's states
-            setName("");
-            setDescription("");
-            setDifficulty("easy");
-
-            doCancel();
+            resetModal();
+            submitTrail("Cancel");
           },
         },
       ]
@@ -72,17 +53,16 @@ const SaveTrailModal = ({
   };
 
   const handleSubmit = () => {
-    console.log("SaveTrailModal handleSubmit: reached");
     const saveData = {
       name,
       description,
       difficulty,
       isClosed,
     };
-    console.log(saveData);
 
-    saveTrail(saveData);
-    setModalVisible(!modalVisible);
+    submitTrail(saveData);
+
+    resetModal();
   };
 
   return (
@@ -92,7 +72,7 @@ const SaveTrailModal = ({
         transparent={true}
         visible={modalVisible}
         onRequestClose={() => {
-          setModalVisible(!modalVisible);
+          submitTrail("Closed");
         }}
       >
         <View style={styles.centeredView}>
@@ -101,7 +81,7 @@ const SaveTrailModal = ({
               <Text style={styles.headerLabel}>Save Trail</Text>
               <Pressable
                 style={styles.closeBtn}
-                onPress={() => setModalVisible(!modalVisible)}
+                onPress={() => submitTrail("Closed")}
               >
                 <Text style={styles.closeBtnText}>X</Text>
               </Pressable>
@@ -131,8 +111,8 @@ const SaveTrailModal = ({
                 data={[
                   {
                     label: "Easy",
-                    colorSelected: "green",
-                    colorNotSelected: "lightgreen",
+                    colorSelected: "#004C00",
+                    colorNotSelected: "green",
                     textColorSelected: "black",
                     value: "easy",
                   },
@@ -154,20 +134,6 @@ const SaveTrailModal = ({
                 onSelect={setDifficulty}
                 selected={difficulty}
               />
-              {/* <Text style={styles.label}>Difficulty</Text>
-              <TextInput
-                style={styles.txtInput}
-                placeholder={difficulty}
-                value={difficulty}
-                onChangeText={(value) => {
-                  if (
-                    value === "easy" ||
-                    value === "moderate" ||
-                    value === "hard"
-                  )
-                    setDifficulty(value);
-                }}
-              /> */}
             </View>
             <View style={styles.controlGroup}>
               <Text style={styles.label}>Closed?</Text>
@@ -252,7 +218,6 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   txtInput: {
-    // this will cause the input to fill the entire space use "marginEnd" to limit its size
     flexGrow: 1,
     borderWidth: 1,
     fontSize: 20,

@@ -37,7 +37,7 @@ interface genericObj {
 }
 
 // determines if the information being passed is an array or an object and then calls the correct function to returns the correct value type.
-export const guardDataType = <T = unknown,>(data: any) => {
+export const guardDataType = <T = unknown>(data: any) => {
   if (!data) {
     return data;
   }
@@ -49,11 +49,10 @@ export const guardDataType = <T = unknown,>(data: any) => {
   }
 };
 
-const guardObj = <T = unknown,>(data: any) => {
+const guardObj = <T = unknown>(data: any) => {
   const cleanObj: genericObj = {};
 
   for (const [key, value] of Object.entries(data)) {
-    // console.log(key, value);
     switch (true) {
       case NUMBER_FIELDS.includes(key):
         cleanObj[key] = Number(value);
@@ -77,7 +76,7 @@ const guardObj = <T = unknown,>(data: any) => {
   return cleanObj as T;
 };
 
-const guardArr = <T = unknown,>(data: any) => {
+const guardArr = <T = unknown>(data: any) => {
   const cleanArr = data.map((detail: any) => guardObj(detail));
 
   return cleanArr as T;

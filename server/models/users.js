@@ -16,7 +16,6 @@ class User extends Model {
 
 User.init(
   {
-    // Model attributes are defined here
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -66,32 +65,18 @@ User.init(
       beforeCreate: async (newUserData) => {
         newUserData.password = await bcrypt.hash(newUserData.password, 10);
 
-        // update lastPwdUpdate
         newUserData.lastPwdUpdate = new Date();
 
         return newUserData;
       },
       beforeUpdate: async (userData) => {
-        // update password only if password changed
         if (
           userData.dataValues.password != userData._previousDataValues.password
         ) {
-          // console.log(
-          //   "\nHook: beforeUpdate: Password updated\nuserData(.dataValues):\n",
-          //   userData.toJSON(),
-          //   "\n\nNew password: ",
-          //   userData.dataValues.password,
-          //   "\nPrevious password: ",
-          //   userData._previousDataValues.password,
-          //   "\n"
-          // );
-
           userData.password = await bcrypt.hash(userData.password, 10);
 
-          // update lastPwdUpdate
           userData.lastPwdUpdate = new Date();
 
-          // reset requestPwdReset
           userData.requestPwdReset = false;
         }
         return userData;

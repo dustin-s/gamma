@@ -3,7 +3,6 @@ const sequelize = require("../config/connection");
 
 class TrailCoords extends Model {}
 
-// this will store the "coords" part of the location object
 TrailCoords.init(
   {
     accuracy: {

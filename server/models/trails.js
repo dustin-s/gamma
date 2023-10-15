@@ -36,7 +36,6 @@ Trail.init(
       type: DataTypes.INTEGER,
       comment: "This needs to be a valid user ID",
     },
-    // createdAt and updatedAt timestamps are created by default by sequelize
     isClosed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

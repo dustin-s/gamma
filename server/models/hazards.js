@@ -25,8 +25,6 @@ Hazards.init(
       type: DataTypes.BOOLEAN,
       defaultValue: true,
     },
-    // createdAt is the time it was found
-    // editedAt is the time it was removed
 
     // location
     accuracy: {

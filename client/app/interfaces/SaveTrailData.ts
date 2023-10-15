@@ -4,3 +4,5 @@ export interface SaveTrailData {
   difficulty: "easy" | "moderate" | "hard";
   isClosed: boolean;
 }
+
+export type SubmitTrailData = SaveTrailData | "Cancel" | "Closed" | null;

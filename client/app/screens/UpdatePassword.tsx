@@ -1,45 +1,34 @@
 import { useState, useEffect, useContext } from "react";
 import { StackNativeScreenProps } from "../interfaces/StackParamList";
 
-// Components
-import {
-  Text,
-  View,
-  TextInput,
-} from "react-native";
+import { Text, View, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapButton from "../components/MapButton";
-import styles from "../components/Styles";
+import styles from "../styles/Styles";
 
-// Hooks
 import useFetch from "../hooks/useFetch";
-import { AuthContext } from "../utils/authContext";
+import { AuthContext } from "../contexts/authContext";
 
-// Types
 import { User } from "../interfaces/User";
 type Props = StackNativeScreenProps<"Update Password">;
 
 export default function UpdatePassword({ navigation }: Props) {
-  // form controls
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Auth stuff...
   const { auth, setAuth } = useContext(AuthContext);
 
-  // fetch information
   const { fetchData, data, error, loading } = useFetch<User>();
 
-  //Confirm and update password
   async function handleUpdatePassword() {
-      const updatePassword = {
-        userId : auth.userData?.user.userId,
-        oldPassword : password,
-        newPassword,
-        confirmPassword,
-      }
-    if (newPassword === confirmPassword ){  
+    const updatePassword = {
+      userId: auth.userData?.user.userId,
+      oldPassword: password,
+      newPassword,
+      confirmPassword,
+    };
+    if (newPassword === confirmPassword) {
       const options = {
         method: "POST",
         headers: {
@@ -47,31 +36,37 @@ export default function UpdatePassword({ navigation }: Props) {
           "Content-Type": "application/json",
           "Cache-control": "no-cache",
         },
-      body: JSON.stringify(updatePassword),
+        body: JSON.stringify(updatePassword),
       };
       const url = "users/update";
-      fetchData({ url, options }); 
-    } else {alert("Passwords do not match, please try again.")};
-  };
+      fetchData({ url, options });
+    } else {
+      alert("Passwords do not match, please try again.");
+    }
+  }
 
-  // unmount error solution: https://stackoverflow.com/questions/58038008/how-to-stop-memory-leak-in-useeffect-hook-react
-  useEffect (() => {
-
+  useEffect(() => {
     let unmounted = false;
     if (!data) return;
 
     setAuth({
+      ...auth,
       isAuthenticated: true,
       userData: data,
     });
 
-    // returns to calling screen
     navigation.goBack();
 
     return () => {
       unmounted = true;
     };
   }, [data]);
+
+  function logout() {
+    setAuth({ ...auth, isAuthenticated: false, userData: null });
+
+    navigation.goBack();
+  }
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.msg}>Maps can only be edited by Administers.</Text>
@@ -105,7 +100,7 @@ export default function UpdatePassword({ navigation }: Props) {
           onChangeText={(value) => setNewPassword(value)}
           secureTextEntry
         />
-      </View> 
+      </View>
       <View style={styles.controlGroup}>
         <Text style={styles.unPw}>Confirm Password</Text>
         <TextInput
@@ -118,18 +113,28 @@ export default function UpdatePassword({ navigation }: Props) {
           secureTextEntry
         />
       </View>
-      <View style = {styles.btnContainer}>
+      <View style={styles.btnContainer}>
         <MapButton
-          label ={"Summit"}
-          backgroundColor = {"#f1b265"}
-          handlePress = {() => handleUpdatePassword ()}
+          label={"Submit"}
+          backgroundColor={"#f1b265"}
+          handlePress={() => handleUpdatePassword()}
         />
       </View>
+      <View style={styles.btnContainer}>
+        <MapButton
+          label={"Logout"}
+          backgroundColor={"#750023"}
+          handlePress={() => logout()}
+        />
+      </View>
+
       {loading && <Text>Loading...</Text>}
       {error && (
         <>
           <Text style={styles.errText}>Error:</Text>
-          <Text style={styles.errText}>{error}</Text>
+          <Text style={styles.errText}>
+            {typeof error === "string" ? error : error.message}
+          </Text>
         </>
       )}
     </SafeAreaView>
